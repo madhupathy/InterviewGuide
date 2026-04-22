@@ -363,30 +363,63 @@ pages['ds-hashmap'] = () => `
 </div>
 
 <div class="diagram">
-  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" style="font-size:11px;font-family:'DM Mono',monospace">
-    <text x="10" y="20" fill="#7a7065">hashCode("foo") → 101574 → index = 101574 & 15 = 6</text>
-    <!-- Array/buckets -->
-    <rect x="10" y="30" width="50" height="130" rx="4" fill="#f7f5f0" stroke="#e2ddd6" stroke-width="1"/>
-    <text x="35" y="50" text-anchor="middle" fill="#7a7065">0</text>
-    <text x="35" y="70" text-anchor="middle" fill="#7a7065">1</text>
-    <text x="35" y="90" text-anchor="middle" fill="#7a7065">2</text>
-    <text x="35" y="110" text-anchor="middle" fill="#7a7065" font-weight="700" fill="#2563eb">6</text>
-    <text x="35" y="130" text-anchor="middle" fill="#7a7065">7</text>
-    <text x="35" y="150" text-anchor="middle" fill="#7a7065">...</text>
-    <text x="35" y="16" text-anchor="middle" fill="#7a7065" font-size="9">buckets</text>
-    <!-- Linked list at bucket 6 -->
-    <rect x="80" y="100" width="80" height="30" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
-    <text x="120" y="112" text-anchor="middle" fill="#1e40af">"foo"→1</text>
-    <text x="120" y="122" text-anchor="middle" fill="#1e40af" font-size="9">Entry node</text>
-    <rect x="190" y="100" width="80" height="30" rx="4" fill="#eff6ff" stroke="#2563eb" stroke-width="1"/>
-    <text x="230" y="112" text-anchor="middle" fill="#1e40af">"baz"→9</text>
-    <text x="230" y="122" text-anchor="middle" fill="#1e40af" font-size="9">collision chain</text>
-    <text x="380" y="115" fill="#7a7065">≥8 in bucket → TreeNode</text>
-    <text x="380" y="130" fill="#059669">(Red-Black Tree, O(log n))</text>
-    <line x1="60" y1="110" x2="80" y2="115" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arr4)"/>
-    <line x1="160" y1="115" x2="190" y2="115" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr4)"/>
-    <defs><marker id="arr4" markerWidth="5" markerHeight="5" refX="3" refY="3" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#94a3b8"/></marker></defs>
-  </svg>
+  <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:620px;font-family:'DM Sans',sans-serif;font-size:12px;display:block;margin:0 auto">
+  <!-- Title -->
+  <text x="10" y="18" font-size="13" font-weight="700" fill="#374151">HashMap: Array of Buckets + Linked List (chaining)</text>
+  
+  <!-- Array buckets -->
+  <rect x="30" y="35" width="60" height="30" rx="4" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="60" y="55" text-anchor="middle" font-weight="600" fill="#4338ca">[0]</text>
+  
+  <rect x="30" y="70" width="60" height="30" rx="4" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="60" y="90" text-anchor="middle" font-weight="600" fill="#4338ca">[1]</text>
+  
+  <rect x="30" y="105" width="60" height="30" rx="4" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="60" y="125" text-anchor="middle" font-weight="600" fill="#15803d">[2]</text>
+  
+  <rect x="30" y="140" width="60" height="30" rx="4" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="60" y="160" text-anchor="middle" font-weight="600" fill="#4338ca">[3]</text>
+
+  <!-- Bucket 0 chain -->
+  <line x1="90" y1="50" x2="130" y2="50" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#hm-ar)"/>
+  <rect x="130" y="35" width="110" height="30" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="185" y="55" text-anchor="middle" font-size="11" fill="#92400e">"foo" → 42</text>
+
+  <!-- Bucket 1 → null -->
+  <line x1="90" y1="85" x2="130" y2="85" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4"/>
+  <text x="140" y="89" font-size="11" fill="#9ca3af">null</text>
+
+  <!-- Bucket 2 chain (collision!) -->
+  <line x1="90" y1="120" x2="130" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#hm-ar)"/>
+  <rect x="130" y="105" width="110" height="30" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="185" y="125" text-anchor="middle" font-size="11" fill="#166534">"bar" → 7</text>
+  
+  <line x1="240" y1="120" x2="270" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#hm-ar)"/>
+  <rect x="270" y="105" width="110" height="30" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="325" y="125" text-anchor="middle" font-size="11" fill="#166534">"baz" → 99</text>
+  
+  <!-- Collision label -->
+  <text x="265" y="150" text-anchor="middle" font-size="10" fill="#dc2626" font-weight="600">← collision! same bucket</text>
+
+  <!-- Bucket 3 chain -->
+  <line x1="90" y1="155" x2="130" y2="155" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#hm-ar)"/>
+  <rect x="130" y="140" width="110" height="30" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="185" y="160" text-anchor="middle" font-size="11" fill="#92400e">"qux" → 3</text>
+
+  <!-- Explanation -->
+  <text x="420" y="50" font-size="12" fill="#374151" font-weight="600">How it works:</text>
+  <text x="420" y="70" font-size="11" fill="#6b7280">1. hash("bar") % 4 = 2</text>
+  <text x="420" y="88" font-size="11" fill="#6b7280">2. hash("baz") % 4 = 2 (collision!)</text>
+  <text x="420" y="106" font-size="11" fill="#6b7280">3. "baz" chains after "bar"</text>
+  <text x="420" y="130" font-size="12" fill="#374151" font-weight="600">Java 8+ (treeify):</text>
+  <text x="420" y="148" font-size="11" fill="#6b7280">Bucket > 8 entries →</text>
+  <text x="420" y="166" font-size="11" fill="#6b7280">linked list → red-black tree</text>
+  <text x="420" y="184" font-size="11" fill="#6b7280">O(n) → O(log n) lookup</text>
+
+  <defs>
+    <marker id="hm-ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94a3b8"/></marker>
+  </defs>
+</svg>
 </div>
 
 <div class="section-title">HashMap Variants</div>

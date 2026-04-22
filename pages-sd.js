@@ -156,7 +156,7 @@ GET    /search?q=...        { query, cursor } → tweets[]</pre></div>
 </div>
 
 <div class="diagram">
-  <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:'DM Sans',sans-serif;font-size:12px;display:block;margin:0 auto">
+  <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:'DM Sans',sans-serif;font-size:12px;display:block;margin:0 auto">
   <defs>
     <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#64748b"/></marker>
     <marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/></marker>
@@ -229,12 +229,6 @@ GET    /search?q=...        { query, cursor } → tweets[]</pre></div>
   <text x="727" y="151" text-anchor="middle" font-size="11" font-weight="600" fill="#64748b">Workers</text>
 
   <!-- Labels at bottom -->
-  <text x="50" y="175" text-anchor="middle" font-size="10" fill="#94a3b8">Users</text>
-  <text x="160" y="175" text-anchor="middle" font-size="10" fill="#94a3b8">Edge</text>
-  <text x="255" y="175" text-anchor="middle" font-size="10" fill="#94a3b8">Traffic</text>
-  <text x="380" y="175" text-anchor="middle" font-size="10" fill="#94a3b8">Auth/Route</text>
-  <text x="495" y="195" text-anchor="middle" font-size="10" fill="#94a3b8">Microservices</text>
-  <text x="630" y="205" text-anchor="middle" font-size="10" fill="#94a3b8">Storage/Async</text>
 </svg>
 </div>
 
@@ -760,6 +754,78 @@ pages['sd-building'] = () => `
   <div class="callout callout-amber">
     <strong>Eviction policies:</strong> LRU (most common), LFU (frequency-based), TTL (time-based expiry), FIFO. <strong>Cache stampede</strong> fix: mutex lock on miss, probabilistic early expiry, or background refresh.
   </div>
+
+  <h2 class="section-title" style="margin-top:20px">Redis — In-Memory Data Store</h2>
+  <table class="data-table">
+    <tr><th>Feature</th><th>Details</th></tr>
+    <tr><td><strong>Data structures</strong></td><td>String, Hash, List, Set, Sorted Set, Stream, HyperLogLog, Bitmap</td></tr>
+    <tr><td><strong>Persistence</strong></td><td>RDB (point-in-time snapshot) + AOF (append-only log) — can combine both for safety + speed</td></tr>
+    <tr><td><strong>Performance</strong></td><td>~100K ops/sec single node. Sub-millisecond latency. Single-threaded event loop (no lock contention)</td></tr>
+    <tr><td><strong>High availability</strong></td><td>Redis Sentinel (auto-failover) or Redis Cluster (auto-sharding + failover)</td></tr>
+    <tr><td><strong>Pub/Sub</strong></td><td>Built-in publish/subscribe for real-time messaging</td></tr>
+    <tr><td><strong>TTL</strong></td><td>Per-key expiration — set TTL on any key, auto-deleted when expired</td></tr>
+  </table>
+
+  <div class="accordion">
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion(this)">Redis Architecture — Sentinel vs Cluster <span class="accordion-arrow">▼</span></div>
+      <div class="accordion-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px">
+          <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:14px">
+            <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:8px">Redis Sentinel</div>
+            <div style="font-size:13px;line-height:1.9;color:#374151">
+              • 1 primary + N replicas<br>
+              • Sentinel monitors and auto-promotes replica on failure<br>
+              • All data on every node (no sharding)<br>
+              • Good for: HA with moderate data (&lt;25GB)
+            </div>
+          </div>
+          <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px">
+            <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:8px">Redis Cluster</div>
+            <div style="font-size:13px;line-height:1.9;color:#374151">
+              • Data sharded across 16,384 hash slots<br>
+              • Each shard = primary + replica(s)<br>
+              • Client routes to correct shard by key hash<br>
+              • Good for: large datasets, horizontal scale
+            </div>
+          </div>
+        </div>
+        <div class="code-block"><pre><span class="cm">// Cache-aside pattern with Redis (Java + Jedis)</span>
+String cacheKey = <span class="str">"user:"</span> + userId;
+String cached = redis.get(cacheKey);
+<span class="kw">if</span> (cached != null) <span class="kw">return</span> deserialize(cached);  <span class="cm">// cache hit</span>
+
+User user = db.findById(userId);                   <span class="cm">// cache miss → DB</span>
+redis.setex(cacheKey, <span class="num">3600</span>, serialize(user));      <span class="cm">// write to cache, TTL 1hr</span>
+<span class="kw">return</span> user;
+
+<span class="cm">// Cache invalidation on write</span>
+<span class="kw">void</span> updateUser(User user) {
+  db.save(user);
+  redis.del(<span class="str">"user:"</span> + user.getId());  <span class="cm">// delete cache → next read rebuilds</span>
+}
+
+<span class="cm">// Cache stampede prevention — Redis distributed lock</span>
+<span class="kw">if</span> (redis.set(lockKey, <span class="str">"1"</span>, <span class="str">"NX"</span>, <span class="str">"EX"</span>, <span class="num">10</span>)) {
+  <span class="cm">// only one thread rebuilds cache, others wait/retry</span>
+  result = db.findById(userId);
+  redis.setex(cacheKey, <span class="num">3600</span>, serialize(result));
+  redis.del(lockKey);
+}</pre></div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion(this)">When NOT to cache <span class="accordion-arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="callout callout-amber">
+          <strong>Don't cache when:</strong> Data changes on every read (real-time stock prices). Data is never re-read (one-time tokens). Cache hit rate would be &lt;50% (random access patterns). Data size exceeds memory budget. Consistency requirements are strict (financial transactions — cache invalidation delay = wrong balance).
+        </div>
+        <div class="callout callout-blue">
+          <strong>Cache invalidation is the hard problem.</strong> Strategies: 1) TTL-based (simple, eventual consistency). 2) Event-driven (DB change → Kafka → invalidate cache). 3) Write-through (cache always fresh but slower writes). 4) Cache-aside + short TTL (most common in practice).
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="block-databases" class="block-section" style="display:none">
@@ -979,6 +1045,37 @@ key = user_id + "_" + random(0, 100)  // 100 sub-shards
 
 <div id="block-replication" class="block-section" style="display:none">
   <h2 class="section-title">Replication</h2>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0">
+    <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:8px">Single Leader</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;line-height:2;color:#374151">
+        Client → <strong>Leader</strong><br>
+        Leader → Replica 1<br>
+        Leader → Replica 2<br>
+        <span style="color:#6b7280">Reads from any</span>
+      </div>
+    </div>
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:8px">Multi-Leader</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;line-height:2;color:#374151">
+        DC1 <strong>Leader</strong> ↔ DC2 <strong>Leader</strong><br>
+        Each accepts writes<br>
+        Sync between DCs<br>
+        <span style="color:#6b7280">Conflict resolution needed</span>
+      </div>
+    </div>
+    <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-weight:700;font-size:14px;color:#c2410c;margin-bottom:8px">Leaderless</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;line-height:2;color:#374151">
+        Client → Node 1 ✅<br>
+        Client → Node 2 ✅<br>
+        Client → Node 3 ❌<br>
+        <span style="color:#6b7280">W=2, R=2 → quorum</span>
+      </div>
+    </div>
+  </div>
+
   <table class="data-table">
     <tr><th>Type</th><th>How</th><th>Pros</th><th>Cons</th><th>Use case</th></tr>
     <tr><td><strong>Single Leader</strong></td><td>Writes to leader, async replicated to followers</td><td>Simple, strong consistency on reads from leader</td><td>Leader bottleneck, failover lag</td><td>Most RDBs (MySQL, Postgres)</td></tr>
@@ -1156,6 +1253,32 @@ EXPLAIN SELECT * FROM orders WHERE user_id=5 AND created_at > '2024-01-01';
 -- Does NOT support: WHERE b=2 (skips leftmost column a)</pre></div>
       </div>
     </div>
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion(this)">B-Tree vs LSM-Tree — the storage engine trade-off <span class="accordion-arrow">▼</span></div>
+      <div class="accordion-body">
+        <table class="data-table">
+          <tr><th></th><th>B-Tree (Postgres, MySQL InnoDB)</th><th>LSM-Tree (Cassandra, RocksDB, LevelDB)</th></tr>
+          <tr><td><strong>Write</strong></td><td>In-place update on disk page</td><td>Sequential append to memtable → flush to SSTable</td></tr>
+          <tr><td><strong>Read</strong></td><td>Fast — traverse tree O(log n)</td><td>Slower — may check multiple SSTables + bloom filter</td></tr>
+          <tr><td><strong>Write amplification</strong></td><td>Higher — random I/O</td><td>Lower — sequential I/O, batch compaction</td></tr>
+          <tr><td><strong>Space amplification</strong></td><td>Lower — one copy</td><td>Higher — multiple copies during compaction</td></tr>
+          <tr><td><strong>Best for</strong></td><td>Read-heavy OLTP (most web apps)</td><td>Write-heavy workloads (time-series, IoT, logs)</td></tr>
+        </table>
+        <div class="callout callout-blue"><strong>Rule of thumb:</strong> B-Tree = default (PostgreSQL, MySQL). LSM-Tree = only when write throughput is the primary bottleneck (Cassandra, ClickHouse, RocksDB).</div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <div class="accordion-header" onclick="toggleAccordion(this)">Common indexing mistakes in interviews <span class="accordion-arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="callout callout-amber">
+          <strong>1. Over-indexing:</strong> Each index slows writes (index must be updated). Don't index every column — only columns in WHERE, JOIN, ORDER BY, GROUP BY that appear in frequent queries.<br><br>
+          <strong>2. Wrong column order:</strong> Composite index (a, b, c) works for WHERE a=1 AND b=2 but NOT WHERE b=2 alone. Put high-selectivity columns first.<br><br>
+          <strong>3. Ignoring EXPLAIN:</strong> Always run EXPLAIN before and after adding an index. Look for "type: ALL" (full scan) → "type: ref" (index used).<br><br>
+          <strong>4. Not using covering indexes:</strong> If your query only needs columns (a, b, c), a composite index on all three = index-only scan, no table access. Massive speedup.<br><br>
+          <strong>5. LIKE '%search%' defeats B-Tree:</strong> Leading wildcard can't use B-Tree index. Use full-text index or Elasticsearch for text search.
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1282,6 +1405,7 @@ X-RateLimit-Limit:     1000    <span class="cm">// total allowed per window</spa
 X-RateLimit-Remaining: 842     <span class="cm">// left in current window</span>
 X-RateLimit-Reset:     1704067 <span class="cm">// epoch when window resets</span>
 Retry-After:           30      <span class="cm">// seconds (on 429 only)</span></pre></div>
+</div>
 
 <div id="block-auth" class="block-section" style="display:none">
 <div class="section-title">Authentication Patterns (7)</div>
