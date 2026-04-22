@@ -13,54 +13,63 @@ pages['k8s-core'] = () => `
 
 <h2 class="section-title">Architecture: Control Plane vs Data Plane</h2>
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:16px 0;overflow-x:auto">
-<svg viewBox="0 0 680 320" style="width:100%;max-width:680px;display:block;margin:0 auto">
-  <!-- Control Plane -->
-  <rect x="10" y="10" width="300" height="295" rx="12" fill="#eef2ff" stroke="#2563eb" stroke-width="2"/>
-  <text x="160" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">CONTROL PLANE (Master)</text>
-  <!-- API Server -->
-  <rect x="25" y="50" width="270" height="50" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
-  <text x="160" y="71" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8">kube-apiserver</text>
-  <text x="160" y="88" text-anchor="middle" font-size="10" fill="#3b82f6">Entry point for all requests. REST API. Validates &amp; persists to etcd.</text>
-  <!-- etcd -->
-  <rect x="25" y="115" width="125" height="48" rx="8" fill="#c7d2fe" stroke="#6366f1"/>
-  <text x="87" y="136" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">etcd</text>
-  <text x="87" y="153" text-anchor="middle" font-size="10" fill="#4338ca">Distributed KV store. Source of truth for cluster state.</text>
-  <!-- Scheduler -->
-  <rect x="163" y="115" width="132" height="48" rx="8" fill="#c7d2fe" stroke="#6366f1"/>
-  <text x="229" y="136" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">kube-scheduler</text>
-  <text x="229" y="153" text-anchor="middle" font-size="10" fill="#4338ca">Picks best node for new Pods.</text>
-  <!-- Controller Manager -->
-  <rect x="25" y="178" width="270" height="48" rx="8" fill="#dbeafe" stroke="#3b82f6"/>
-  <text x="160" y="199" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8">kube-controller-manager</text>
-  <text x="160" y="215" text-anchor="middle" font-size="10" fill="#3b82f6">Node ctrl, Replication ctrl, Endpoints ctrl, Service Account ctrl...</text>
-  <!-- cloud CM -->
-  <rect x="25" y="240" width="270" height="48" rx="8" fill="#ede9fe" stroke="#8b5cf6"/>
-  <text x="160" y="261" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6">cloud-controller-manager</text>
-  <text x="160" y="277" text-anchor="middle" font-size="10" fill="#7c3aed">Cloud-specific: LB, storage, routing (AWS/GCP/Azure)</text>
-  <!-- Data Plane -->
-  <rect x="330" y="10" width="340" height="295" rx="12" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
-  <text x="500" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">DATA PLANE (Worker Nodes)</text>
-  <!-- kubelet -->
-  <rect x="345" y="50" width="150" height="48" rx="8" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="420" y="71" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">kubelet</text>
-  <text x="420" y="87" text-anchor="middle" font-size="10" fill="#166534">Node agent. Ensures containers in Pods are running &amp; healthy.</text>
-  <!-- kube-proxy -->
-  <rect x="505" y="50" width="155" height="48" rx="8" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="582" y="71" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">kube-proxy</text>
-  <text x="582" y="87" text-anchor="middle" font-size="10" fill="#166534">Network rules on each node. Services → Pod routing (iptables/IPVS).</text>
-  <!-- CRI -->
-  <rect x="345" y="115" width="310" height="48" rx="8" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="500" y="136" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Container Runtime (CRI)</text>
-  <text x="500" y="153" text-anchor="middle" font-size="10" fill="#166534">containerd / CRI-O — runs the actual containers</text>
-  <!-- Pods -->
-  <rect x="345" y="178" width="310" height="115" rx="8" fill="#bbf7d0" stroke="#22c55e"/>
-  <text x="500" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Pods (smallest deployable unit)</text>
-  <rect x="360" y="210" width="90" height="70" rx="6" fill="#86efac" stroke="#4ade80"/>
-  <text x="405" y="230" text-anchor="middle" font-size="10" fill="#14532d">App Container</text>
-  <rect x="460" y="210" width="90" height="70" rx="6" fill="#86efac" stroke="#4ade80"/>
-  <text x="505" y="230" text-anchor="middle" font-size="10" fill="#14532d">Sidecar</text>
-  <text x="505" y="248" text-anchor="middle" font-size="9" fill="#166534">(logging/proxy)</text>
-</svg>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:12px;padding:18px">
+    <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:12px;text-align:center">🧠 CONTROL PLANE (Master)</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#1d4ed8">kube-apiserver</div>
+        <div style="font-size:12px;color:#1e40af;margin-top:3px">Entry point for all requests. REST API. Validates &amp; persists to etcd. Only component that reads/writes etcd.</div>
+      </div>
+      <div style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#1d4ed8">etcd</div>
+        <div style="font-size:12px;color:#1e40af;margin-top:3px">Distributed KV store. Stores ALL cluster state. Source of truth. Always back this up.</div>
+      </div>
+      <div style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#1d4ed8">kube-scheduler</div>
+        <div style="font-size:12px;color:#1e40af;margin-top:3px">Picks the best node for new Pods. Considers: resources, affinity, taints/tolerations.</div>
+      </div>
+      <div style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#1d4ed8">kube-controller-manager</div>
+        <div style="font-size:12px;color:#1e40af;margin-top:3px">Runs control loops: Node, Replication, Endpoints, ServiceAccount controllers. Reconciles desired → actual state.</div>
+      </div>
+      <div style="background:#ede9fe;border:1px solid #8b5cf6;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#5b21b6">cloud-controller-manager</div>
+        <div style="font-size:12px;color:#6d28d9;margin-top:3px">Cloud-specific: Load Balancers, storage volumes, routing (AWS / GCP / Azure).</div>
+      </div>
+    </div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #059669;border-radius:12px;padding:18px">
+    <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:12px;text-align:center">⚙️ DATA PLANE (Worker Nodes)</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:#dcfce7;border:1px solid #16a34a;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#14532d">kubelet</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">Node agent. Ensures containers in Pods are running &amp; healthy. Talks to container runtime (containerd).</div>
+      </div>
+      <div style="background:#dcfce7;border:1px solid #16a34a;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#14532d">kube-proxy</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">Manages iptables/IPVS rules on each node. Implements Service → Pod routing (ClusterIP to Pod IP).</div>
+      </div>
+      <div style="background:#dcfce7;border:1px solid #16a34a;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:13px;color:#14532d">Container Runtime (CRI)</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px">containerd or CRI-O. Actually starts and stops containers. kubelet talks to it via CRI API.</div>
+      </div>
+      <div style="background:#bbf7d0;border:1px solid #22c55e;border-radius:8px;padding:12px">
+        <div style="font-weight:700;font-size:13px;color:#14532d;margin-bottom:8px">Pods (smallest deployable unit)</div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;background:#86efac;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:11px;font-weight:700;color:#14532d">App Container</div>
+            <div style="font-size:10px;color:#166534;margin-top:2px">Your code</div>
+          </div>
+          <div style="flex:1;background:#86efac;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:11px;font-weight:700;color:#14532d">Sidecar</div>
+            <div style="font-size:10px;color:#166534;margin-top:2px">Logging / Proxy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 <h2 class="section-title">Core K8s Objects</h2>

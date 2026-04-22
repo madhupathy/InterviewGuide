@@ -640,7 +640,7 @@ pages['sd-building'] = () => `
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-  ${['load-balancing','caching','databases','cap','sharding','replication','acid','indexes','scaling','api'].map((s,i)=>`<button class="pill-tab${i===0?' active':''}" onclick="showBlock('${s}',this)">${['Load Balancing','Caching','SQL vs NoSQL','CAP & PACELC','Sharding','Replication','ACID','Indexes','Scaling','APIs & Rate Limiting'][i]}</button>`).join('')}
+  ${['load-balancing','caching','databases','cap','sharding','replication','acid','indexes','scaling','api','auth'].map((s,i)=>`<button class="pill-tab${i===0?' active':''}" onclick="showBlock('${s}',this)">${['Load Balancing','Caching','SQL vs NoSQL','CAP & PACELC','Sharding','Replication','ACID','Indexes','Scaling','APIs & Rate Limiting','Auth & APIs'][i]}</button>`).join('')}
 </div>
 
 <div id="block-load-balancing" class="block-section">
@@ -930,7 +930,114 @@ With consistent hashing:    add 1 server → move only ~1/N keys
     </div>
   </div>
 
-  ${quizHTML('sd-building', [
+  
+<div id="block-auth" class="block-section" style="display:none">
+<div class="section-title">7 Authentication Patterns</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">1. Basic Authentication <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p>Username:password encoded as Base64 in HTTP header. <span class="tag red">Insecure</span> over HTTP, acceptable over HTTPS for internal APIs.</p>
+    <div class="code-block"><pre>Authorization: Basic dXNlcjpwYXNz  // base64("user:pass")</pre></div>
+    <p><strong>Never use</strong> for public APIs. OK for service-to-service in trusted networks.</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">2. API Keys <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p>A long random string tied to an application. Simple to implement. Used for machine-to-machine, rate limiting by key.</p>
+    <div class="code-block"><pre>X-API-Key: sk_live_abc123xyz  // or query param ?api_key=...</pre></div>
+    <p><strong>Pros:</strong> Simple. <strong>Cons:</strong> No expiry by default, must be rotated manually, hard to scope permissions.</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">3. Session-Based Authentication <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p>Server creates a session on login, stores it (Redis/DB), returns session ID in cookie. Every request carries the cookie.</p>
+    <p><strong>Pros:</strong> Easy to invalidate (delete session). <strong>Cons:</strong> Server must be stateful or share session store. Scales poorly without sticky sessions or shared Redis.</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">4. JWT (Bearer Token) <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p>Stateless token containing claims, signed with server's private key. Server validates without DB lookup.</p>
+    <div class="code-block"><pre>Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyMTIzIn0.sig
+// Structure: header.payload.signature (base64 encoded)</pre></div>
+    <p><strong>Pros:</strong> Stateless, scales horizontally. <strong>Cons:</strong> Can't revoke before expiry. Use short TTL (15 min) + refresh tokens. Never put sensitive data in payload (it's base64, not encrypted).</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">5. OAuth 2.0 <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p>Authorization framework (not authentication). Allows a third-party app to access resources on behalf of a user without sharing credentials.</p>
+    <div class="code-block"><pre>User → App → Auth Server (Google) → Authorization Code
+App → Auth Server (exchange code) → Access Token + Refresh Token
+App → Resource Server (with token) → User's data</pre></div>
+    <p><strong>Flows:</strong> Authorization Code (web apps), PKCE (SPAs/mobile), Client Credentials (M2M), Device Flow (CLI/TV)</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-header" onclick="toggleAccordion(this)">6. SSO — SAML &amp; OIDC <span class="accordion-arrow">▼</span></div>
+  <div class="accordion-body">
+    <p><strong>SAML 2.0:</strong> XML-based, enterprise SSO (Okta, ADFS). User logs in once, gets assertions to access multiple services. XML heavy, complex, but mature.</p>
+    <p style="margin-top:8px"><strong>OIDC (OpenID Connect):</strong> Identity layer on top of OAuth 2.0. Returns an ID token (JWT) with user identity claims. Used by Google, GitHub login. More modern and developer-friendly than SAML.</p>
+  </div>
+</div>
+
+<hr class="section-sep">
+
+<div class="section-title">REST vs gRPC vs GraphQL</div>
+
+<table class="data-table">
+  <thead><tr><th>Factor</th><th>REST</th><th>gRPC</th><th>GraphQL</th></tr></thead>
+  <tbody>
+    <tr><td>Protocol</td><td>HTTP/1.1, JSON</td><td>HTTP/2, Protobuf (binary)</td><td>HTTP, JSON</td></tr>
+    <tr><td>Performance</td><td>Moderate</td><td>⚡ Fastest (binary, multiplexing)</td><td>Moderate</td></tr>
+    <tr><td>Typing</td><td>None (OpenAPI optional)</td><td>Strong (proto schema)</td><td>Strong (schema)</td></tr>
+    <tr><td>Flexibility</td><td>Fixed endpoints</td><td>Fixed methods</td><td>Client defines shape</td></tr>
+    <tr><td>Best for</td><td>Public APIs, CRUD</td><td>Microservices, streaming</td><td>Complex UIs, BFF</td></tr>
+    <tr><td>Tooling</td><td>Excellent (universal)</td><td>Good (generated clients)</td><td>Good (Apollo)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout blue">
+  <strong>When to use gRPC:</strong> Internal microservice communication where performance matters. The binary protobuf format is 3-10x smaller than JSON and HTTP/2 allows multiplexing multiple requests over one connection.
+</div>
+
+<div class="callout green">
+  <strong>When to use GraphQL:</strong> Mobile apps or complex SPAs where different clients need different shapes of data. Eliminates over-fetching and under-fetching. Add a GraphQL BFF (Backend for Frontend) layer in front of REST/gRPC microservices.
+</div>
+
+<div class="section-title" style="margin-top:20px">PATCH vs PUT vs POST</div>
+
+<table class="data-table">
+  <thead><tr><th>Method</th><th>Idempotent</th><th>Use case</th></tr></thead>
+  <tbody>
+    <tr><td><strong>POST</strong></td><td>No</td><td>Create a new resource. Each call creates a new item.</td></tr>
+    <tr><td><strong>PUT</strong></td><td>Yes</td><td>Replace the full resource. Must send complete representation.</td></tr>
+    <tr><td><strong>PATCH</strong></td><td>Yes (if designed carefully)</td><td>Partial update. Send only fields being changed.</td></tr>
+  </tbody>
+</table>
+
+${quizHTML('sd-auth', [
+  { q: "JWT vs Session tokens — key difference?", opts: ["JWT is always encrypted", "JWT is stateless (server holds no state); sessions require server-side storage", "Sessions are more secure", "No difference"], ans: 1, exp: "Session: server stores session data (Redis/DB), client gets opaque ID. JWT: all data in the token, server only verifies signature — no storage. JWT enables stateless horizontal scaling but can't be revoked without a blocklist." },
+  { q: "OAuth2 is for?", opts: ["Encrypting passwords", "Authorisation — granting third-party apps limited access to your resources", "Authenticating users (proving identity)", "Hashing tokens"], ans: 1, exp: "OAuth2 = Authorisation (what you can access). OpenID Connect (OIDC) = Authentication on top of OAuth2 (who you are). When you 'Login with Google', OAuth2 grants access, OIDC provides identity (id_token with user info)." },
+  { q: "When should you use API Keys over JWT?", opts: ["Never — JWT is always better", "Server-to-server integrations, third-party developer access, rate-limiting by client", "Mobile apps", "Browser-based SPAs"], ans: 1, exp: "API Keys: simple, long-lived, good for server-to-server or third-party developers. JWT: better for user sessions (short-lived, carries claims). API Keys are easy to audit, rotate, and rate-limit per key." },
+  { q: "What is the purpose of a refresh token?", opts: ["Refresh the UI", "Get new short-lived access tokens without re-authentication when access token expires", "Reset password", "Reload user profile"], ans: 1, exp: "Access tokens are short-lived (15min–1hr) to limit damage if stolen. Refresh tokens are long-lived (days/weeks), stored securely (httpOnly cookie), used ONLY to get new access tokens. If refresh token is stolen, revoke it in the DB." },
+  { q: "PKCE (Proof Key for Code Exchange) prevents what attack?", opts: ["SQL injection", "Authorization code interception in mobile/SPA OAuth flows", "CSRF attacks", "JWT forgery"], ans: 1, exp: "In public clients (mobile apps, SPAs), the authorization code could be intercepted. PKCE: generate random code_verifier → hash it (code_challenge) → send hash with auth request. Only the original app that sent the hash can exchange the code." },
+  { q: "Where should JWTs be stored in a browser?", opts: ["localStorage (most convenient)", "httpOnly cookies (prevents XSS access) — NOT localStorage", "sessionStorage", "window.token global variable"], ans: 1, exp: "localStorage is accessible via JavaScript — XSS attack can steal it. httpOnly cookies can't be accessed by JS. Pair with SameSite=Strict/Lax to prevent CSRF. This is the recommended approach for auth tokens." },
+  { q: "What is mTLS and when is it used?", opts: ["Multi-factor TLS", "Mutual TLS — both client AND server present certificates, verifying each other's identity", "Mobile TLS protocol", "A compression algorithm"], ans: 1, exp: "Normal TLS: only server proves identity (certificate). mTLS: both sides present certificates. Used for service-to-service auth in microservices (Istio implements this). Prevents man-in-the-middle between internal services." },
+  { q: "Rate limiting by user vs by IP — which is harder to bypass?", opts: ["By IP (harder)", "By authenticated user ID (harder to bypass than IP, which can be spoofed/rotated)", "Both equally hard", "Neither can be bypassed"], ans: 1, exp: "IP-based limiting: attackers can use proxies, rotating IPs, botnets. User-ID based: requires authentication, much harder to get millions of accounts. Best: both layers — IP rate limiting for unauthenticated endpoints, user-ID for authenticated." },
+  { q: "SSO (Single Sign-On) uses which protocols?", opts: ["Only OAuth2", "SAML 2.0 (enterprise/XML) or OIDC (modern/JSON) — both enable one login for multiple apps", "Only JWT", "HTTP Basic Auth"], ans: 1, exp: "SAML 2.0: XML-based, enterprise-focused (Okta, Active Directory). OIDC: JSON/JWT-based, modern web/mobile (Google, GitHub). Both allow one authentication session to grant access to multiple applications without re-login." }
+])}
+</div>
+
+${quizHTML('sd-building', [
     { q: "L7 load balancer advantage over L4?", opts: ["Lower latency", "Routes by URL/headers enabling path-based routing, A/B testing, SSL termination", "Handles more connections", "Lower cost"], ans: 1, exp: "L4 routes by IP/port only — fast but dumb. L7 understands HTTP: can route /api → service A, /static → CDN, add headers, terminate SSL. AWS ALB is L7; NLB is L4." },
     { q: "W=2, R=2, N=3 quorum means?", opts: ["2 writes and 2 reads per second", "At least 1 node overlaps between write and read sets, guaranteeing consistency", "System has 2 leaders", "2 replicas are standby"], ans: 1, exp: "W+R=4 > N=3 means at least 1 node must have participated in both last write and current read. This node has the latest data, guaranteeing you always read what was last written." },
     { q: "ACID Isolation: what does MVCC solve?", opts: ["Disk space", "Allows high concurrency by giving each transaction a snapshot, avoiding read locks", "Network partitions", "Index fragmentation"], ans: 1, exp: "MVCC (Multi-Version Concurrency Control) maintains multiple versions of data. Readers get a consistent snapshot without blocking writers. Writers don't block readers. Used by PostgreSQL, MySQL InnoDB, Oracle." },
@@ -1061,32 +1168,40 @@ ${quizHTML('sd-auth', [
 // SD — CASE STUDIES
 // ═══════════════════════════════════════════════
 pages['sd-cases'] = () => `
-<div class="breadcrumb">System Design → <span>Case Studies</span></div>
 <div class="page-header">
-  <div class="page-title">System Design Case Studies</div>
-  <div class="page-subtitle">Apply the 5-step framework to real systems. Each case uses the patterns you've learned.</div>
+  <div class="breadcrumb">System Design</div>
+  <h1 class="page-title">Case Studies</h1>
+  <p class="page-subtitle">Apply the 5-step framework to real systems. Each case uses the patterns you've learned.</p>
 </div>
-<div class="card-grid">
-  <div class="card" onclick="showPage('sd-url')">
-    <div class="card-icon">🔗</div>
-    <div class="card-title">URL Shortener</div>
-    <div class="card-desc">TinyURL, bit.ly — hashing, redirects, analytics</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin:16px 0">
+  <div class="home-card" onclick="showPage('sd-url')">
+    <div class="hc-icon">🔗</div>
+    <div class="hc-title">URL Shortener</div>
+    <div class="hc-desc">TinyURL — hashing, Base62, redirects, analytics</div>
   </div>
-  <div class="card" onclick="showPage('sd-feed')">
-    <div class="card-icon">📰</div>
-    <div class="card-title">News Feed</div>
-    <div class="card-desc">Twitter/Facebook feed — fan-out strategies</div>
+  <div class="home-card" onclick="showPage('sd-feed')">
+    <div class="hc-icon">📰</div>
+    <div class="hc-title">News Feed</div>
+    <div class="hc-desc">Twitter/Instagram — fan-out, ranking, pagination</div>
   </div>
-  <div class="card" onclick="showPage('sd-chat')">
-    <div class="card-icon">💬</div>
-    <div class="card-title">Chat System</div>
-    <div class="card-desc">WhatsApp-style — WebSocket, message storage</div>
+  <div class="home-card" onclick="showPage('sd-chat')">
+    <div class="hc-icon">💬</div>
+    <div class="hc-title">Chat System</div>
+    <div class="hc-desc">WhatsApp — WebSocket, message storage, presence</div>
   </div>
-  <div class="card" onclick="showPage('sd-ratelimit')">
-    <div class="card-icon">🚦</div>
-    <div class="card-title">Rate Limiter</div>
-    <div class="card-desc">Token bucket, sliding window, Redis</div>
+  <div class="home-card" onclick="showPage('sd-ratelimit')">
+    <div class="hc-icon">🚦</div>
+    <div class="hc-title">Rate Limiter</div>
+    <div class="hc-desc">Token bucket, sliding window, distributed Redis</div>
   </div>
+  <div class="home-card" onclick="showPage('sd-lru')">
+    <div class="hc-icon">⚡</div>
+    <div class="hc-title">LRU Cache</div>
+    <div class="hc-desc">HashMap + DLL, O(1) ops, Redis eviction, Caffeine</div>
+  </div>
+</div>
+<div class="callout callout-blue" style="margin-top:8px">
+  <strong>Approach every case:</strong> Requirements → Estimation → API → High-Level → Deep Dive → Bottlenecks
 </div>
 `;
 
