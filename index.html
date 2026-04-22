@@ -35,7 +35,7 @@ body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.65;
+  line-height: 1.75;
   min-height: 100vh;
 }
 
@@ -863,8 +863,17 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <span class="nav-icon">🧱</span> Building Blocks
     </div>
     <div class="nav-sub" id="sd-building-sub">
-      <div class="nav-sub-item" onclick="showPage('sd-building')">All Blocks</div>
-      <div class="nav-sub-item" onclick="showPage('sd-auth')">Auth &amp; Security</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','load-balancing')">Load Balancing</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','caching')">Caching</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','databases')">SQL vs NoSQL</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','cap')">CAP &amp; PACELC</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','sharding')">Sharding</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','replication')">Replication</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','acid')">ACID / BASE</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','indexes')">Indexes</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','scaling')">Scaling</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','apis')">APIs</div>
+      <div class="nav-sub-item" onclick="showPageAndBlock('sd-building','auth')">Auth</div>
     </div>
     <div class="nav-item" onclick="showPage('sd-patterns')">
       <span class="nav-icon">✨</span> 11 Patterns
@@ -1078,6 +1087,20 @@ function filterPatterns(type, btn) {
   document.querySelectorAll('.pattern-card').forEach(c => {
     c.style.display = (type === 'all' || c.dataset.type === type) ? 'block' : 'none';
   });
+}
+
+function showPageAndBlock(pageId, blockId) {
+  showPage(pageId);
+  setTimeout(function() {
+    var btn = null;
+    document.querySelectorAll('.pill-tab').forEach(function(t) {
+      var oc = t.getAttribute('onclick') || '';
+      if (oc.indexOf("'" + blockId + "'") !== -1 || oc.indexOf('"' + blockId + '"') !== -1) {
+        btn = t;
+      }
+    });
+    if (btn) showBlock(blockId, btn);
+  }, 60);
 }
 
 function showBlock(id, btn) {

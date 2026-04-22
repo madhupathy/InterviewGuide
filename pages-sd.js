@@ -859,7 +859,7 @@ pages['sd-building'] = () => `
 <div class="callout callout-blue">
   <strong>SAGA vs 2PC:</strong> 2PC holds distributed locks during both phases — slow, blocking, single point of failure if coordinator crashes. SAGA: each step is a local transaction; rollback via compensating transactions. No locks. Much better availability.
 </div>
-</div></div>
+</div>
 
 <div id="block-sharding" class="block-section" style="display:none">
   <h2 class="section-title">Sharding (Horizontal Partitioning)</h2>
@@ -1296,7 +1296,7 @@ ${quizHTML('sd-auth', [
   { q: "SSO (Single Sign-On) uses which protocols?", opts: ["Only OAuth2", "SAML 2.0 (enterprise/XML) or OIDC (modern/JSON) — both enable one login for multiple apps", "Only JWT", "HTTP Basic Auth"], ans: 1, exp: "SAML 2.0: XML-based, enterprise-focused (Okta, Active Directory). OIDC: JSON/JWT-based, modern web/mobile (Google, GitHub). Both allow one authentication session to grant access to multiple applications without re-login." }
 ])}
 </div>
-</div><div id="block-auth" class="block-section" style="display:none">
+<div id="block-auth" class="block-section" style="display:none">
 <div class="section-title">Authentication Patterns (7)</div>
 
 <div class="accordion">
