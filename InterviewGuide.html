@@ -831,7 +831,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
 <!-- HEADER -->
 <header class="header">
   <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-  <div class="logo">Senior<span>Edge</span></div>
+  <div class="logo">Interview<span>Guide</span></div>
   <div class="header-search">
     <span class="search-icon">🔍</span>
     <input type="text" placeholder="Search topics, patterns, questions..." oninput="handleSearch(this.value)" />
@@ -873,7 +873,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
     </div>
     <div class="nav-sub" id="sd-dist-sub">
       <div class="nav-sub-item" onclick="showPage('sd-msgqueue')">Message Queues</div>
-      <div class="nav-sub-item" onclick="showPage('distributed')">Consensus &amp; CAP</div>
+      <div class="nav-sub-item" onclick="showPage('sd-eventing')">Eventing &amp; Observability</div>
       <div class="nav-sub-item" onclick="showPage('sd-tradeoffs')">Trade-offs</div>
     </div>
     <div class="nav-item" onclick="toggleSub('sd-case-sub'); showPage('sd-cases')">
@@ -885,6 +885,9 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <div class="nav-sub-item" onclick="showPage('sd-chat')">Chat System</div>
       <div class="nav-sub-item" onclick="showPage('sd-ratelimit')">Rate Limiter</div>
       <div class="nav-sub-item" onclick="showPage('sd-lru')">LRU Cache</div>
+    </div>
+    <div class="nav-item" onclick="showPage('sd-specdriven')">
+      <span class="nav-icon">🤖</span> AI &amp; Spec-Driven Design
     </div>
   </div>
 
@@ -1882,21 +1885,46 @@ pages['sd-building'] = () => `
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-  ${['load-balancing','caching','databases','cap','sharding','replication','acid','indexes','scaling','api','auth'].map((s,i)=>`<button class="pill-tab${i===0?' active':''}" onclick="showBlock('${s}',this)">${['Load Balancing','Caching','SQL vs NoSQL','CAP & PACELC','Sharding','Replication','ACID','Indexes','Scaling','APIs & Rate Limiting','Auth & APIs'][i]}</button>`).join('')}
+  ${['load-balancing','caching','databases','cap','sharding','replication','acid','indexes','scaling','apis','auth'].map((s,i)=>`<button class="pill-tab${i===0?' active':''}" onclick="showBlock('${s}',this)">${['Load Balancing','Caching','SQL vs NoSQL','CAP & PACELC','Sharding','Replication','ACID','Indexes','Scaling','APIs','Auth'][i]}</button>`).join('')}
 </div>
 
 <div id="block-load-balancing" class="block-section">
-  <h2 class="section-title">Load Balancing</h2>
+  <h2 class="section-title">Load Balancing, Reverse Proxy & API Gateway</h2>
+  <table class="data-table">
+    <tr><th>Component</th><th>What it does</th><th>Layer</th><th>Key Features</th><th>Examples</th></tr>
+    <tr><td><strong>Load Balancer</strong></td><td>Distributes traffic across multiple server instances</td><td>L4 or L7</td><td>Health checks, failover, sticky sessions, SSL termination</td><td>AWS ALB/NLB, nginx, HAProxy</td></tr>
+    <tr><td><strong>Reverse Proxy</strong></td><td>Forwards client requests to backend servers, hides server identity</td><td>L7</td><td>Load balancing + SSL termination + caching + compression</td><td>nginx, Caddy, Envoy, Cloudflare</td></tr>
+    <tr><td><strong>API Gateway</strong></td><td>Manages, secures, and routes API calls to microservices</td><td>L7 (application)</td><td>Auth, rate limiting, routing, transformation, analytics, protocol translation</td><td>Kong, AWS API GW, Apigee, Traefik</td></tr>
+  </table>
+
+  <div class="callout callout-blue">
+    <strong>Forward Proxy vs Reverse Proxy:</strong> Forward proxy acts for the <em>client</em> — hides client IP, content filtering, corporate internet control. Reverse proxy acts for the <em>server</em> — hides servers, load balancing, SSL termination. nginx is almost always used as a reverse proxy.
+  </div>
+
+  <h2 class="section-title" style="margin-top:20px">Typical Architecture Flow</h2>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+    Internet → <strong>Load Balancer</strong> (distribute across API GW instances)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <strong>API Gateway</strong> (auth, rate limit, route, transform)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <strong>Microservices</strong> → internal Load Balancer → service instances<br>
+    Static/media → <strong>CDN</strong> edge nodes (bypass all the above)
+  </div>
+
+  <h2 class="section-title" style="margin-top:20px">Load Balancing Algorithms</h2>
   <table class="data-table">
     <tr><th>Algorithm</th><th>How it works</th><th>Best for</th><th>Downside</th></tr>
-    <tr><td><strong>Round Robin</strong></td><td>Requests distributed in order</td><td>Stateless services, equal capacity servers</td><td>Ignores server load</td></tr>
-    <tr><td><strong>Least Connections</strong></td><td>Send to server with fewest active connections</td><td>Long-lived connections (WebSocket, DB)</td><td>Slightly more overhead</td></tr>
-    <tr><td><strong>Weighted RR</strong></td><td>More powerful servers get more requests</td><td>Heterogeneous servers</td><td>Manual weight tuning</td></tr>
-    <tr><td><strong>IP Hash</strong></td><td>Hash of client IP → same server</td><td>Session affinity (sticky sessions)</td><td>Uneven if IPs not distributed</td></tr>
-    <tr><td><strong>Random</strong></td><td>Pick server randomly</td><td>Equal servers, low traffic</td><td>Luck-based, can be uneven</td></tr>
+    <tr><td><strong>Round Robin</strong></td><td>Distribute requests in order</td><td>Stateless services, equal-capacity servers</td><td>Ignores server load</td></tr>
+    <tr><td><strong>Least Connections</strong></td><td>Route to server with fewest active connections</td><td>Long-lived connections (WebSocket, DB)</td><td>Slight overhead</td></tr>
+    <tr><td><strong>Weighted Round Robin</strong></td><td>More powerful servers get proportionally more requests</td><td>Heterogeneous servers</td><td>Manual weight tuning</td></tr>
+    <tr><td><strong>IP Hash</strong></td><td>Hash of client IP → same server every time</td><td>Sticky sessions (stateful apps)</td><td>Uneven if IPs aren't distributed</td></tr>
+    <tr><td><strong>Random</strong></td><td>Pick a server randomly</td><td>Homogeneous servers, low traffic</td><td>Statistical variance</td></tr>
   </table>
-  <div class="callout callout-blue">
-    <strong>L4 vs L7 LB:</strong> L4 (Transport layer) — routes by IP/port, fast, no content inspection. L7 (Application layer) — routes by URL, headers, cookies; enables path-based routing, A/B testing, SSL termination. Use L7 (nginx, AWS ALB) for modern microservices.
+
+  <div class="callout callout-amber">
+    <strong>L4 vs L7:</strong> L4 (Transport) routes by IP/port — fast, no content inspection, good for TCP/UDP. L7 (Application) routes by URL path, headers, cookies — enables path-based routing, A/B testing, SSL termination, request transformation. Use L7 (nginx, AWS ALB) for modern microservices.
+  </div>
+
+  <div class="callout callout-green">
+    <strong>API Gateway vs Reverse Proxy:</strong> Reverse proxy is simpler — load balancing, SSL, caching. API Gateway adds application-level intelligence — auth, rate limiting per user/key, request/response transformation, versioning, analytics. Use API Gateway when you need cross-cutting API concerns. Use Reverse Proxy for general server efficiency.
   </div>
 </div>
 
@@ -1931,7 +1959,50 @@ pages['sd-building'] = () => `
 <div id="block-cap" class="block-section" style="display:none">
   <h2 class="section-title">CAP Theorem &amp; PACELC</h2>
 
-  <h3 style="font-size:15px;font-weight:700;margin:16px 0 10px">Core Concepts</h3>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0;overflow-x:auto">
+<svg viewBox="0 0 580 280" style="width:100%;max-width:580px;display:block;margin:0 auto">
+  <defs>
+    <marker id="pa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#b45309"/></marker>
+  </defs>
+  <!-- Partition diamond -->
+  <polygon points="290,20 350,70 290,120 230,70" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="290" y="65" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">Partition?</text>
+  <!-- Yes branch left -->
+  <line x1="230" y1="70" x2="110" y2="160" stroke="#b45309" stroke-width="2" marker-end="url(#pa)"/>
+  <text x="155" y="115" text-anchor="middle" font-size="12" fill="#92400e">Yes</text>
+  <!-- No branch right -->
+  <line x1="350" y1="70" x2="470" y2="160" stroke="#b45309" stroke-width="2" marker-end="url(#pa)"/>
+  <text x="425" y="115" text-anchor="middle" font-size="12" fill="#92400e">No</text>
+  <!-- CAP group -->
+  <rect x="10" y="160" width="240" height="100" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="130" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">CAP Theorem</text>
+  <circle cx="70" cy="225" r="30" fill="#65a30d" opacity="0.9"/>
+  <text x="70" y="221" text-anchor="middle" font-size="11" font-weight="700" fill="white">A</text>
+  <text x="70" y="235" text-anchor="middle" font-size="10" fill="white">vailability</text>
+  <circle cx="190" cy="225" r="30" fill="#7c3aed" opacity="0.9"/>
+  <text x="190" y="221" text-anchor="middle" font-size="11" font-weight="700" fill="white">C</text>
+  <text x="190" y="235" text-anchor="middle" font-size="10" fill="white">onsistency</text>
+  <!-- PACELC group -->
+  <rect x="330" y="160" width="240" height="100" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="450" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">PACELC (Else)</text>
+  <circle cx="390" cy="225" r="30" fill="#db2777" opacity="0.9"/>
+  <text x="390" y="221" text-anchor="middle" font-size="11" font-weight="700" fill="white">L</text>
+  <text x="390" y="235" text-anchor="middle" font-size="10" fill="white">atency</text>
+  <circle cx="510" cy="225" r="30" fill="#7c3aed" opacity="0.9"/>
+  <text x="510" y="221" text-anchor="middle" font-size="11" font-weight="700" fill="white">C</text>
+  <text x="510" y="235" text-anchor="middle" font-size="10" fill="white">onsistency</text>
+  <!-- Labels -->
+  <rect x="10" y="265" width="240" height="14" rx="3" fill="none"/>
+  <text x="130" y="275" text-anchor="middle" font-size="10" fill="#6b7280">Partition → choose A or C</text>
+  <rect x="330" y="265" width="240" height="14" rx="3" fill="none"/>
+  <text x="450" y="275" text-anchor="middle" font-size="10" fill="#6b7280">No partition → choose L or C</text>
+  <!-- PACELC brace -->
+  <line x1="10" y1="280" x2="570" y2="280" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4"/>
+  <text x="290" y="295" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">PACELC Theorem</text>
+</svg>
+</div>
+
+<h3 style="font-size:15px;font-weight:700;margin:16px 0 10px">Core Concepts</h3>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
     <div style="background:#dbeafe;border:2px solid #2563eb;border-radius:10px;padding:14px;text-align:center">
       <div style="font-size:22px;font-weight:900;color:#1e40af;margin-bottom:6px">C</div>
@@ -2082,6 +2153,26 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
       </div>
     </div>
   </div>
+
+
+<h2 class="section-title" style="margin-top:24px">Sync vs Async Replication</h2>
+<table class="data-table">
+  <tr><th>Type</th><th>How</th><th>Durability</th><th>Write Latency</th><th>Availability</th></tr>
+  <tr><td><strong>Synchronous</strong></td><td>Write confirmed only when ALL replicas ack</td><td>Strongest — no data loss</td><td>High — waits for all replicas</td><td>Lower — one slow replica blocks all</td></tr>
+  <tr><td><strong>Asynchronous</strong></td><td>Write confirmed after primary writes; replicas catch up later</td><td>Risk of data loss if primary crashes before replication</td><td>Low — doesn't wait</td><td>High — primary can handle writes alone</td></tr>
+  <tr><td><strong>Semi-synchronous</strong></td><td>Write confirmed when at least one replica acks</td><td>Good balance</td><td>Medium</td><td>Good balance</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>MySQL semi-sync:</strong> Default in production MySQL — at least one replica must confirm before commit. Prevents data loss on primary failure while maintaining reasonable write latency. PostgreSQL synchronous_commit=on forces full sync.
+</div>
+
+<h2 class="section-title" style="margin-top:20px">Replication Strategies Summary</h2>
+<table class="data-table">
+  <tr><th>Strategy</th><th>Writes</th><th>Reads</th><th>Conflict</th><th>Best for</th></tr>
+  <tr><td><strong>Single Leader</strong></td><td>Leader only</td><td>Leader or replicas</td><td>None (single writer)</td><td>Most RDBMS, read-heavy apps</td></tr>
+  <tr><td><strong>Multi-Leader</strong></td><td>Any leader (multiple DCs)</td><td>Local leader</td><td>Must resolve (last-write-wins, CRDT)</td><td>Multi-region, offline-capable apps</td></tr>
+  <tr><td><strong>Leaderless</strong></td><td>Any node (quorum)</td><td>Any node (quorum)</td><td>Handled by versioning/CRDTs</td><td>Cassandra, DynamoDB — max availability</td></tr>
+</table>
 </div>
 
 <h2 class="section-title" style="margin-top:24px">Sync vs Async Replication</h2>
@@ -2104,7 +2195,26 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
 </table>
 
 <div id="block-acid" class="block-section" style="display:none">
-  <h2 class="section-title">ACID Properties</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
+  <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+    <div style="background:#16a34a;color:white;border-radius:6px;padding:6px 12px;font-weight:900;font-size:16px;min-width:36px;text-align:center">A</div>
+    <div><div style="font-weight:700;color:#065f46">Atomicity</div><div style="font-size:13px;color:#374151;margin-top:3px">Each transaction fully completes or not at all — no partial updates</div></div>
+  </div>
+  <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+    <div style="background:#7c3aed;color:white;border-radius:6px;padding:6px 12px;font-weight:900;font-size:16px;min-width:36px;text-align:center">C</div>
+    <div><div style="font-weight:700;color:#5b21b6">Consistency</div><div style="font-size:13px;color:#374151;margin-top:3px">Transaction brings DB from one valid state to another — constraints never violated</div></div>
+  </div>
+  <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+    <div style="background:#0891b2;color:white;border-radius:6px;padding:6px 12px;font-weight:900;font-size:16px;min-width:36px;text-align:center">I</div>
+    <div><div style="font-weight:700;color:#0e7490">Isolation</div><div style="font-size:13px;color:#374151;margin-top:3px">Concurrent transactions do not interfere with each other</div></div>
+  </div>
+  <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+    <div style="background:#be185d;color:white;border-radius:6px;padding:6px 12px;font-weight:900;font-size:16px;min-width:36px;text-align:center">D</div>
+    <div><div style="font-weight:700;color:#9d174d">Durability</div><div style="font-size:13px;color:#374151;margin-top:3px">Committed data persists — survives crashes and power failures</div></div>
+  </div>
+</div>
+
+<h2 class="section-title">ACID Properties</h2>
   <table class="data-table">
     <tr><th>Property</th><th>Meaning</th><th>Example</th><th>How DB enforces</th></tr>
     <tr><td><strong>Atomicity</strong></td><td>All or nothing — transaction fully succeeds or fully rolls back</td><td>Bank transfer: debit + credit both happen or neither does</td><td>Write-Ahead Log (WAL), undo log</td></tr>
@@ -2127,6 +2237,38 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
       </div>
     </div>
   </div>
+
+
+<h2 class="section-title" style="margin-top:24px">BASE — The Alternative to ACID</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0">
+  <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#c2410c;margin-bottom:4px">BA</div>
+    <div style="font-weight:700;color:#c2410c;margin-bottom:6px">Basically Available</div>
+    <div style="font-size:13px;color:#374151">System always responds — even if data may be stale</div>
+  </div>
+  <div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#1d4ed8;margin-bottom:4px">S</div>
+    <div style="font-weight:700;color:#1d4ed8;margin-bottom:6px">Soft State</div>
+    <div style="font-size:13px;color:#374151">State changes over time even without new input as replicas sync</div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#065f46;margin-bottom:4px">E</div>
+    <div style="font-weight:700;color:#065f46;margin-bottom:6px">Eventually Consistent</div>
+    <div style="font-size:13px;color:#374151">All replicas converge to the same value — given no new writes</div>
+  </div>
+</div>
+<table class="data-table">
+  <tr><th>Aspect</th><th>ACID</th><th>BASE</th></tr>
+  <tr><td>Consistency</td><td>Strong — immediately consistent</td><td>Eventual — temporarily diverged is OK</td></tr>
+  <tr><td>Availability</td><td>May block to maintain consistency</td><td>Always available, serves possibly stale data</td></tr>
+  <tr><td>Scalability</td><td>Harder — coordination overhead</td><td>Designed for linear horizontal scale</td></tr>
+  <tr><td>Developer burden</td><td>Low — DB enforces all rules</td><td>High — app must handle conflicts</td></tr>
+  <tr><td>Best for</td><td>Finance, bookings, inventory, healthcare</td><td>Social media, analytics, caching, IoT</td></tr>
+  <tr><td>Examples</td><td>PostgreSQL, MySQL, Oracle, SQL Server</td><td>Cassandra, DynamoDB, MongoDB, Redis</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Real systems blend both:</strong> Use ACID (PostgreSQL) for payments and inventory. Use BASE (Redis/Cassandra) for caching, session storage, and analytics. Don't choose globally — choose per feature.
+</div>
 </div>
 
 <h2 class="section-title" style="margin-top:24px">BASE — The Alternative to ACID</h2>
@@ -2217,66 +2359,178 @@ EXPLAIN SELECT * FROM orders WHERE user_id=5 AND created_at > '2024-01-01';
   </div>
 </div>
 
-<div id="block-api" class="block-section" style="display:none">
-  <h2 class="section-title">APIs, Rate Limiting &amp; Protocols</h2>
+<div id="block-apis" class="block-section" style="display:none">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0">
+<svg viewBox="0 0 500 320" style="width:100%;max-width:500px;display:block;margin:0 auto">
+  <defs>
+    <marker id="af" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#374151"/></marker>
+  </defs>
+  <!-- Top diamond -->
+  <polygon points="250,20 320,65 250,110 180,65" fill="white" stroke="#374151" stroke-width="2"/>
+  <text x="250" y="58" text-anchor="middle" font-size="11" fill="#111827">Is the API</text>
+  <text x="250" y="73" text-anchor="middle" font-size="11" fill="#111827">client-facing</text>
+  <text x="250" y="88" text-anchor="middle" font-size="11" fill="#111827">or internal?</text>
+  <!-- Client-facing left -->
+  <line x1="180" y1="65" x2="100" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
+  <text x="128" y="108" font-size="11" fill="#374151">Client-facing</text>
+  <!-- Internal right -->
+  <line x1="320" y1="65" x2="420" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
+  <text x="355" y="108" font-size="11" fill="#374151">Internal</text>
+  <!-- RPC box -->
+  <rect x="360" y="150" width="110" height="40" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="415" y="175" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">gRPC</text>
+  <!-- Second diamond -->
+  <polygon points="100,150 170,200 100,250 30,200" fill="white" stroke="#374151" stroke-width="2"/>
+  <text x="100" y="193" text-anchor="middle" font-size="10" fill="#111827">Over/under</text>
+  <text x="100" y="208" text-anchor="middle" font-size="10" fill="#111827">fetching a</text>
+  <text x="100" y="220" text-anchor="middle" font-size="10" fill="#111827">concern?</text>
+  <!-- Yes left -->
+  <line x1="30" y1="200" x2="30" y2="270" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
+  <text x="8" y="240" font-size="10" fill="#374151">Yes</text>
+  <!-- No right -->
+  <line x1="170" y1="200" x2="200" y2="270" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
+  <text x="178" y="240" font-size="10" fill="#374151">No</text>
+  <!-- GraphQL box -->
+  <rect x="-10" y="270" width="100" height="40" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="40" y="295" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">GraphQL</text>
+  <!-- REST box -->
+  <rect x="155" y="270" width="90" height="40" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <text x="200" y="295" text-anchor="middle" font-size="14" font-weight="700" fill="#991b1b">REST</text>
+</svg>
+</div>
+
+<h2 class="section-title">REST vs gRPC vs GraphQL</h2>
   <table class="data-table">
-    <tr><th></th><th>REST</th><th>GraphQL</th><th>gRPC</th></tr>
-    <tr><td><strong>Protocol</strong></td><td>HTTP/1.1, HTTP/2</td><td>HTTP/1.1, HTTP/2</td><td>HTTP/2 (binary)</td></tr>
-    <tr><td><strong>Format</strong></td><td>JSON/XML</td><td>JSON</td><td>Protocol Buffers (binary)</td></tr>
-    <tr><td><strong>Typing</strong></td><td>Loose</td><td>Strongly typed schema</td><td>Strongly typed .proto</td></tr>
-    <tr><td><strong>Over-fetching</strong></td><td>Yes (fixed response)</td><td>No (client specifies fields)</td><td>No (defined in proto)</td></tr>
-    <tr><td><strong>Streaming</strong></td><td>SSE/WebSocket workaround</td><td>Subscriptions</td><td>Native bi-directional streaming</td></tr>
-    <tr><td><strong>Performance</strong></td><td>Good</td><td>Good (n+1 problem)</td><td>Excellent (binary, multiplexed)</td></tr>
-    <tr><td><strong>Best for</strong></td><td>Public APIs, web clients</td><td>Complex client queries, BFF</td><td>Internal microservices, low-latency</td></tr>
+    <tr><th></th><th>REST</th><th>gRPC</th><th>GraphQL</th></tr>
+    <tr><td><strong>Protocol</strong></td><td>HTTP/1.1 or HTTP/2, JSON</td><td>HTTP/2, Protocol Buffers (binary)</td><td>HTTP, JSON</td></tr>
+    <tr><td><strong>Typing</strong></td><td>Loose — no enforced schema</td><td>Strongly typed .proto files</td><td>Strongly typed schema</td></tr>
+    <tr><td><strong>Performance</strong></td><td>Good</td><td>Excellent — binary, multiplexed, streaming</td><td>Good (watch N+1 queries)</td></tr>
+    <tr><td><strong>Over-fetching</strong></td><td>Yes — fixed response shape</td><td>No — defined in proto</td><td>No — client specifies exact fields</td></tr>
+    <tr><td><strong>Streaming</strong></td><td>SSE or WebSocket workaround</td><td>Native bi-directional streaming</td><td>Subscriptions</td></tr>
+    <tr><td><strong>Browser support</strong></td><td>Universal ✅</td><td>Limited (needs gRPC-Web)</td><td>Universal ✅</td></tr>
+    <tr><td><strong>Best for</strong></td><td>Public APIs, simple CRUD, third-party</td><td>Internal microservices, low-latency, streaming</td><td>Complex client queries, mobile BFF</td></tr>
   </table>
 
-  <h2 class="section-title" style="margin-top:20px">API Latency &amp; SLO Targets</h2>
-  <table class="data-table">
-    <tr><th>API Type</th><th>P50 target</th><th>P99 target</th><th>Notes</th></tr>
-    <tr><td>Read API (cached)</td><td>&lt;10ms</td><td>&lt;50ms</td><td>Redis hit</td></tr>
-    <tr><td>Read API (DB)</td><td>&lt;50ms</td><td>&lt;200ms</td><td>Indexed query</td></tr>
-    <tr><td>Write API</td><td>&lt;100ms</td><td>&lt;500ms</td><td>DB write + async fan-out</td></tr>
-    <tr><td>Search API</td><td>&lt;100ms</td><td>&lt;300ms</td><td>Elasticsearch</td></tr>
-    <tr><td>Media upload</td><td>&lt;500ms</td><td>&lt;2s</td><td>S3 + async processing</td></tr>
-  </table>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
+    <div style="font-weight:700;margin-bottom:12px;font-size:14px">Decision Flowchart</div>
+    <div style="font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+      Is it internal service-to-service? → <strong style="color:#059669">gRPC</strong><br>
+      Is it public/browser-facing with standard CRUD? → <strong style="color:#2563eb">REST</strong><br>
+      Does the client need flexible field selection (mobile, BFF)? → <strong style="color:#7c3aed">GraphQL</strong><br>
+      Need real-time bidirectional streaming? → <strong style="color:#059669">gRPC streaming</strong> or WebSockets
+    </div>
+  </div>
 
+  <h2 class="section-title" style="margin-top:20px">HTTP Methods — PATCH vs PUT vs POST</h2>
+  <table class="data-table">
+    <tr><th>Method</th><th>Action</th><th>Idempotent?</th><th>Body</th><th>Example</th></tr>
+    <tr><td><strong>POST</strong></td><td>Create new resource</td><td>No — each call creates new</td><td>Full payload</td><td>POST /users → creates user</td></tr>
+    <tr><td><strong>PUT</strong></td><td>Replace entire resource</td><td>Yes — same result repeated</td><td>Full replacement</td><td>PUT /users/1 → replaces all fields</td></tr>
+    <tr><td><strong>PATCH</strong></td><td>Partial update</td><td>Usually yes</td><td>Only changed fields</td><td>PATCH /users/1 → update name only</td></tr>
+    <tr><td><strong>GET</strong></td><td>Read resource</td><td>Yes</td><td>None</td><td>GET /users/1</td></tr>
+    <tr><td><strong>DELETE</strong></td><td>Delete resource</td><td>Yes</td><td>None</td><td>DELETE /users/1</td></tr>
+  </table>
+  <div class="callout callout-blue">
+    <strong>PUT vs PATCH:</strong> PUT sends the complete object — missing fields get nulled/defaulted. PATCH sends only what changed — safer for partial updates. Use PATCH for most updates; PUT when replacing the entire resource intentionally.
+  </div>
+
+  <h2 class="section-title" style="margin-top:20px">API Design Principles</h2>
   <div class="accordion">
     <div class="accordion-item">
-      <div class="accordion-header" onclick="toggleAccordion(this)">Rate Limiting — Quick Reference <span class="accordion-arrow">▼</span></div>
+      <div class="accordion-header" onclick="toggleAccordion(this)">RESTful design best practices <span class="accordion-arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="code-block"><pre>// Token bucket (AWS API Gateway default):
-CAPACITY = 1000 tokens, REFILL = 100/sec
-→ allows bursts up to 1000, then throttles at 100/sec
+        <div class="code-block"><pre><span class="cm">// Resource naming: nouns, plural, hierarchical</span>
+GET    /users/{id}                    <span class="cm">// get user</span>
+GET    /users/{id}/orders             <span class="cm">// user's orders</span>
+POST   /users/{id}/orders             <span class="cm">// create order for user</span>
+GET    /orders?status=pending&limit=20 <span class="cm">// filter + paginate</span>
 
-// Headers to return:
-X-RateLimit-Limit:     1000
-X-RateLimit-Remaining: 842
-X-RateLimit-Reset:     1704067200  // epoch reset time
-Retry-After:           30          // seconds (on 429)
+<span class="cm">// Versioning strategies</span>
+GET /v1/users       <span class="cm">// URL path (most common)</span>
+Accept: application/vnd.api.v1+json  <span class="cm">// header</span>
+GET /users?version=1                  <span class="cm">// query param (avoid)</span>
 
-// Distributed rate limiting (across multiple servers):
-// Use Redis Lua script for atomic check-and-decrement
-// Token bucket or sliding window counter (see Rate Limiter case study)</pre></div>
-      </div>
-    </div>
-    <div class="accordion-item">
-      <div class="accordion-header" onclick="toggleAccordion(this)">Consistent Hashing <span class="accordion-arrow">▼</span></div>
-      <div class="accordion-body">
-        <div class="callout callout-green">
-          Place both servers and keys on a hash ring (0–2³²). Each key is served by the first server clockwise. Adding/removing a server only affects ~N/total_servers keys — minimal reshuffling.
-        </div>
-        <div class="code-block"><pre>// Virtual nodes: each physical server owns 100-200 positions on ring
-// Prevents hot spots when servers have different capacities
-
-Without consistent hashing: add 1 server → rehash ALL keys
-With consistent hashing:    add 1 server → move only ~1/N keys
-
-// Used by: Cassandra, DynamoDB, Memcached, CDNs</pre></div>
+<span class="cm">// HTTP status codes — use them correctly</span>
+200 OK          <span class="cm">// success with body</span>
+201 Created     <span class="cm">// POST success, include Location header</span>
+204 No Content  <span class="cm">// DELETE/PUT success, no body</span>
+400 Bad Request <span class="cm">// client error (validation)</span>
+401 Unauthorized<span class="cm">// not authenticated</span>
+403 Forbidden   <span class="cm">// authenticated but no permission</span>
+404 Not Found   <span class="cm">// resource doesn't exist</span>
+429 Too Many    <span class="cm">// rate limited</span>
+500 Server Error<span class="cm">// server bug</span></pre></div>
       </div>
     </div>
   </div>
 
-  
+  <h2 class="section-title" style="margin-top:20px">API Rate Limiting</h2>
+  <div class="callout callout-amber">
+    <strong>Why rate limit:</strong> Prevent abuse, ensure fair use, protect backend services from overload, enforce SLA tiers (free/pro/enterprise).
+  </div>
+  <table class="data-table">
+    <tr><th>Algorithm</th><th>Memory</th><th>Burst?</th><th>Accuracy</th><th>Best for</th></tr>
+    <tr><td><strong>Token Bucket</strong></td><td>O(1) — 2 Redis keys</td><td>✅ Yes — up to bucket size</td><td>Good</td><td>Most API rate limiting</td></tr>
+    <tr><td><strong>Sliding Window Counter</strong></td><td>O(1) — 2 Redis keys</td><td>Partial</td><td>~98%</td><td>Best balance ✅</td></tr>
+    <tr><td><strong>Fixed Window</strong></td><td>O(1) — 1 Redis key</td><td>2× at boundary</td><td>Fair</td><td>Simple limits</td></tr>
+    <tr><td><strong>Sliding Window Log</strong></td><td>O(n) — 1 entry/request</td><td>No</td><td>Exact ✅</td><td>Strict per-user</td></tr>
+  </table>
+  <div class="code-block"><pre><span class="cm">// Response headers to always include</span>
+X-RateLimit-Limit:     1000    <span class="cm">// total allowed per window</span>
+X-RateLimit-Remaining: 842     <span class="cm">// left in current window</span>
+X-RateLimit-Reset:     1704067 <span class="cm">// epoch when window resets</span>
+Retry-After:           30      <span class="cm">// seconds (on 429 only)</span></pre></div>
+</div>
+
+
+<div class="section-title">HTTPS & TLS</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">How HTTPS/TLS works <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre>TLS Handshake (simplified):
+1. Client → Server: "Hello, I support TLS 1.3, here are my cipher suites"
+2. Server → Client: Certificate (public key + CA signature)
+3. Client verifies certificate against trusted CA store
+4. Key exchange (ECDHE): establish shared secret without transmitting it
+5. Both derive symmetric session key from shared secret
+6. All further communication encrypted with symmetric key
+
+Why asymmetric for handshake, symmetric for data?
+Asymmetric (RSA/ECDSA): slow but key exchange over untrusted network
+Symmetric (AES-256-GCM): fast, used for all application data</pre></div>
+      <div class="callout callout-blue">
+        <strong>Certificate pinning:</strong> Mobile apps can pin expected certificate/public key. Even if CA is compromised, pinned apps reject unexpected certs. Used by banking apps and high-security mobile clients.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">HTTP vs HTTPS vs HTTP/2 vs HTTP/3 <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Protocol</th><th>Transport</th><th>Key Feature</th><th>Use</th></tr>
+        <tr><td>HTTP/1.1</td><td>TCP, plaintext</td><td>Request/response, one at a time per connection</td><td>Legacy</td></tr>
+        <tr><td>HTTPS</td><td>TCP + TLS</td><td>Encrypted HTTP/1.1</td><td>Standard for all web</td></tr>
+        <tr><td>HTTP/2</td><td>TCP + TLS</td><td>Multiplexing, header compression, server push</td><td>Modern APIs, browsers</td></tr>
+        <tr><td>HTTP/3</td><td>QUIC (UDP)</td><td>No head-of-line blocking, faster mobile</td><td>CDNs, mobile-first</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+${quizHTML('sd-auth', [
+  { q: "JWT vs Session tokens — key difference?", opts: ["JWT is always encrypted", "JWT is stateless (server holds no state); sessions require server-side storage", "Sessions are more secure", "No difference"], ans: 1, exp: "Session: server stores session data (Redis/DB), client gets opaque ID. JWT: all data in the token, server only verifies signature — no storage. JWT enables stateless horizontal scaling but can't be revoked without a blocklist." },
+  { q: "OAuth2 is for?", opts: ["Encrypting passwords", "Authorisation — granting third-party apps limited access to your resources", "Authenticating users (proving identity)", "Hashing tokens"], ans: 1, exp: "OAuth2 = Authorisation (what you can access). OpenID Connect (OIDC) = Authentication on top of OAuth2 (who you are). When you 'Login with Google', OAuth2 grants access, OIDC provides identity (id_token with user info)." },
+  { q: "When should you use API Keys over JWT?", opts: ["Never — JWT is always better", "Server-to-server integrations, third-party developer access, rate-limiting by client", "Mobile apps", "Browser-based SPAs"], ans: 1, exp: "API Keys: simple, long-lived, good for server-to-server or third-party developers. JWT: better for user sessions (short-lived, carries claims). API Keys are easy to audit, rotate, and rate-limit per key." },
+  { q: "What is the purpose of a refresh token?", opts: ["Refresh the UI", "Get new short-lived access tokens without re-authentication when access token expires", "Reset password", "Reload user profile"], ans: 1, exp: "Access tokens are short-lived (15min–1hr) to limit damage if stolen. Refresh tokens are long-lived (days/weeks), stored securely (httpOnly cookie), used ONLY to get new access tokens. If refresh token is stolen, revoke it in the DB." },
+  { q: "PKCE (Proof Key for Code Exchange) prevents what attack?", opts: ["SQL injection", "Authorization code interception in mobile/SPA OAuth flows", "CSRF attacks", "JWT forgery"], ans: 1, exp: "In public clients (mobile apps, SPAs), the authorization code could be intercepted. PKCE: generate random code_verifier → hash it (code_challenge) → send hash with auth request. Only the original app that sent the hash can exchange the code." },
+  { q: "Where should JWTs be stored in a browser?", opts: ["localStorage (most convenient)", "httpOnly cookies (prevents XSS access) — NOT localStorage", "sessionStorage", "window.token global variable"], ans: 1, exp: "localStorage is accessible via JavaScript — XSS attack can steal it. httpOnly cookies can't be accessed by JS. Pair with SameSite=Strict/Lax to prevent CSRF. This is the recommended approach for auth tokens." },
+  { q: "What is mTLS and when is it used?", opts: ["Multi-factor TLS", "Mutual TLS — both client AND server present certificates, verifying each other's identity", "Mobile TLS protocol", "A compression algorithm"], ans: 1, exp: "Normal TLS: only server proves identity (certificate). mTLS: both sides present certificates. Used for service-to-service auth in microservices (Istio implements this). Prevents man-in-the-middle between internal services." },
+  { q: "Rate limiting by user vs by IP — which is harder to bypass?", opts: ["By IP (harder)", "By authenticated user ID (harder to bypass than IP, which can be spoofed/rotated)", "Both equally hard", "Neither can be bypassed"], ans: 1, exp: "IP-based limiting: attackers can use proxies, rotating IPs, botnets. User-ID based: requires authentication, much harder to get millions of accounts. Best: both layers — IP rate limiting for unauthenticated endpoints, user-ID for authenticated." },
+  { q: "SSO (Single Sign-On) uses which protocols?", opts: ["Only OAuth2", "SAML 2.0 (enterprise/XML) or OIDC (modern/JSON) — both enable one login for multiple apps", "Only JWT", "HTTP Basic Auth"], ans: 1, exp: "SAML 2.0: XML-based, enterprise-focused (Okta, Active Directory). OIDC: JSON/JWT-based, modern web/mobile (Google, GitHub). Both allow one authentication session to grant access to multiple applications without re-login." }
+])}
+</div>
+
+
 <div id="block-auth" class="block-section" style="display:none">
 <div class="section-title">Authentication Patterns (7)</div>
 
@@ -2335,52 +2589,83 @@ App → Resource Server (with token) → User's data</pre></div>
   </div>
 </div>
 
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">7. mTLS — Mutual TLS <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <p><strong>What:</strong> Both client AND server present certificates, verifying each other's identity. Normal TLS only verifies the server.</p>
+      <p style="margin-top:8px"><strong>Use for:</strong> Service-to-service auth in microservices. Istio implements this automatically via sidecar proxies — zero app code changes.</p>
+      <div class="code-block"><pre><span class="cm"># Normal TLS: only server proves identity</span>
+Client → "Who are you?" → Server sends certificate → Client verifies ✅
+
+<span class="cm"># mTLS: both sides prove identity</span>
+Client sends cert → Server verifies ✅
+Server sends cert → Client verifies ✅
+<span class="cm"># Result: guaranteed identity in both directions</span>
+
+<span class="cm"># Istio enables mTLS cluster-wide with one config:</span>
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata: {name: default}
+spec:
+  mtls:
+    mode: STRICT  <span class="cm"># all pods must use mTLS</span></pre></div>
+      <div class="callout callout-blue">mTLS prevents man-in-the-middle attacks between internal services. A rogue service can't impersonate another — it needs a valid certificate signed by your CA.</div>
+    </div>
+  </div>
+</div>
+
 <hr class="section-sep">
 
-<div class="section-title">REST vs gRPC vs GraphQL</div>
+<div class="section-title">Hashing — MD5, SHA, Checksums</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">MD5 — Fast hash, NOT for passwords <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="callout callout-amber"><strong>MD5 is broken for security</strong> — collision attacks are feasible. Never use for passwords or digital signatures. Use only for non-security checksums (file integrity, data deduplication).</div>
+      <div class="code-block"><pre><span class="cm">// Java MD5 checksum (file integrity only, not security)</span>
+MessageDigest md = MessageDigest.getInstance(<span class="str">"MD5"</span>);
+byte[] hash = md.digest(fileBytes);
+String hex = DatatypeConverter.printHexBinary(hash).toLowerCase();
+<span class="cm">// "5d41402abc4b2a76b9719d911017c592" — 32 hex chars = 128 bits</span>
 
-<table class="data-table">
-  <thead><tr><th>Factor</th><th>REST</th><th>gRPC</th><th>GraphQL</th></tr></thead>
-  <tbody>
-    <tr><td>Protocol</td><td>HTTP/1.1, JSON</td><td>HTTP/2, Protobuf (binary)</td><td>HTTP, JSON</td></tr>
-    <tr><td>Performance</td><td>Moderate</td><td>⚡ Fastest (binary, multiplexing)</td><td>Moderate</td></tr>
-    <tr><td>Typing</td><td>None (OpenAPI optional)</td><td>Strong (proto schema)</td><td>Strong (schema)</td></tr>
-    <tr><td>Flexibility</td><td>Fixed endpoints</td><td>Fixed methods</td><td>Client defines shape</td></tr>
-    <tr><td>Best for</td><td>Public APIs, CRUD</td><td>Microservices, streaming</td><td>Complex UIs, BFF</td></tr>
-    <tr><td>Tooling</td><td>Excellent (universal)</td><td>Good (generated clients)</td><td>Good (Apollo)</td></tr>
-  </tbody>
-</table>
+<span class="cm">// Use cases: detect accidental corruption, deduplication, ETag headers</span>
+<span class="cm">// NOT for: password storage, digital signatures, security tokens</span></pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">SHA-256 / SHA-3 — Cryptographic hashing <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm">// SHA-256: 256-bit output, collision-resistant, cryptographically secure</span>
+MessageDigest sha = MessageDigest.getInstance(<span class="str">"SHA-256"</span>);
+byte[] hash = sha.digest(data.getBytes(StandardCharsets.UTF_8));
 
-<div class="callout blue">
-  <strong>When to use gRPC:</strong> Internal microservice communication where performance matters. The binary protobuf format is 3-10x smaller than JSON and HTTP/2 allows multiplexing multiple requests over one connection.
+<span class="cm">// Use cases: digital signatures, TLS certificates, Git commit IDs,
+// JWT signing (HS256/RS256), file integrity verification</span>
+
+<span class="cm">// For passwords: use bcrypt or Argon2 (slow by design, salted)</span>
+<span class="cm">// NEVER hash passwords with MD5 or SHA alone (too fast = brute forceable)</span>
+String hashed = BCrypt.hashpw(password, BCrypt.gensalt(12));</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Checksums in System Design <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Algorithm</th><th>Output Size</th><th>Speed</th><th>Use For</th></tr>
+        <tr><td>CRC32</td><td>32 bits</td><td>Fastest</td><td>Network packet integrity, ZIP files</td></tr>
+        <tr><td>MD5</td><td>128 bits</td><td>Fast</td><td>File checksums, ETags, deduplication</td></tr>
+        <tr><td>SHA-1</td><td>160 bits</td><td>Fast</td><td>Git object IDs (legacy security)</td></tr>
+        <tr><td>SHA-256</td><td>256 bits</td><td>Medium</td><td>TLS, JWT, digital signatures, blockchain</td></tr>
+        <tr><td>bcrypt/Argon2</td><td>Varies</td><td>Intentionally slow</td><td>Password storage — slow = brute-force resistant</td></tr>
+        <tr><td>HMAC-SHA256</td><td>256 bits</td><td>Medium</td><td>API request signing, JWT HS256</td></tr>
+      </table>
+      <div class="callout callout-green"><strong>Checksum in APIs:</strong> Add Content-MD5 or checksum header to uploads. S3 verifies checksum server-side. Detects corruption in transit. Also used for ETag (caching) and deduplication in object storage.</div>
+    </div>
+  </div>
 </div>
 
-<div class="callout green">
-  <strong>When to use GraphQL:</strong> Mobile apps or complex SPAs where different clients need different shapes of data. Eliminates over-fetching and under-fetching. Add a GraphQL BFF (Backend for Frontend) layer in front of REST/gRPC microservices.
-</div>
-
-<div class="section-title" style="margin-top:20px">PATCH vs PUT vs POST</div>
-
-<table class="data-table">
-  <thead><tr><th>Method</th><th>Idempotent</th><th>Use case</th></tr></thead>
-  <tbody>
-    <tr><td><strong>POST</strong></td><td>No</td><td>Create a new resource. Each call creates a new item.</td></tr>
-    <tr><td><strong>PUT</strong></td><td>Yes</td><td>Replace the full resource. Must send complete representation.</td></tr>
-    <tr><td><strong>PATCH</strong></td><td>Yes (if designed carefully)</td><td>Partial update. Send only fields being changed.</td></tr>
-  </tbody>
-</table>
-
-${quizHTML('sd-auth', [
-  { q: "JWT vs Session tokens — key difference?", opts: ["JWT is always encrypted", "JWT is stateless (server holds no state); sessions require server-side storage", "Sessions are more secure", "No difference"], ans: 1, exp: "Session: server stores session data (Redis/DB), client gets opaque ID. JWT: all data in the token, server only verifies signature — no storage. JWT enables stateless horizontal scaling but can't be revoked without a blocklist." },
-  { q: "OAuth2 is for?", opts: ["Encrypting passwords", "Authorisation — granting third-party apps limited access to your resources", "Authenticating users (proving identity)", "Hashing tokens"], ans: 1, exp: "OAuth2 = Authorisation (what you can access). OpenID Connect (OIDC) = Authentication on top of OAuth2 (who you are). When you 'Login with Google', OAuth2 grants access, OIDC provides identity (id_token with user info)." },
-  { q: "When should you use API Keys over JWT?", opts: ["Never — JWT is always better", "Server-to-server integrations, third-party developer access, rate-limiting by client", "Mobile apps", "Browser-based SPAs"], ans: 1, exp: "API Keys: simple, long-lived, good for server-to-server or third-party developers. JWT: better for user sessions (short-lived, carries claims). API Keys are easy to audit, rotate, and rate-limit per key." },
-  { q: "What is the purpose of a refresh token?", opts: ["Refresh the UI", "Get new short-lived access tokens without re-authentication when access token expires", "Reset password", "Reload user profile"], ans: 1, exp: "Access tokens are short-lived (15min–1hr) to limit damage if stolen. Refresh tokens are long-lived (days/weeks), stored securely (httpOnly cookie), used ONLY to get new access tokens. If refresh token is stolen, revoke it in the DB." },
-  { q: "PKCE (Proof Key for Code Exchange) prevents what attack?", opts: ["SQL injection", "Authorization code interception in mobile/SPA OAuth flows", "CSRF attacks", "JWT forgery"], ans: 1, exp: "In public clients (mobile apps, SPAs), the authorization code could be intercepted. PKCE: generate random code_verifier → hash it (code_challenge) → send hash with auth request. Only the original app that sent the hash can exchange the code." },
-  { q: "Where should JWTs be stored in a browser?", opts: ["localStorage (most convenient)", "httpOnly cookies (prevents XSS access) — NOT localStorage", "sessionStorage", "window.token global variable"], ans: 1, exp: "localStorage is accessible via JavaScript — XSS attack can steal it. httpOnly cookies can't be accessed by JS. Pair with SameSite=Strict/Lax to prevent CSRF. This is the recommended approach for auth tokens." },
-  { q: "What is mTLS and when is it used?", opts: ["Multi-factor TLS", "Mutual TLS — both client AND server present certificates, verifying each other's identity", "Mobile TLS protocol", "A compression algorithm"], ans: 1, exp: "Normal TLS: only server proves identity (certificate). mTLS: both sides present certificates. Used for service-to-service auth in microservices (Istio implements this). Prevents man-in-the-middle between internal services." },
-  { q: "Rate limiting by user vs by IP — which is harder to bypass?", opts: ["By IP (harder)", "By authenticated user ID (harder to bypass than IP, which can be spoofed/rotated)", "Both equally hard", "Neither can be bypassed"], ans: 1, exp: "IP-based limiting: attackers can use proxies, rotating IPs, botnets. User-ID based: requires authentication, much harder to get millions of accounts. Best: both layers — IP rate limiting for unauthenticated endpoints, user-ID for authenticated." },
-  { q: "SSO (Single Sign-On) uses which protocols?", opts: ["Only OAuth2", "SAML 2.0 (enterprise/XML) or OIDC (modern/JSON) — both enable one login for multiple apps", "Only JWT", "HTTP Basic Auth"], ans: 1, exp: "SAML 2.0: XML-based, enterprise-focused (Okta, Active Directory). OIDC: JSON/JWT-based, modern web/mobile (Google, GitHub). Both allow one authentication session to grant access to multiple applications without re-login." }
-])}
+<hr class="section-sep">
 </div>
 
 ${quizHTML('sd-building', [
@@ -2401,8 +2686,8 @@ ${quizHTML('sd-building', [
 pages['sd-auth'] = () => `
 <div class="breadcrumb">System Design → <span>Auth &amp; APIs</span></div>
 <div class="page-header">
-  <div class="page-title">Authentication &amp; API Design</div>
-  <div class="page-subtitle">7 auth patterns, REST vs gRPC vs GraphQL, and API design principles for senior engineers.</div>
+  <div class="page-title">Authentication &amp; Security</div>
+  <div class="page-subtitle">7 authentication patterns, hashing, MD5, checksums, and HTTPS for senior engineers.</div>
 </div>
 
 <div class="section-title">Authentication Patterns (7)</div>
@@ -3664,6 +3949,377 @@ ${quizHTML('sd-tradeoffs', [
   { q: "When would you choose NoSQL over SQL?", opts: ["Always — NoSQL is modern", "When you need massive horizontal scale, schema flexibility, or a specific data model (document, graph, time-series)", "When the team prefers it", "For all new projects after 2020"], ans: 1, exp: "Default to SQL (PostgreSQL). Switch to NoSQL for: Cassandra (very high write throughput, multi-region), MongoDB (nested document structure, flexible schema), Redis (sub-ms caching), Neo4j (graph traversal), InfluxDB (time-series). 'Use the right tool' not 'use the new thing'." },
   { q: "CDN — what is the biggest challenge?", opts: ["Cost", "Cache invalidation — stale content at edge nodes after origin updates", "Geographic coverage", "Setting up origin pull"], ans: 1, exp: "CDN invalidation strategies: 1) Short TTL (content expires quickly but more origin hits), 2) Content-hash URLs (/app.a3f5b2.js — new deploy = new URL, cached forever), 3) API purge (CloudFront CreateInvalidation — instant but costs money). URL versioning is the most reliable approach." },
   { q: "Batch vs stream processing — which to use for fraud detection?", opts: ["Batch — process daily transactions overnight", "Stream processing — analyze each transaction in real-time as it happens", "Both are equally good", "Batch with 5-minute intervals"], ans: 1, exp: "Fraud detection requires stream processing: analyze each transaction the moment it occurs, flag and block before the fraudster gets away. Batch processing (nightly reports) would be useless — the fraudulent transactions have already completed." }
+])}
+`;
+
+pages['sd-eventing'] = () => `
+<div class="page-header">
+  <div class="breadcrumb">System Design → Distributed Systems</div>
+  <h1 class="page-title">Eventing &amp; Observability</h1>
+  <p class="page-subtitle">FluentD, OpenTelemetry, Prometheus, Jaeger — the modern observability stack for distributed systems.</p>
+  ${revisionControls('sd-eventing')}
+</div>
+
+<div class="elon-box">
+  <strong>⚡ Three pillars of observability:</strong> Logs = what happened. Metrics = how much / how fast. Traces = where time was spent across services. All three together enable complete understanding of distributed systems.
+</div>
+
+<h2 class="section-title">The Modern Observability Stack</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0">
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:6px">📊 Prometheus</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Pull-based metrics. Scrapes /metrics endpoints. PromQL for queries. Alertmanager for routing alerts.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: infrastructure + service metrics</div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:6px">🔍 Jaeger / Tempo</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Distributed tracing. Trace IDs propagate across services. Visualise latency at each hop.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: finding slow service bottlenecks</div>
+  </div>
+  <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#c2410c;margin-bottom:6px">📝 FluentD / Fluent Bit</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Log collection agents. Read from files/containers. Parse, transform, route to Elasticsearch/Loki/S3.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: collecting logs from all pods/nodes</div>
+  </div>
+  <div style="background:#fae8ff;border:2px solid #a855f7;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#6b21a8;margin-bottom:6px">🌐 OpenTelemetry (OTel)</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Vendor-neutral standard for logs, metrics, traces. Instrument once → export anywhere via OTLP.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: unified instrumentation, no vendor lock-in</div>
+  </div>
+  <div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#1d4ed8;margin-bottom:6px">📈 Grafana</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Visualisation layer. Queries Prometheus, Loki, Jaeger, InfluxDB. Dashboards + alerting UI.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: unified observability dashboard</div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #059669;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:6px">📦 Loki</div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">Log aggregation by Grafana. Index only labels (not full text) — cheap + fast. Query via LogQL.</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px">Best for: K8s log storage, cost-effective</div>
+  </div>
+</div>
+
+<h2 class="section-title">Architecture: From Pod to Dashboard</h2>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+  <strong>Logs pipeline:</strong><br>
+  Pod stdout/stderr → <strong>Fluent Bit</strong> (DaemonSet, reads container logs) → parse JSON + enrich with K8s metadata → <strong>Loki</strong> (store) / <strong>Elasticsearch</strong> → <strong>Grafana</strong> (query + alert)<br><br>
+  <strong>Metrics pipeline:</strong><br>
+  App /metrics endpoint → <strong>Prometheus</strong> scrapes every 15s → TSDB storage → <strong>Alertmanager</strong> (alert routing) → <strong>Grafana</strong> (dashboards)<br><br>
+  <strong>Traces pipeline:</strong><br>
+  App OTel SDK → spans with traceID → <strong>OTel Collector</strong> → <strong>Jaeger/Tempo</strong> (store) → <strong>Grafana</strong> (trace view)<br><br>
+  <strong>All together:</strong> Click a Grafana metric spike → see logs for that time window → jump to trace → find exact slow DB query
+</div>
+
+<h2 class="section-title">FluentD vs Fluent Bit</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>FluentD</th><th>Fluent Bit</th></tr>
+  <tr><td><strong>Language</strong></td><td>Ruby (C core)</td><td>C only</td></tr>
+  <tr><td><strong>Memory</strong></td><td>~40 MB</td><td>~1 MB ← much lighter</td></tr>
+  <tr><td><strong>Use case</strong></td><td>Complex log routing, heavy transformation</td><td>Edge/pod-level collection, forward to FluentD or Loki</td></tr>
+  <tr><td><strong>Plugins</strong></td><td>500+ plugins</td><td>~50 plugins (focused)</td></tr>
+  <tr><td><strong>K8s deployment</strong></td><td>Can be used but heavier</td><td>DaemonSet on every node ✅ preferred</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>Common pattern:</strong> Fluent Bit (DaemonSet) on every node → collects + forwards → FluentD (aggregator Deployment) → routes to multiple destinations (Elasticsearch AND S3 AND audit system). Or: Fluent Bit → directly to Loki (simpler).
+</div>
+
+<h2 class="section-title">OpenTelemetry — Instrument Once, Export Anywhere</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">OTel Collector — the hub <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm"># OTel Collector pipeline config</span>
+receivers:
+  otlp:
+    protocols:
+      grpc: {endpoint: 0.0.0.0:4317}   <span class="cm"># apps send here</span>
+      http: {endpoint: 0.0.0.0:4318}
+
+processors:
+  batch:                                <span class="cm"># buffer + batch for efficiency</span>
+  resource:
+    attributes:
+      - key: environment
+        value: production
+        action: upsert
+
+exporters:
+  prometheus: {endpoint: "0.0.0.0:8889"}  <span class="cm"># metrics to Prometheus</span>
+  jaeger: {endpoint: "jaeger:14250"}       <span class="cm"># traces to Jaeger</span>
+  loki:                                    <span class="cm"># logs to Loki</span>
+    endpoint: "http://loki:3100/loki/api/v1/push"
+
+service:
+  pipelines:
+    traces:   {receivers:[otlp], processors:[batch], exporters:[jaeger]}
+    metrics:  {receivers:[otlp], processors:[batch], exporters:[prometheus]}
+    logs:     {receivers:[otlp], processors:[batch], exporters:[loki]}</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Structured Logging — the right way <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm">// BAD: plain text — can only grep, can't query fields</span>
+logger.info(<span class="str">"User 12345 completed purchase of item ABC for $50"</span>);
+
+<span class="cm">// GOOD: structured JSON — every field queryable in Loki/Elasticsearch</span>
+logger.info(<span class="str">"purchase_completed"</span>,
+  <span class="str">"userId"</span>, <span class="num">12345</span>,
+  <span class="str">"itemId"</span>, <span class="str">"ABC"</span>,
+  <span class="str">"amount"</span>, <span class="num">50.00</span>,
+  <span class="str">"currency"</span>, <span class="str">"USD"</span>,
+  <span class="str">"traceId"</span>, span.getSpanContext().getTraceId()  <span class="cm">// correlate with trace!</span>
+);
+<span class="cm">// → {"level":"info","event":"purchase_completed","userId":12345,"itemId":"ABC","amount":50.0,"traceId":"abc123"}</span>
+
+<span class="cm">// Query in Loki: {app="order-service"} |= "purchase_completed" | json | amount > 100</span></pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Prometheus PromQL essentials <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm"># Rate of HTTP requests over last 5 minutes</span>
+rate(http_requests_total{job="api",status="200"}[5m])
+
+<span class="cm"># Error rate %</span>
+sum(rate(http_requests_total{status=~"5.."}[5m]))
+/ sum(rate(http_requests_total[5m])) * 100
+
+<span class="cm"># p99 latency</span>
+histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+
+<span class="cm"># CPU usage by pod</span>
+sum(rate(container_cpu_usage_seconds_total[5m])) by (pod)
+
+<span class="cm"># Alert rule: error rate > 5% for 5 minutes</span>
+alert: HighErrorRate
+expr: |
+  (sum(rate(http_requests_total{status=~"5.."}[5m]))
+  / sum(rate(http_requests_total[5m]))) > 0.05
+for: 5m
+annotations:
+  summary: "High error rate on {{ $labels.service }}"</pre></div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">RED Method (Services) vs USE Method (Infrastructure)</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0">
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:10px">RED — for Services</div>
+    <div style="line-height:2.2;font-size:14px">
+      <strong style="color:#2563eb">R</strong>ate — requests per second<br>
+      <strong style="color:#2563eb">E</strong>rrors — error rate<br>
+      <strong style="color:#2563eb">D</strong>uration — latency (p50/p95/p99)
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">Use for HTTP services, APIs, microservices</div>
+  </div>
+  <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#c2410c;margin-bottom:10px">USE — for Infrastructure</div>
+    <div style="line-height:2.2;font-size:14px">
+      <strong style="color:#ea580c">U</strong>tilization — % time busy<br>
+      <strong style="color:#ea580c">S</strong>aturation — queue depth<br>
+      <strong style="color:#ea580c">E</strong>rrors — error count/rate
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">Use for CPU, disk, network, memory</div>
+  </div>
+</div>
+
+${quizHTML('sd-eventing', [
+  { q: "What are the three pillars of observability?", opts: ["CPU, Memory, Network", "Logs (what happened), Metrics (aggregated numbers), Traces (request journey)", "Availability, Performance, Security", "Latency, Throughput, Errors"], ans: 1, exp: "Logs: timestamped events. Metrics: numeric aggregates (QPS, error rate). Traces: distributed request journey across services with timing. All three needed for complete debugging. Correlate them with a shared traceId in log fields." },
+  { q: "Fluent Bit vs FluentD — which to use as a DaemonSet on K8s nodes?", opts: ["FluentD — more plugins", "Fluent Bit — ~1MB memory vs FluentD ~40MB, designed for edge collection", "Both are identical", "Neither — use Prometheus instead"], ans: 1, exp: "Fluent Bit: C-only, ~1MB memory, designed as lightweight forwarder. Perfect as DaemonSet. FluentD: Ruby/C, ~40MB, better for complex aggregation and routing. Common pattern: Fluent Bit (node DaemonSet) → FluentD (aggregator) → multiple destinations." },
+  { q: "OpenTelemetry Collector main benefit?", opts: ["Replaces Prometheus", "Vendor-neutral hub: apps instrument once, Collector fans out to Prometheus, Jaeger, Loki simultaneously", "Only for traces", "Requires Kubernetes"], ans: 1, exp: "OTel Collector receives OTLP signals from apps → processes (batch, filter, enrich) → exports to multiple backends simultaneously. Change backends without touching app code. One SDK, any observability stack." },
+  { q: "Prometheus scrape model — pull vs push?", opts: ["Push — apps send metrics", "Pull — Prometheus scrapes /metrics endpoints at intervals", "Both equally", "Websocket streaming"], ans: 1, exp: "Prometheus pulls: scrapes configured /metrics endpoints every N seconds. Benefits: easy to detect down services (scrape fails = down), no push config needed in apps, centrally controlled interval. Use Pushgateway for batch jobs that can't be scraped." },
+  { q: "Structured logging main advantage over plain text?", opts: ["Smaller file size", "JSON fields queryable by any key — userId, traceId, amount — enables filtering, alerting, correlation", "Faster to write", "Required by Kubernetes"], ans: 1, exp: "Plain text: grep is the only tool. Structured JSON in Loki: {app='api'} | json | userId=12345 instantly finds all events for that user. Including traceId in every log line lets you jump from a log event directly to the distributed trace in Jaeger." },
+  { q: "RED method stands for?", opts: ["Reliability, Efficiency, Durability", "Rate (req/s), Errors (error rate), Duration (latency p50/p95/p99)", "Requests, Execution, Data", "Response, Endpoint, Debugging"], ans: 1, exp: "RED = golden signals for measuring service health. Rate: requests per second. Errors: fraction that fail. Duration: how long they take. USE method (Utilization, Saturation, Errors) is for infrastructure resources. Dashboard with both covers 90% of incidents." },
+  { q: "How do you correlate logs, metrics, and traces?", opts: ["Timestamp matching only", "Inject traceId into every log field + exemplar links in Prometheus + Grafana unified view", "Use a single tool only", "Not possible across different tools"], ans: 1, exp: "Correlation: 1) OTel SDK injects traceId into logs automatically, 2) Prometheus exemplars link metric data points to traces, 3) Grafana shows all three — click a spike → see logs for that window → jump to the specific trace. The traceId is the glue." },
+  { q: "What is a Prometheus alert rule's 'for' duration used for?", opts: ["How long to collect data before alerting", "Must be in alert condition continuously for this duration before firing — prevents flapping on brief spikes", "When to auto-resolve", "Alert frequency"], ans: 1, exp: "Without 'for: 5m': a single-second spike fires the alert immediately. With 'for: 5m': condition must be true continuously for 5 minutes before PagerDuty rings. Prevents false alerts from brief traffic spikes. Set 'for' based on how long the problem must persist to be real." },
+  { q: "Sidecar pattern for logging — what problem does it solve?", opts: ["App performance", "Decouples app from log shipping — app writes to stdout, sidecar handles collection, parsing, forwarding without app changes", "Security isolation", "Network routing"], ans: 1, exp: "Sidecar: Fluent Bit container in same pod as app. App writes logs to stdout/files, sidecar reads and ships to Loki. Apps don't need logging SDKs or network config. Change log destination by updating sidecar config only. Used by Istio (Envoy), FluentD, Vault agent." }
+])}
+`;
+
+
+pages['sd-specdriven'] = () => `
+<div class="page-header">
+  <div class="breadcrumb">System Design</div>
+  <h1 class="page-title">AI &amp; Spec-Driven Design</h1>
+  <p class="page-subtitle">MCP, RAG, VectorDB, agentic development — designing modern AI-powered systems.</p>
+  ${revisionControls('sd-specdriven')}
+</div>
+
+<div class="elon-box">
+  <strong>⚡ Shift in thinking:</strong> Traditional systems are deterministic — you define every step. Agentic systems are goal-driven — you define the outcome, the AI figures out the steps. Design for reasoning, not just processing.
+</div>
+
+<h2 class="section-title">Model Context Protocol (MCP)</h2>
+<div class="callout callout-blue">
+  MCP is an open protocol (by Anthropic) that standardises how AI models connect to external tools, databases, and services. Think of it as <strong>USB-C for AI integrations</strong> — one standard interface for everything.
+</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">MCP Architecture <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2">
+        <strong>MCP Host</strong> (Claude Desktop, VS Code) ↔ <strong>MCP Client</strong> (protocol layer) ↔ <strong>MCP Server</strong> (your tools)<br><br>
+        MCP Server exposes:<br>
+        • <strong>Tools</strong> — functions the AI can call (search_db, send_email, query_api)<br>
+        • <strong>Resources</strong> — data the AI can read (files, DB tables, API responses)<br>
+        • <strong>Prompts</strong> — reusable prompt templates
+      </div>
+      <div class="code-block"><pre><span class="cm">// MCP Server (TypeScript) — expose a database tool</span>
+<span class="kw">const</span> server = <span class="kw">new</span> Server({name: <span class="str">"my-db"</span>, version: <span class="str">"1.0"</span>});
+
+server.setRequestHandler(ListToolsRequestSchema, <span class="kw">async</span> () => ({
+  tools: [{
+    name: <span class="str">"query_users"</span>,
+    description: <span class="str">"Query users from the database by criteria"</span>,
+    inputSchema: {
+      type: <span class="str">"object"</span>,
+      properties: {
+        filter: {type: <span class="str">"string"</span>, description: <span class="str">"SQL WHERE clause"</span>},
+        limit: {type: <span class="str">"number"</span>}
+      }
+    }
+  }]
+}));
+
+server.setRequestHandler(CallToolRequestSchema, <span class="kw">async</span> (req) => {
+  <span class="kw">const</span> results = <span class="kw">await</span> db.query(
+    <span class="str">"SELECT * FROM users WHERE " + filter + " LIMIT " + limit</span>
+  );
+  <span class="kw">return</span> {content: [{type: <span class="str">"text"</span>, text: JSON.stringify(results)}]};
+});</pre></div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">RAG — Retrieval Augmented Generation</h2>
+<div class="callout callout-amber">
+  RAG solves the problem of LLMs having a knowledge cutoff. Instead of fine-tuning (expensive), retrieve relevant documents at query time and inject them into the prompt. The model answers based on YOUR data.
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin:14px 0">
+  <strong>RAG Pipeline:</strong><br>
+  1. <strong>Index time:</strong> Documents → Chunking → Embedding model → Vector DB<br>
+  2. <strong>Query time:</strong> User question → Embed question → Vector similarity search → Top-K chunks<br>
+  3. <strong>Generation:</strong> Prompt = "Here's context: [chunks]. Answer: [question]" → LLM → Response
+</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Chunking Strategy — critical for RAG quality <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Strategy</th><th>How</th><th>Best for</th><th>Trade-off</th></tr>
+        <tr><td><strong>Fixed size</strong></td><td>Split every N tokens (e.g., 512)</td><td>Simple, fast</td><td>May cut sentences mid-thought</td></tr>
+        <tr><td><strong>Sentence/paragraph</strong></td><td>Split on natural boundaries</td><td>General text, articles</td><td>Variable chunk sizes</td></tr>
+        <tr><td><strong>Semantic chunking</strong></td><td>Embed sentences, split where similarity drops</td><td>Long documents, research papers</td><td>More compute required</td></tr>
+        <tr><td><strong>Recursive character</strong></td><td>Try "\n\n", "\n", " " in order</td><td>Code + markdown</td><td>LangChain default, good balance</td></tr>
+        <tr><td><strong>Sliding window</strong></td><td>Overlapping chunks (e.g., 512 tokens, 50 overlap)</td><td>Preserve context at boundaries</td><td>More storage, duplicate content</td></tr>
+      </table>
+      <div class="callout callout-green">
+        <strong>Rule of thumb:</strong> Chunk size 256–512 tokens for dense technical content. 512–1024 for prose. Always include overlap (10-20%) to preserve context at chunk boundaries. Store chunk metadata (source, page, section) for citations.
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Vector Databases</h2>
+<table class="data-table">
+  <tr><th>Database</th><th>Type</th><th>Best for</th><th>Notes</th></tr>
+  <tr><td><strong>Pinecone</strong></td><td>Managed cloud</td><td>Production RAG, no ops</td><td>Fully managed, expensive at scale</td></tr>
+  <tr><td><strong>Weaviate</strong></td><td>Open source / cloud</td><td>Hybrid search (vector + BM25)</td><td>Built-in modules for embeddings</td></tr>
+  <tr><td><strong>Qdrant</strong></td><td>Open source / cloud</td><td>High performance, filtering</td><td>Rust-based, very fast</td></tr>
+  <tr><td><strong>ChromaDB</strong></td><td>Open source</td><td>Local dev, prototyping</td><td>Easy setup, not production-scale</td></tr>
+  <tr><td><strong>pgvector</strong></td><td>PostgreSQL extension</td><td>Already using Postgres</td><td>No new infra, good for &lt;10M vectors</td></tr>
+  <tr><td><strong>Milvus</strong></td><td>Open source</td><td>Billion-scale vector search</td><td>Complex ops, high performance</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>Similarity search:</strong> Cosine similarity (angle between vectors — ignores magnitude, good for text), Dot product (magnitude matters — good for normalized embeddings), Euclidean distance (L2 — good for image embeddings). Most RAG systems use cosine similarity.
+</div>
+
+<h2 class="section-title">Agentic Development Patterns</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Agent Architecture — ReAct pattern <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2">
+        ReAct = <strong>Re</strong>asoning + <strong>Act</strong>ing loop:<br>
+        Thought → Action (call tool) → Observation (tool result) → Thought → Action → ... → Final Answer<br><br>
+        1. LLM <strong>thinks</strong>: "I need to find current stock price"<br>
+        2. LLM <strong>acts</strong>: calls get_stock_price("NVDA") tool<br>
+        3. LLM <strong>observes</strong>: "NVDA = $875.40"<br>
+        4. LLM <strong>thinks</strong>: "Now I can calculate portfolio value"<br>
+        5. Repeat until task complete
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Skills / Tool Use — giving agents capabilities <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm">// Tool definitions for Claude API</span>
+tools = [
+  {
+    name: <span class="str">"web_search"</span>,
+    description: <span class="str">"Search the web for current information"</span>,
+    input_schema: {
+      type: <span class="str">"object"</span>,
+      properties: { query: {type: <span class="str">"string"</span>} },
+      required: [<span class="str">"query"</span>]
+    }
+  },
+  {
+    name: <span class="str">"execute_code"</span>,
+    description: <span class="str">"Execute Python code and return output"</span>,
+    input_schema: {
+      type: <span class="str">"object"</span>,
+      properties: { code: {type: <span class="str">"string"</span>} }
+    }
+  }
+]
+
+<span class="cm">// Agent loop: call LLM → handle tool_use → send result → repeat</span>
+<span class="kw">while</span> (response.stop_reason === <span class="str">"tool_use"</span>) {
+  <span class="kw">const</span> toolResult = executeLocalTool(response.content);
+  messages.push({role: <span class="str">"user"</span>, content: toolResult});
+  response = <span class="kw">await</span> claude.messages.create({messages, tools});
+}</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Multi-Agent Systems — orchestrator + specialists <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+        <strong>Orchestrator agent</strong> — breaks task into subtasks, routes to specialist agents<br>
+        <strong>Specialist agents</strong> — each has specific tools (web search, code execution, DB query)<br><br>
+        Example: "Research competitors and write a report"<br>
+        → Orchestrator → Research Agent (web search) → Analysis Agent (data analysis) → Writer Agent (synthesis)<br>
+        → Orchestrator merges outputs → Final report
+      </div>
+      <div class="callout callout-amber">
+        <strong>Key design decisions:</strong> How much autonomy? (fully autonomous vs human-in-the-loop). How to handle failures? (retry, escalate, fallback). How to prevent infinite loops? (max iterations, circuit breaker). How to share state? (message passing vs shared memory).
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Spec-Driven Development with AI</h2>
+<div class="callout callout-green">
+  <strong>Shift:</strong> Instead of writing code and then writing tests, write a machine-readable specification first — then let AI generate code, tests, docs, and APIs from the spec. The spec becomes the single source of truth.
+</div>
+<table class="data-table">
+  <tr><th>Approach</th><th>What</th><th>AI Role</th></tr>
+  <tr><td><strong>OpenAPI-first</strong></td><td>Write OpenAPI spec → generate server stubs, clients, docs</td><td>Generate implementation from spec</td></tr>
+  <tr><td><strong>TDD with AI</strong></td><td>Write tests first → AI generates code to pass them</td><td>Generate implementation from test spec</td></tr>
+  <tr><td><strong>PRD-to-code</strong></td><td>Natural language product requirements → AI generates architecture + code</td><td>Interpret requirements, propose architecture</td></tr>
+  <tr><td><strong>Schema-driven</strong></td><td>Define data schemas → AI generates migrations, types, validation, CRUD</td><td>Boilerplate generation from schema</td></tr>
+</table>
+
+${quizHTML('sd-specdriven', [
+  { q: "What problem does RAG solve?", opts: ["Makes LLMs faster", "Gives LLMs access to up-to-date private knowledge without expensive fine-tuning — retrieve at query time", "Replaces the model entirely", "Reduces hallucinations to zero"], ans: 1, exp: "RAG: at query time, embed the question → vector similarity search → inject top-K relevant chunks into the prompt → LLM answers using your data. No retraining needed. Knowledge can be updated by re-indexing documents. Cheaper than fine-tuning for factual knowledge." },
+  { q: "What is MCP (Model Context Protocol)?", opts: ["A meta-learning algorithm", "Open protocol for AI models to connect to external tools, databases, and services via a standard interface", "A compression standard", "A training methodology"], ans: 1, exp: "MCP standardises how AI applications connect to capabilities — like USB-C for AI integrations. MCP servers expose tools (callable functions), resources (readable data), and prompts. Hosts like Claude Desktop, VS Code connect to any MCP server using the same protocol." },
+  { q: "Chunking overlap (e.g., 10-20%) in RAG — why?", opts: ["Reduces storage", "Preserves context at chunk boundaries — a sentence split across two chunks stays coherent", "Required by vector databases", "Improves embedding speed"], ans: 1, exp: "Without overlap: a concept split across chunk boundary loses coherence — the embedding doesn't capture the full idea. With 50-token overlap: the tail of chunk N is repeated at the start of chunk N+1. Slightly more storage but much better retrieval quality for boundary queries." },
+  { q: "pgvector vs Pinecone — when to choose pgvector?", opts: ["Always use Pinecone", "pgvector when you already use Postgres and have under ~10M vectors — no new infra, SQL queries work", "pgvector is always faster", "Pinecone only supports Python"], ans: 1, exp: "pgvector: PostgreSQL extension, add vector type to existing tables, combine with SQL filters, no new service. Perfect for smaller RAG systems already on Postgres. Pinecone/Qdrant for production scale (100M+ vectors), advanced filtering, or dedicated vector workloads." },
+  { q: "ReAct pattern in agents — what does it stand for?", opts: ["Real-time Actions", "Reasoning + Acting — LLM alternates between thinking about what to do and calling tools to do it", "Reactive programming", "REST and CRUD"], ans: 1, exp: "ReAct loop: Thought (what do I need?) → Action (call tool) → Observation (tool result) → Thought → Action → ... until final answer. The model explicitly reasons about each step before acting. More reliable than pure end-to-end generation for multi-step tasks." },
+  { q: "Semantic chunking advantage over fixed-size chunking?", opts: ["Always faster", "Splits where topic changes (semantic boundary) rather than at arbitrary token count — preserves coherent ideas in each chunk", "Uses less memory", "Required for OpenAI embeddings"], ans: 1, exp: "Fixed-size: may cut mid-sentence or mid-concept. Semantic: embed sentences, measure similarity to neighbours, split when similarity drops significantly — topic boundary. Better retrieval quality especially for documents that mix multiple topics. Higher compute cost." },
+  { q: "Multi-agent system key design challenge?", opts: ["Setting up the database", "Preventing infinite loops, handling failures gracefully, coordinating state between agents without conflicts", "Writing prompt templates", "Choosing programming language"], ans: 1, exp: "Multi-agent challenges: 1) Infinite loops (set max_iterations), 2) Agent failures (retry/escalate/fallback), 3) State consistency (which agent's memory is authoritative?), 4) Cost control (each LLM call costs money), 5) Debugging (hard to trace multi-agent reasoning). Add circuit breakers and human checkpoints for high-stakes actions." }
 ])}
 `;
 
@@ -7280,6 +7936,13 @@ ${quizHTML('k8s-gpu', [
   { q: "What does the NVIDIA Device Plugin do in Kubernetes?", opts: ["Installs GPU drivers", "Exposes GPUs as schedulable K8s resources (nvidia.com/gpu: 8) so the scheduler can assign GPUs to pods", "Monitors GPU temperature", "Enables CUDA in containers"], ans: 1, exp: "Without the device plugin, Kubernetes doesn't know GPUs exist. The plugin registers each GPU as a resource, enables pods to request specific GPU counts via resource limits, and manages GPU allocation to prevent double-booking." },
   { q: "Tensor Parallelism vs Pipeline Parallelism — key difference?", opts: ["TP is faster always", "TP splits each layer vertically across GPUs within a node (microsecond comms). PP splits layers sequentially across nodes (tolerates ms latency)", "PP is only for CPUs", "No difference"], ans: 1, exp: "TP: GPU 0 and GPU 1 each compute half of every layer simultaneously — requires synchronization after every layer (high frequency, must be fast, PCIe/NVLink). PP: GPU 0 does layers 1-48, GPU 1 does 49-96 — only one transfer per stage per token (tolerates network latency)." },
   { q: "Why use 16 GPUs instead of 8 for a single large model?", opts: ["16 GPUs = 2x faster always", "Each GPU holds less model weight, freeing more GPU memory for KV cache → 4x more concurrent users", "16 GPUs cheaper than 8", "Required by Kubernetes"], ans: 1, exp: "With 8 GPUs: 93.7 GB model per GPU, only 32 GB for KV cache (~25 concurrent users at 64K context). With 16 GPUs: 46.9 GB model per GPU, 73 GB for KV cache (~98 concurrent users). Nearly 4x concurrency improvement by spreading model across more GPUs." }
+,
+  { q: "What is CUDA and why does it matter for ML workloads?", opts: ["A database format", "NVIDIA's parallel computing platform — GPU cores execute thousands of threads simultaneously, ideal for matrix math in deep learning", "A container runtime", "A network protocol"], ans: 1, exp: "CUDA (Compute Unified Device Architecture): NVIDIA's programming model for GPU acceleration. A GPU has thousands of cores (H100: 16,896 CUDA cores) vs CPU's ~64. Matrix multiplication (core of neural net forward/backward pass) maps perfectly to SIMD GPU parallelism. cuDNN and cuBLAS are optimised CUDA libraries used by PyTorch/TensorFlow." },
+  { q: "What is CDI (Container Device Interface)?", opts: ["A container image format", "A standard for container runtimes to access devices (GPUs) — replaces vendor-specific hooks with a common spec", "A K8s storage driver", "A CPU affinity tool"], ans: 1, exp: "CDI: Container Device Interface standard (co-developed by NVIDIA). Before CDI, each container runtime needed custom hooks to inject GPU drivers. CDI defines a standard JSON spec describing all files/devices/envvars needed for a device. Container runtime reads CDI spec and injects device without vendor-specific code." },
+  { q: "What is DRA (Dynamic Resource Allocation) in Kubernetes?", opts: ["A disk management system", "A K8s 1.26+ API replacing device plugin model — allows fine-grained resource requests with parameters and structured sharing", "A dynamic autoscaling algorithm", "A DNS resolution approach"], ans: 1, exp: "DRA (Dynamic Resource Allocation): replaces device plugin model. Key improvements: 1) Resources can have parameters (request specific GPU model), 2) Resources can be shared between pods (not just exclusive), 3) Vendor drivers (ResourceClaim drivers) handle allocation. Enables advanced GPU partitioning like MIG (Multi-Instance GPU) in K8s." },
+  { q: "NVIDIA MIG (Multi-Instance GPU) — what problem does it solve?", opts: ["Network bandwidth", "A large GPU can be partitioned into smaller isolated instances — different pods/users get dedicated GPU slices without interference", "Memory compression", "Driver isolation"], ans: 1, exp: "MIG partitions an H100 GPU into up to 7 isolated GPU instances (e.g., 1g.10gb = 1/7 of the GPU with 10GB memory). Each instance has guaranteed memory, compute, and bandwidth. Run 7 smaller ML workloads on 1 GPU instead of wasting 500GB GPU on a 10GB inference job. GPU Operator automates MIG configuration in Kubernetes." },
+  { q: "PagedAttention in vLLM solves what GPU memory problem?", opts: ["Slow startup time", "KV cache fragmentation — uses virtual memory paging so different requests share GPU memory efficiently without waste", "Driver compatibility", "Multi-node networking"], ans: 1, exp: "KV cache (key-value attention cache): each token in context needs stored. Traditional: allocate max_seq_len upfront (wastes memory for short requests). PagedAttention: allocates in pages (like OS virtual memory). Short requests use small pages, long requests get more. 3-4x better memory utilisation → more concurrent users." },
+  { q: "What is NCCL and when does it activate in multi-GPU inference?", opts: ["A network card driver", "NVIDIA's collective communications library — handles AllReduce, AllGather between GPUs during tensor parallel operations", "A checkpoint format", "A scheduling algorithm"], ans: 1, exp: "NCCL: optimised GPU-to-GPU communication. Used during tensor parallelism: after each GPU processes its weight slice, AllReduce combines results across all GPUs before moving to next layer. Intra-node: P2P/IPC over PCIe/NVLink. Inter-node: GPU Direct RDMA over InfiniBand/RoCE — CPU bypassed entirely." }
 ])}
 `;
 

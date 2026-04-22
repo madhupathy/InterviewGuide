@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SeniorEdge — Senior SWE Interview Prep</title>
+<title>InterviewGuide — Senior SWE Interview Prep</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
 <style>
@@ -831,7 +831,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
 <!-- HEADER -->
 <header class="header">
   <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-  <div class="logo">Senior<span>Edge</span></div>
+  <div class="logo">Interview<span>Guide</span></div>
   <div class="header-search">
     <span class="search-icon">🔍</span>
     <input type="text" placeholder="Search topics, patterns, questions..." oninput="handleSearch(this.value)" />
@@ -873,7 +873,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
     </div>
     <div class="nav-sub" id="sd-dist-sub">
       <div class="nav-sub-item" onclick="showPage('sd-msgqueue')">Message Queues</div>
-      <div class="nav-sub-item" onclick="showPage('distributed')">Consensus &amp; CAP</div>
+      <div class="nav-sub-item" onclick="showPage('sd-eventing')">Eventing &amp; Observability</div>
       <div class="nav-sub-item" onclick="showPage('sd-tradeoffs')">Trade-offs</div>
     </div>
     <div class="nav-item" onclick="toggleSub('sd-case-sub'); showPage('sd-cases')">
@@ -885,6 +885,9 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <div class="nav-sub-item" onclick="showPage('sd-chat')">Chat System</div>
       <div class="nav-sub-item" onclick="showPage('sd-ratelimit')">Rate Limiter</div>
       <div class="nav-sub-item" onclick="showPage('sd-lru')">LRU Cache</div>
+    </div>
+    <div class="nav-item" onclick="showPage('sd-specdriven')">
+      <span class="nav-icon">🤖</span> AI &amp; Spec-Driven Design
     </div>
   </div>
 
