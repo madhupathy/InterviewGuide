@@ -322,10 +322,15 @@ int[] firstLast(int[] arr, int target) {
 </div>
 
 ${quizHTML('java-core', [
-  { q: "Why is Java not considered a pure OOP language?", opts: ["No inheritance support", "It has primitive types (int, char, etc.) that are not objects", "No polymorphism", "Static methods don't exist"], ans: 1, exp: "Pure OOP treats everything as an object. Java's primitives (int, char, boolean...) are not objects, which breaks purity. Wrapper classes (Integer, Character) provide object versions." },
-  { q: "What is the String Pool?", opts: ["A thread pool for string operations", "A cache in the Heap where string literals are stored and reused", "Part of the Stack memory", "A collection class for strings"], ans: 1, exp: "The String Pool (interning pool) stores string literals in the Heap. When you write \"hello\", Java checks if it exists first. Same literals share the same reference, saving memory." },
-  { q: "StringBuilder vs StringBuffer — key difference?", opts: ["StringBuilder is immutable", "StringBuffer is faster", "StringBuilder is NOT thread-safe, StringBuffer IS", "No difference"], ans: 2, exp: "StringBuilder is faster (no synchronization) but NOT thread-safe. StringBuffer is thread-safe (synchronized) but slower. Use StringBuilder in single-threaded contexts (most loops)." },
-  { q: "What does volatile keyword guarantee?", opts: ["Atomicity of operations", "Visibility — all threads see the latest value, bypassing CPU cache", "Mutual exclusion like synchronized", "Immutability of the variable"], ans: 1, exp: "volatile ensures that writes to the variable are immediately visible to all threads. It prevents CPU from caching the value locally. It does NOT guarantee atomicity (use AtomicInteger for that)." }
+  { q: "Why is Java not pure OOP?", opts: ["No inheritance support", "Primitive types (int, char, boolean...) are not objects", "No polymorphism", "Static methods don't exist"], ans: 1, exp: "Pure OOP treats everything as an object. Java's primitives (int, char, boolean, double...) are not objects — they're value types for performance. Wrapper classes (Integer, Character) provide object versions with autoboxing." },
+  { q: "String Pool — what does 'hello' == 'hello' evaluate to?", opts: ["false always", "true — both literals reference the same interned string in the pool", "Compile error", "Depends on JVM version"], ans: 1, exp: "String literals are interned: 'hello' == 'hello' is true because both point to the same pool object. But new String('hello') == 'hello' is false — new creates a heap object outside the pool. Always use .equals() for value comparison." },
+  { q: "Why are Strings immutable in Java?", opts: ["Java limitation", "Thread safety, String Pool sharing, hashCode caching, security (class loading, passwords)", "Strings can be mutable", "Performance only"], ans: 1, exp: "4 reasons: 1) Thread-safe without sync (multiple threads can share same reference), 2) String Pool works (shared refs safe), 3) hashCode computed once and cached (HashMap key performance), 4) Security (class names, network connections can't be altered)." },
+  { q: "StringBuilder vs StringBuffer — key difference?", opts: ["No difference", "StringBuilder is NOT thread-safe (faster); StringBuffer IS thread-safe (synchronized, slower)", "StringBuffer is deprecated", "StringBuilder is immutable"], ans: 1, exp: "StringBuffer: all methods synchronized — safe for multi-thread but slow. StringBuilder: no synchronization — fast, use in single-threaded code (loops, building responses). StringBuilder replaced StringBuffer in almost all practical cases." },
+  { q: "Abstract class vs Interface — when to choose abstract class?", opts: ["Always use interface", "When you have shared state (fields), shared implementation, or constructor logic needed by subclasses", "When you need multiple inheritance", "Abstract classes are faster"], ans: 1, exp: "Use abstract class: sharing code/state among related classes (e.g., Animal with fields name/age + abstract sound()). Use interface: defining a contract/capability that unrelated classes implement (Comparable, Runnable, Serializable)." },
+  { q: "volatile keyword guarantees?", opts: ["Atomicity of compound operations", "Visibility — all threads see the latest value immediately, bypassing CPU cache", "Mutual exclusion", "Immutability"], ans: 1, exp: "volatile ensures writes are immediately visible to all threads (bypasses CPU L1/L2 cache). Does NOT guarantee atomicity — volatile int count; count++ is still not thread-safe (read-modify-write is 3 ops). Use AtomicInteger for atomic increments." },
+  { q: "final, finally, finalize — what does finalize() do?", opts: ["Terminates the JVM", "Called by GC before object is collected — deprecated in Java 9, removed use in Java 18", "Closes resources like try-with-resources", "Marks method as constant"], ans: 1, exp: "finalize(): GC calls it before reclaiming object — unpredictable timing, may never be called. Deprecated Java 9+, effectively removed. Use Cleaner/PhantomReference or try-with-resources instead. final=constant/no-override. finally=always runs in try-catch." },
+  { q: "Aggregation vs Composition — what's the key distinction?", opts: ["They are the same", "Composition: child cannot exist without parent (owned). Aggregation: child can exist independently (associated)", "Aggregation uses interfaces", "Composition is always one-to-many"], ans: 1, exp: "Composition (strong): Car owns Engine — Engine dies with Car. Aggregation (weak): School has Teachers — Teacher exists independently and can belong to another School. In code: composition uses direct field instantiation, aggregation uses constructor injection." },
+  { q: "Can you overload the main() method?", opts: ["No — only one main allowed", "Yes — but JVM only calls main(String[] args); other signatures are valid methods ignored by JVM launcher", "Only in Java 11+", "Yes, JVM calls all of them"], ans: 1, exp: "You can have public static void main(int x) or public static void main(String a, String b) — these are valid overloaded methods. The JVM launcher specifically calls main(String[]) only. Other signatures are never called automatically." }
 ])}`;
 
 // ─── JAVA COLLECTIONS ────────────────────────────────────────────────────────
@@ -434,9 +439,15 @@ class Person {
 </div>
 
 ${quizHTML('java-collections', [
-  { q: "Which List gives O(1) random access?", opts: ["LinkedList", "ArrayList", "Both", "Neither"], ans: 1, exp: "ArrayList is backed by an array, so get(index) is O(1) — direct memory offset. LinkedList requires traversal from head: O(n)." },
-  { q: "You need a Map that remembers insertion order — which one?", opts: ["HashMap", "TreeMap", "LinkedHashMap", "IdentityHashMap"], ans: 2, exp: "LinkedHashMap maintains insertion order by keeping a doubly-linked list alongside the hash table. Great for LRU caches. TreeMap maintains sorted key order, not insertion order." },
-  { q: "Thread-safe Map without full synchronization?", opts: ["HashMap", "HashTable", "ConcurrentHashMap", "Collections.synchronizedMap"], ans: 2, exp: "ConcurrentHashMap uses segment-level locking (Java 7) / CAS + synchronized blocks (Java 8+), allowing concurrent reads and fine-grained writes. HashTable synchronizes every method — slow." }
+  { q: "ArrayList.get(i) vs LinkedList.get(i) complexity?", opts: ["Both O(1)", "ArrayList O(1) via direct index; LinkedList O(n) via traversal", "Both O(n)", "Depends on size"], ans: 1, exp: "ArrayList backed by array: direct index = O(1). LinkedList: must traverse from head to index i = O(n). Choose ArrayList for random access, LinkedList for frequent insertions at head or Deque behavior." },
+  { q: "Which Map preserves insertion order?", opts: ["HashMap", "TreeMap", "LinkedHashMap", "ConcurrentHashMap"], ans: 2, exp: "LinkedHashMap maintains insertion order via a doubly-linked list of entries. The accessOrder=true variant maintains access order for LRU caches. TreeMap maintains sorted key order. HashMap has no guaranteed order." },
+  { q: "Thread-safe Map without global locking?", opts: ["HashMap plus synchronized", "Hashtable", "ConcurrentHashMap", "Collections.synchronizedMap"], ans: 2, exp: "ConcurrentHashMap Java 8: reads are lock-free using volatile, writes use CAS plus per-bucket synchronization. Collections.synchronizedMap wraps every method with one lock. ConcurrentHashMap gives much higher throughput under contention." },
+  { q: "PriorityQueue Java default ordering?", opts: ["FIFO queue order", "Min-heap with smallest element at head by natural order", "Max-heap with largest at head", "Insertion order"], ans: 1, exp: "PriorityQueue is a min-heap by default so poll() returns smallest. For max-heap use new PriorityQueue<>(Collections.reverseOrder()). Used for top-K problems and Dijkstra's algorithm." },
+  { q: "ArrayDeque vs LinkedList as a Stack?", opts: ["LinkedList always", "ArrayDeque is faster since array-backed with no per-node object allocation; Java recommends it over Stack class", "They are equivalent", "Stack class is preferred"], ans: 1, exp: "ArrayDeque is array-backed and cache-friendly with no per-element Node object overhead. Java documentation explicitly states ArrayDeque is faster than Stack and LinkedList for both stack and queue use cases. Stack is legacy extending Vector which is synchronized and slow." },
+  { q: "Collections.sort() vs Arrays.sort() key difference?", opts: ["They are identical", "Arrays.sort on primitives uses dual-pivot QuickSort which is unstable. Both Arrays.sort on objects and Collections.sort use stable TimSort", "Arrays.sort is always faster", "Collections.sort only works on Lists"], ans: 1, exp: "Arrays.sort(int[]): dual-pivot QuickSort O(n log n) average, not stable but fine for primitives. Arrays.sort(Object[]) and Collections.sort: TimSort which is merge plus insertion hybrid, stable, O(n log n) worst case. Stable means equal elements keep their original relative order." },
+  { q: "What does Collections.unmodifiableList return?", opts: ["A deep independent copy", "A view that throws UnsupportedOperationException on mutations while still reflecting changes to the original list", "A thread-safe list", "A sorted list"], ans: 1, exp: "unmodifiableList is a VIEW not a copy. Mutations through it throw UnsupportedOperationException. But if you modify the original list the view reflects those changes. For true immutability use List.copyOf() which creates an independent immutable snapshot." },
+  { q: "List.of() vs Arrays.asList() vs new ArrayList()?", opts: ["They are identical", "List.of is truly immutable with no nulls allowed. Arrays.asList is fixed-size but set works. new ArrayList is fully mutable", "Only ArrayList is type-safe", "Arrays.asList is faster"], ans: 1, exp: "List.of() Java 9+: immutable, throws on add/set/remove, no null elements allowed. Arrays.asList(): can call set() but not add/remove since fixed-size, allows null, backed by the original array. new ArrayList(): fully mutable, use when you need structural changes." },
+  { q: "CopyOnWriteArrayList when to use?", opts: ["For high-write scenarios", "When reads heavily dominate writes since each write copies entire array but reads are completely lock-free", "For sorted data", "Identical to synchronizedList"], ans: 1, exp: "Every write on CopyOnWriteArrayList copies the full array which is expensive. But reads are completely lock-free so concurrent iteration is safe without synchronization. Best for event listener lists and observer patterns where reads dominate and writes are rare." }
 ])}`;
 
 // ─── JAVA CONCURRENCY ────────────────────────────────────────────────────────
@@ -640,9 +651,15 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 }</pre></div>
 
 ${quizHTML('java-concurrency', [
-  { q: "What's the difference between start() and run() on a Thread?", opts: ["No difference", "start() creates a new thread and calls run(); run() just executes in calling thread", "run() is deprecated", "start() is for Runnable only"], ans: 1, exp: "Calling run() directly executes in the CURRENT thread — no new thread created. You must call start() to spawn a new OS thread. This is a very common interview trap." },
-  { q: "Why use ConcurrentHashMap over synchronized HashMap?", opts: ["ConcurrentHashMap is not thread-safe", "Segment-level locking allows concurrent reads & multiple writes", "No difference in Java 8+", "ConcurrentHashMap doesn't allow null"], ans: 1, exp: "ConcurrentHashMap uses striped locking — reads are lock-free, writes lock only the affected segment/bucket. Synchronized HashMap locks the entire map on every operation — much worse throughput." },
-  { q: "Virtual threads (Java 21) are best for?", opts: ["CPU-intensive computation", "I/O-bound tasks like DB calls, HTTP requests", "GUI applications", "Real-time games"], ans: 1, exp: "Virtual threads shine for I/O-bound work because when a virtual thread blocks on I/O, the JVM unmounts it from the carrier (OS) thread, freeing it for other virtual threads. They don't help CPU-bound work." }
+  { q: "Calling run() vs start() on a Thread?", opts: ["No difference", "start() creates new OS thread and calls run(); run() executes in calling thread (no new thread)", "run() is deprecated", "start() is for Runnable only"], ans: 1, exp: "The most common Java threading mistake: calling thread.run() directly executes run() in the CURRENT thread. thread.start() asks the JVM to create a new OS thread and then call run() on it. Always call start()." },
+  { q: "What is a race condition?", opts: ["Program running too fast", "Two threads accessing shared mutable state concurrently with at least one write, leading to unpredictable results", "Thread deadlock", "CPU cache issue"], ans: 1, exp: "Race condition: thread safety issue where outcome depends on scheduling order. Example: two threads both read balance=100, both add 50, both write 150 — final balance should be 200. Fix: synchronize, use AtomicInteger, or use immutable data." },
+  { q: "synchronized vs ReentrantLock — when to use Lock?", opts: ["synchronized is always better", "ReentrantLock when you need: tryLock(), timed lock, interruptible lock, or fairness policy", "ReentrantLock is deprecated", "No practical difference"], ans: 1, exp: "synchronized: simpler, JVM-managed, no risk of forgetting unlock. ReentrantLock: tryLock() (non-blocking attempt), lockInterruptibly() (can be interrupted), fair=true (FIFO ordering), Condition variables for more precise wait/notify control." },
+  { q: "ConcurrentHashMap vs synchronized HashMap — throughput difference?", opts: ["Identical throughput", "ConcurrentHashMap: lock-free reads + per-bucket writes = 16-64× higher throughput under contention", "synchronized HashMap is faster", "Depends on JVM version"], ans: 1, exp: "synchronized HashMap: single lock — all operations serialized even reads. ConcurrentHashMap: reads use volatile (no lock), writes lock only one bucket (~1/16th of map). Under 16 threads: near-linear throughput scaling vs total serialization." },
+  { q: "Java 21 virtual threads vs platform threads — main advantage?", opts: ["Virtual threads have no stack", "Virtual threads (~2KB) block cheaply — JVM unmounts from OS thread during I/O, allowing millions of concurrent blocking operations", "Virtual threads don't support synchronized", "Virtual threads are faster for CPU work"], ans: 1, exp: "Platform thread blocks OS thread during I/O (expensive, ~1MB stack). Virtual thread: JVM detects blocking I/O, unmounts virtual thread from carrier thread, carrier handles other work, remounts when I/O completes. 1M virtual threads vs ~10K platform threads." },
+  { q: "What does AtomicInteger.compareAndSet(expect, update) do?", opts: ["Sets value unconditionally", "Atomically: if current value == expect, set to update and return true; else return false (CAS operation)", "Compares two AtomicIntegers", "Thread-safe conditional check"], ans: 1, exp: "CAS (Compare-And-Swap): hardware atomic instruction. Used to implement lock-free algorithms. If value was changed by another thread since you read it, CAS fails and you retry. Foundation of Java's java.util.concurrent package." },
+  { q: "Deadlock — four necessary conditions?", opts: ["Two threads, one lock", "Mutual exclusion + Hold and wait + No preemption + Circular wait — ALL four must hold", "More threads than locks", "Priority inversion"], ans: 1, exp: "All four conditions must be present: 1) Mutual exclusion (resource not shareable), 2) Hold and wait (holding one resource while waiting for another), 3) No preemption (resources can't be forcibly taken), 4) Circular wait (A waits for B, B waits for A). Break any one to prevent deadlock." },
+  { q: "ThreadLocal — what is it used for?", opts: ["Shared variable across threads", "Per-thread storage — each thread has its own isolated copy of the variable", "Immutable thread data", "Thread communication"], ans: 1, exp: "ThreadLocal<T>: each thread accessing the variable gets its own, independently initialized copy. Used for: user session per request (Spring's RequestContextHolder), database connections, date formatters (SimpleDateFormat isn't thread-safe). Always remove() in finally to prevent leaks in thread pools." },
+  { q: "ExecutorService.shutdown() vs shutdownNow() — difference?", opts: ["They are identical", "shutdown(): stop accepting new tasks, wait for running tasks to complete. shutdownNow(): interrupt running tasks, return queued tasks", "shutdownNow() is safer", "shutdown() is immediate"], ans: 1, exp: "shutdown(): graceful — no new submissions, existing tasks complete. shutdownNow(): sends interrupt to running threads (they may or may not respond), returns list of queued tasks not started. Use shutdown() for graceful app shutdown, awaitTermination() to wait for completion." }
 ])}`;
 
 // ─── JAVA STREAMS ────────────────────────────────────────────────────────────
@@ -747,9 +764,16 @@ opt.map(String::toUpperCase)        // transform if present
    .ifPresent(System.out::println);</pre></div>
 
 ${quizHTML('java-streams', [
-  { q: "Streams are ___?", opts: ["Eager — execute immediately", "Lazy — execute only when terminal op is called", "Always parallel", "Reusable after terminal op"], ans: 1, exp: "Stream operations are lazy. filter(), map() etc. just build the pipeline but execute nothing. Only terminal operations (collect, count, forEach, reduce) trigger the pipeline. Streams can only be consumed once." },
-  { q: "What does flatMap do?", opts: ["Same as map but faster", "Flattens nested collections/streams into one stream", "Maps and filters simultaneously", "Reverses the stream"], ans: 1, exp: "flatMap transforms each element into a Stream, then flattens all those streams into one. Perfect for List<List<T>> → List<T>, or when map would return Stream<Stream<T>>." },
-  { q: "groupingBy returns?", opts: ["List", "Set", "Map<K, List<T>>", "Optional"], ans: 2, exp: "Collectors.groupingBy(classifier) returns a Map where keys are the classifier values and values are Lists of elements with that key. You can further transform with a downstream collector." }
+  { q: "Streams are lazy — what does this mean?", opts: ["They execute slowly", "Intermediate ops (filter/map) don't execute until a terminal op (collect/count) triggers the pipeline", "They run in background threads", "Data is loaded lazily from disk"], ans: 1, exp: "filter(), map(), sorted() — none execute immediately. They build a pipeline. Only terminal operations (collect, count, forEach, reduce, findFirst) trigger execution. This enables short-circuit optimizations like findFirst stopping after first match." },
+  { q: "Stream.map() vs flatMap() — key difference?", opts: ["map is faster", "map: 1-to-1 transformation. flatMap: 1-to-many, then flatten all into single stream", "flatMap requires sorted input", "No practical difference"], ans: 1, exp: "map(f): Stream<T> → Stream<R>. flatMap(f): Stream<T> → Stream<Stream<R>> → Stream<R> (flattened). Use flatMap when each element maps to multiple elements: List<List<T>> → List<T>, or Optional<Optional<T>> → Optional<T>." },
+  { q: "Collectors.groupingBy() returns what type?", opts: ["List<T>", "Map<K, List<T>>", "Set<T>", "Optional<T>"], ans: 1, exp: "groupingBy(classifier) → Map<K, List<T>>. Downstream collectors: groupingBy(f, counting()) → Map<K, Long>; groupingBy(f, mapping(g, toList())) → Map<K, List<R>>; partitioningBy(predicate) → Map<Boolean, List<T>>." },
+  { q: "When should you NOT use parallel streams?", opts: ["Always use parallel", "For I/O-bound, small collections, ordered operations, or stateful/non-associative reductions", "For sorted data only", "Parallel is always equivalent"], ans: 1, exp: "Avoid parallel streams: 1) Small collections (fork/join overhead > gain), 2) I/O-bound (threads block, no benefit), 3) Operations requiring encounter order, 4) Stateful lambdas (shared mutable state = race conditions), 5) Streams with side effects." },
+  { q: "Stream.reduce(0, Integer::sum) vs Stream.collect(Collectors.summingInt()) — difference?", opts: ["reduce is always faster", "reduce is general fold; Collectors.summingInt is optimised with less boxing — prefer summingInt for numeric sums", "They are identical in performance", "summingInt doesn't work with primitives"], ans: 1, exp: "reduce with Integer::sum boxes/unboxes for each element. Collectors.summingInt(Function<T, Integer>) uses IntStream internally to minimize boxing. For numeric operations on streams: prefer summingInt, averagingInt, summarizingInt over reduce." },
+  { q: "What does Optional.orElseGet() vs Optional.orElse() do differently?", opts: ["They are identical", "orElse(val) always evaluates val; orElseGet(() -> val) lazy — only called if Optional is empty", "orElseGet is deprecated", "orElse is for primitives only"], ans: 1, exp: "orElse(expensiveOperation()) — ALWAYS calls expensiveOperation() even if Optional has value. orElseGet(() -> expensiveOperation()) — only calls if Optional is empty. Always prefer orElseGet when default requires computation, DB call, or object creation." },
+  { q: "Collectors.joining() — what does it do?", opts: ["Joins two streams", "Concatenates stream of strings with optional delimiter, prefix, suffix", "Creates a new list", "Counts elements"], ans: 1, exp: "Collectors.joining(): concatenate strings. joining(', '): with delimiter. joining(', ', '[', ']'): with delimiter, prefix, suffix. Example: Stream.of('a','b','c').collect(joining(', ','[',']')) = '[a, b, c]'. Very useful for building formatted strings." },
+  { q: "IntStream.range(0, 5) vs IntStream.rangeClosed(0, 5)?", opts: ["They are identical", "range(0,5): 0,1,2,3,4 (exclusive end). rangeClosed(0,5): 0,1,2,3,4,5 (inclusive end)", "rangeClosed is deprecated", "range always includes 0"], ans: 1, exp: "range(start, end): [start, end) — standard exclusive end. rangeClosed(start, end): [start, end] — inclusive. IntStream.range(0,5).sum() = 10. IntStream.rangeClosed(1,100).sum() = 5050. Use rangeClosed when you need inclusive iteration." },
+  { q: "Stream.peek() — what is it actually for?", opts: ["Modifying stream elements", "Debugging only — non-interfering, non-consuming action for logging/inspecting, doesn't change elements", "Filtering elements", "Collecting to a list"], ans: 1, exp: "peek(action) is intended for debugging: .peek(System.out::println) to inspect elements. It's an intermediate op that passes each element through unchanged after applying the action. Avoid side effects in peek() in production — use forEach as terminal op instead." },
+  { q: "How to convert Stream<Integer> to int[]?", opts: ["stream.toArray()", "stream.mapToInt(Integer::intValue).toArray()", "stream.collect(toArray())", "Arrays.toIntArray(stream)"], ans: 1, exp: "Stream<Integer>.toArray() returns Object[]. To get int[]: mapToInt(Integer::intValue).toArray() — converts to IntStream (unboxed), then toArray() returns int[]. Or: stream.mapToInt(x->x).toArray() using auto-unboxing. Always use primitive streams for numeric arrays." }
 ])}`;
 
 // ─── JAVA MEMORY ─────────────────────────────────────────────────────────────
@@ -866,9 +890,15 @@ ThreadLocal&lt;Context&gt; tl = new ThreadLocal&lt;&gt;();
 </div>
 
 ${quizHTML('java-memory', [
-  { q: "Where are objects stored in Java?", opts: ["Stack", "Heap", "Metaspace", "Code Cache"], ans: 1, exp: "Objects (created with new) are stored in the Heap. The Stack only stores primitive values and object references (pointers to heap objects). Each thread has its own Stack, but all share the Heap." },
-  { q: "What was PermGen replaced with in Java 8?", opts: ["Code Cache", "Old Generation", "Metaspace", "Young Generation"], ans: 2, exp: "PermGen (Permanent Generation) was replaced by Metaspace in Java 8. Key difference: Metaspace uses native memory (not the JVM heap), so it auto-grows by default and reduces OutOfMemoryError from PermGen." },
-  { q: "G1 GC advantage over Parallel GC?", opts: ["Higher throughput", "Lower and more predictable GC pauses", "Works on single core", "No stop-the-world pauses"], ans: 1, exp: "G1 (Garbage First) targets predictable pause times (configurable with -XX:MaxGCPauseMillis). Parallel GC maximizes throughput but pauses can be long. G1 is default since Java 9." }
+  { q: "Where are objects stored in Java?", opts: ["Stack", "Heap — all objects created with 'new' are on the heap", "Metaspace", "Code Cache"], ans: 1, exp: "Stack: primitives and object references (pointers), method frames, local variables — auto-freed when method returns. Heap: actual objects — GC managed. Metaspace: class metadata, method bytecode. Stack is per-thread; Heap is shared." },
+  { q: "What replaced PermGen in Java 8?", opts: ["Code Cache", "Old Generation", "Metaspace — stores class metadata in native memory, auto-grows", "Young Generation"], ans: 2, exp: "PermGen (Permanent Generation) in heap → fixed size → frequent OutOfMemoryError: PermGen space. Java 8: Metaspace in native memory (off-heap) → auto-grows by default (configurable with -XX:MaxMetaspaceSize). Eliminates most PermGen OOMEs." },
+  { q: "Minor GC vs Major GC — what's the difference?", opts: ["They are the same", "Minor GC: Young Gen only (fast, frequent). Major/Full GC: Old Gen + Young Gen (slow, stop-the-world)", "Major GC only runs once", "Minor GC runs on Metaspace"], ans: 1, exp: "Minor GC: Eden + Survivor spaces, fast (milliseconds), most objects die young (infant mortality). Major/Full GC: Old Gen which is much larger, can take seconds, stop-the-world pause. Design to minimize long-lived object promotion to Old Gen." },
+  { q: "What causes java.lang.OutOfMemoryError: Java heap space?", opts: ["Too many threads", "Objects accumulating faster than GC can free — memory leak or heap too small", "Too many String literals", "Stack overflow"], ans: 1, exp: "Heap OOM: 1) True memory leak (objects referenced but never freed — common in static collections, caches), 2) Heap genuinely too small for workload (increase -Xmx), 3) Large objects (huge arrays, loading entire DB table). Use heap dump + VisualVM/MAT to diagnose." },
+  { q: "Difference between -Xms and -Xmx JVM flags?", opts: ["They are the same flag", "-Xms: initial heap size (allocated at startup). -Xmx: maximum heap size. JVM grows heap from Xms to Xmx as needed", "-Xms is max, -Xmx is min", "-Xmx sets stack size"], ans: 1, exp: "Best practice: set Xms == Xmx in production (e.g., -Xms2g -Xmx2g). This pre-allocates full heap — avoids JVM pausing to grow heap under load. For dev: Xms small, Xmx large. Container environments: set both to avoid OOMKilled." },
+  { q: "What is a memory leak in Java (GC language)?", opts: ["Impossible in Java", "Objects that are still referenced but will never be used again — GC can't collect referenced objects", "Stack overflow error", "Any OOM error"], ans: 1, exp: "Java GC can only collect unreachable objects. A memory leak = objects reachable (held in collections, listeners, caches) but logically dead. Common: static Map that grows forever, event listeners never removed, ThreadLocal not cleaned in thread pools." },
+  { q: "G1 GC vs Parallel GC — key trade-off?", opts: ["G1 is always better", "G1: short predictable pauses (configurable target). Parallel GC: higher throughput but potentially long pauses", "Parallel GC uses less CPU", "G1 requires more heap"], ans: 1, exp: "Parallel GC: maximises throughput, pauses can be long but overall more work done. G1: divides heap into regions, targets pause time goal (-XX:MaxGCPauseMillis=200), better for latency-sensitive apps. G1 is default since Java 9 for a reason." },
+  { q: "String interning — what does String.intern() do?", opts: ["Creates a new String", "Returns the canonical pool reference — if pool has this string, return that ref; else add to pool", "Converts to immutable", "Encrypts the string"], ans: 1, exp: "s.intern() checks String Pool: if equal string exists, returns pool reference (same object). If not, adds s to pool and returns it. Useful for memory optimization when you have millions of duplicate strings (e.g., status codes, country names). After intern(), == works for equality." },
+  { q: "Stack overflow error — most common cause?", opts: ["Too many objects on heap", "Unbounded recursion — each method call adds a frame to stack; default stack depth ~500-1000 frames", "Too many threads", "Integer overflow"], ans: 1, exp: "Each thread has a fixed-size stack (~512KB default). Each method call pushes a frame (local vars, return address). Unbounded recursion = stack fills up → StackOverflowError. Fix: convert to iteration, or increase stack size (-Xss), or add base case." }
 ])}`;
 
 // ─── SPRING ──────────────────────────────────────────────────────────────────
@@ -1087,247 +1117,367 @@ public class PaymentService {
 // resilience4j.circuitbreaker.instances.payment.waitDurationInOpenState: 10s</pre></div>
 
 ${quizHTML('spring-core', [
-  { q: "What does @SpringBootApplication do?", opts: ["Only starts the server", "Combines @Configuration + @EnableAutoConfiguration + @ComponentScan", "Enables JPA only", "Replaces all other annotations"], ans: 1, exp: "@SpringBootApplication is a convenience annotation combining three: @Configuration (defines beans), @EnableAutoConfiguration (classpath-based auto-config), and @ComponentScan (scans for @Component etc.)." },
-  { q: "Why prefer constructor injection over field injection?", opts: ["Field injection is deprecated", "Constructor injection enables immutability, explicit deps, and testability without Spring", "They're equivalent", "Constructor injection is faster at runtime"], ans: 1, exp: "Constructor injection: fields can be final (immutable), dependencies are explicit in the signature, you can test with plain new (no Spring needed), and circular dependency is caught at startup, not runtime." },
-  { q: "What does @Transactional(readOnly=true) do?", opts: ["Prevents all writes permanently", "Hints to the DB/ORM to optimize for read (no dirty checking, potential read replica routing)", "Throws exception on any write", "Same as no annotation"], ans: 1, exp: "readOnly=true disables Hibernate dirty checking (no flush at commit), allows JPA providers to optimize. Some configurations also route to read replicas. It's a performance hint, not a hard constraint." }
+  { q: "What does @SpringBootApplication combine?", opts: ["Only @ComponentScan", "@Configuration + @EnableAutoConfiguration + @ComponentScan", "@RestController + @Service", "@Bean + @Component"], ans: 1, exp: "@Configuration: class defines beans. @EnableAutoConfiguration: reads spring.factories, configures beans based on classpath (add spring-boot-starter-web → configures Tomcat, DispatcherServlet). @ComponentScan: scans for @Component, @Service, @Repository, @Controller." },
+  { q: "Why prefer constructor injection over field injection?", opts: ["Field injection is deprecated", "Constructor injection: immutable fields (final), explicit dependencies, testable without Spring, fail-fast on missing deps", "They're equivalent", "Constructor injection is faster"], ans: 1, exp: "Field injection (@Autowired on field): requires reflection, can't be final (not immutable), requires Spring to test (can't use plain new). Constructor injection: explicit, immutable, testable with new MyService(mockRepo), circular deps fail at startup not runtime." },
+  { q: "What is Spring AOP proxy-based and what does it mean for self-invocation?", opts: ["AOP works on all method calls", "Spring AOP uses proxies — calling a @Transactional method from within the same class bypasses the proxy (no transaction!)", "Self-invocation creates a new proxy", "Proxies are applied to all classes"], ans: 1, exp: "Spring AOP wraps beans in JDK/CGLIB proxies. External call → goes through proxy → aspect applied. Self-call (this.method()) → goes directly to the bean, bypasses proxy → @Transactional/@Cacheable annotations ignored! Fix: inject self, use AspectJ weaving, or restructure." },
+  { q: "@Transactional(readOnly=true) — what does it do?", opts: ["Prevents all writes permanently", "Hints ORM to disable dirty checking + possible read-replica routing — performance optimisation", "Throws exception on any write", "Same as no annotation"], ans: 1, exp: "readOnly=true: 1) Hibernate disables dirty checking (no flush at commit, skips scanning all managed entities), 2) Spring can route to read replicas in configured setups, 3) DB can optimise (no write intent locks). Not a hard constraint — just a hint." },
+  { q: "Bean scopes — what is 'prototype' scope?", opts: ["One instance per application", "New instance created every time the bean is requested/injected", "One instance per HTTP request", "One instance per session"], ans: 1, exp: "Singleton (default): one instance per container — shared everywhere. Prototype: new instance per injection/getBean() — not managed after creation (no @PreDestroy called). Request: one per HTTP request. Session: one per HTTP session. Use prototype for stateful helper objects." },
+  { q: "What problem does @Transactional(propagation=REQUIRES_NEW) solve?", opts: ["Nothing special", "Creates a new independent transaction — inner transaction commits/rolls back independently of outer transaction", "Speeds up transactions", "Converts checked to unchecked exceptions"], ans: 1, exp: "REQUIRES_NEW: suspends outer transaction, creates new one. Inner transaction commits even if outer rolls back. Use case: audit logging — always save audit record even if main operation fails. Default REQUIRED: joins existing transaction or creates new if none." },
+  { q: "Spring Data JPA — N+1 query problem?", opts: ["No such problem in Spring Data", "Loading a list of entities then accessing @OneToMany lazily = 1 query for list + N queries for each collection", "N+1 means you need N+1 repositories", "Only affects @ManyToMany"], ans: 1, exp: "N+1: 1 query gets 100 orders, then accessing order.getItems() fires 1 query per order = 101 queries. Fix: @EntityGraph or JOIN FETCH in JPQL: @Query('SELECT o FROM Order o JOIN FETCH o.items'). Or @BatchSize(size=10) for batching lazy loads." },
+  { q: "How does @Cacheable work in Spring?", opts: ["Manually stores in Redis", "Spring generates proxy that checks cache before method call, stores result if cache miss", "Caches only String results", "Works without any cache backend"], ans: 1, exp: "@Cacheable('users'): proxy intercepts call → checks cache by key (default=method args) → if hit, return cached value without calling method → if miss, call method, store result, return. Combine with @CacheEvict to invalidate. Needs a CacheManager bean (Redis, Caffeine, EhCache)." },
+  { q: "Circuit breaker OPEN state — what happens to requests?", opts: ["Requests queue up", "Requests fail fast immediately (call fallback or throw exception) without attempting the remote call", "Requests retry automatically", "Requests go to a backup service"], ans: 1, exp: "States: CLOSED (normal, calls pass through), OPEN (failure threshold exceeded, all calls fail fast to fallback), HALF_OPEN (test period, limited calls allowed to check if service recovered). Prevents thread pool exhaustion from slow downstream services." },
+  { q: "What is @ConditionalOnProperty used for?", opts: ["Setting property values", "Conditionally create a bean only if a specific property has a specific value — feature flags for auto-config", "Reading properties", "Validating configuration"], ans: 1, exp: "@ConditionalOnProperty(name='feature.dark-mode', havingValue='true') — bean created only if application.properties has feature.dark-mode=true. Core mechanism of Spring Boot auto-configuration: DataSource bean created only if spring.datasource.url is set." }
 ])}`;
 
 // ─── GO ──────────────────────────────────────────────────────────────────────
 pages['go-core'] = () => `
 <div class="page-header">
   <div class="breadcrumb">Go</div>
-  <h1 class="page-title">Go Concurrency</h1>
-  <p class="page-subtitle">Goroutines, channels, select, WaitGroup — Go's concurrency model explained.</p>
+  <h1 class="page-title">Go — Concurrency & Core Concepts</h1>
+  <p class="page-subtitle">Goroutines, channels, select, WaitGroup, defer — and why Go beats Java for concurrent services.</p>
   ${revisionControls('go-core')}
 </div>
 
 <div class="elon-box">
-  <strong>⚡ Go's concurrency mantra:</strong> "Don't communicate by sharing memory; share memory by communicating." — Use channels to pass data between goroutines instead of shared variables + locks.
+  <strong>⚡ Go's concurrency mantra:</strong> "Don't communicate by sharing memory; share memory by communicating." Use channels to pass data between goroutines instead of shared variables + locks.
+</div>
+
+<h2 class="section-title">Go vs Java — Key Differences</h2>
+<table class="data-table">
+  <tr><th></th><th>Go</th><th>Java</th></tr>
+  <tr><td><strong>Threading model</strong></td><td>M:N goroutines (millions possible, ~2KB)</td><td>1:1 OS threads (thousands, ~1MB each)</td></tr>
+  <tr><td><strong>Concurrency primitive</strong></td><td>Goroutines + channels (CSP model)</td><td>Threads + synchronized/locks</td></tr>
+  <tr><td><strong>Startup time</strong></td><td>~10ms (compiled binary)</td><td>~200ms–1s (JVM warmup)</td></tr>
+  <tr><td><strong>Memory footprint</strong></td><td>Very low (no JVM overhead)</td><td>Higher (JVM heap, metaspace)</td></tr>
+  <tr><td><strong>Garbage collection</strong></td><td>Low-latency GC (&lt;1ms pauses)</td><td>Generational GC (ZGC: ~1ms, G1: ~200ms)</td></tr>
+  <tr><td><strong>Compilation</strong></td><td>Compiles to native binary, fast</td><td>JIT-compiled bytecode</td></tr>
+  <tr><td><strong>Error handling</strong></td><td>Explicit error values (if err != nil)</td><td>try/catch exceptions</td></tr>
+  <tr><td><strong>Generics</strong></td><td>Yes (Go 1.18+)</td><td>Yes (Java 5+, more mature)</td></tr>
+  <tr><td><strong>Best for</strong></td><td>Network services, CLIs, cloud-native tools</td><td>Enterprise apps, Android, large codebases</td></tr>
+</table>
+
+<h2 class="section-title">Go Basics</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Variables, Types, Functions <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre>package main
+import "fmt"
+
+// Multiple return values (no exceptions — return error explicitly)
+func divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, fmt.Errorf("division by zero")
+    }
+    return a / b, nil
+}
+
+func main() {
+    // := infers type (short declaration, function-local only)
+    x := 42
+    name := "Go"
+    pi := 3.14
+
+    // Multiple assignment
+    result, err := divide(10, 2)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+    fmt.Printf("Result: %.2f\n", result) // 5.00
+
+    // Zero values (Go initialises all vars to zero value)
+    var count int     // 0
+    var flag bool     // false
+    var msg string    // ""
+    _, _ = count, flag  // _ = discard
+    _ = msg
+}</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Structs, Interfaces, Methods <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre>// Struct (Go's "class")
+type Animal struct {
+    Name  string
+    Sound string
+}
+
+// Method with pointer receiver (can modify struct)
+func (a *Animal) Speak() string {
+    return a.Name + " says " + a.Sound
+}
+
+// Interface — implicit implementation (no "implements" keyword!)
+type Speaker interface {
+    Speak() string
+}
+
+type Dog struct { Animal }
+type Cat struct { Animal }
+
+// Both Dog and Cat implement Speaker automatically
+func makeNoise(s Speaker) {
+    fmt.Println(s.Speak())
+}
+
+// Embedding (Go's "inheritance")
+type ServiceDog struct {
+    Animal             // embed Animal
+    Badge string
+}
+// ServiceDog gets Animal's methods automatically</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Slices &amp; Maps <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre>// Slices (dynamic array, backed by array)
+nums := []int{1, 2, 3}
+nums = append(nums, 4, 5)        // [1 2 3 4 5]
+sub := nums[1:3]                  // [2 3] — shares underlying array
+copy := append([]int{}, nums...) // deep copy
+
+// Maps
+scores := map[string]int{
+    "Alice": 95,
+    "Bob":   87,
+}
+scores["Charlie"] = 92
+val, ok := scores["Alice"]  // ok=true if key exists
+if !ok { fmt.Println("not found") }
+delete(scores, "Bob")
+
+// Iterate
+for key, val := range scores {
+    fmt.Printf("%s: %d\n", key, val)
+}</pre></div>
+    </div>
+  </div>
 </div>
 
 <h2 class="section-title">Goroutines</h2>
 <div class="callout callout-blue">
-  A goroutine is a lightweight thread managed by the Go runtime. ~2KB stack (grows as needed). You can have <strong>millions</strong> simultaneously. The Go scheduler multiplexes goroutines onto OS threads (M:N model).
+  A goroutine is a lightweight thread managed by the Go runtime. ~2KB initial stack (grows as needed). You can have <strong>millions</strong> simultaneously. The Go scheduler multiplexes goroutines onto OS threads (M:N model) using GOMAXPROCS CPUs.
 </div>
-<div class="code-block"><pre>package main
-import "fmt"
-
-func sayHello(name string) {
-    fmt.Println("Hello", name)
+<div class="code-block"><pre>func fetchData(url string, results chan&lt;- string) {
+    resp, _ := http.Get(url)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    results &lt;- string(body)
 }
 
 func main() {
-    go sayHello("Alice")  // launches goroutine — doesn't block
-    go sayHello("Bob")
+    urls := []string{"https://api1.com", "https://api2.com", "https://api3.com"}
+    results := make(chan string, len(urls))
 
-    // main goroutine might exit before goroutines run!
-    // Need sync mechanism: WaitGroup, channel, or time.Sleep (bad)
+    // Launch all fetches concurrently
+    for _, url := range urls {
+        go fetchData(url, results)  // go keyword = new goroutine
+    }
+
+    // Collect all results
+    for range urls {
+        fmt.Println(&lt;-results)
+    }
 }</pre></div>
 
 <h2 class="section-title">Channels</h2>
 <div class="accordion">
   <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Unbuffered Channels — synchronization point</div>
+    <div class="accordion-header" onclick="toggleAccordion(this)">Unbuffered vs Buffered <span class="accordion-arrow">▼</span></div>
     <div class="accordion-body">
-      <div class="code-block"><pre>ch := make(chan int)  // unbuffered
+      <div class="code-block"><pre>// Unbuffered — synchronisation point (both goroutines must be ready)
+ch := make(chan int)
+go func() { ch &lt;- 42 }()  // blocks until receiver ready
+val := &lt;-ch                // blocks until sender sends
 
-// Sender blocks until receiver is ready
-go func() {
-    ch &lt;- 42  // blocks here until someone reads
-}()
+// Buffered — async queue (sender doesn't block until buffer full)
+ch := make(chan int, 3)
+ch &lt;- 1  // doesn't block
+ch &lt;- 2  // doesn't block
+ch &lt;- 3  // doesn't block
+// ch &lt;- 4  // would BLOCK — buffer full
 
-val := &lt;-ch   // blocks until sender sends
-fmt.Println(val)  // 42
-
-// Pattern: use channel as done signal
-done := make(chan struct{})
-go func() {
-    doWork()
-    close(done)  // signal completion
-}()
-&lt;-done  // wait for goroutine to finish</pre></div>
-    </div>
-  </div>
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Buffered Channels — async queue</div>
-    <div class="accordion-body">
-      <div class="code-block"><pre>ch := make(chan int, 3)  // buffer size 3
-
-ch &lt;- 1   // doesn't block (buffer has space)
-ch &lt;- 2
-ch &lt;- 3
-// ch &lt;- 4  // would block! buffer full
-
-val := &lt;-ch  // 1 (FIFO)
-
-// Range over channel
+// Range over channel (drain until closed)
 jobs := make(chan int, 5)
 for i := 0; i &lt; 5; i++ { jobs &lt;- i }
-close(jobs)  // MUST close to stop range
+close(jobs)  // MUST close to stop range loop
+for j := range jobs { fmt.Println(j) }</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">select — multiplex channels <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre>// select handles whichever channel is ready first
+ticker := time.NewTicker(1 * time.Second)
+done   := make(chan bool)
 
-for job := range jobs {
-    fmt.Println("Processing job", job)
+go func() {
+    time.Sleep(5 * time.Second)
+    done &lt;- true
+}()
+
+for {
+    select {
+    case t := &lt;-ticker.C:
+        fmt.Println("Tick at", t)
+    case &lt;-done:
+        fmt.Println("Done!")
+        ticker.Stop()
+        return
+    case &lt;-time.After(10 * time.Second):
+        fmt.Println("Timeout")  // overall timeout
+        return
+    }
 }</pre></div>
     </div>
   </div>
   <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">select — multiplex channels</div>
+    <div class="accordion-header" onclick="toggleAccordion(this)">Worker Pool Pattern <span class="accordion-arrow">▼</span></div>
     <div class="accordion-body">
-      <div class="code-block"><pre>// select is like switch but for channels
-ch1 := make(chan string)
-ch2 := make(chan string)
+      <div class="code-block"><pre>// Classic worker pool: fixed concurrency over arbitrary workload
+func workerPool(numWorkers int, jobs &lt;-chan int) &lt;-chan int {
+    results := make(chan int, numWorkers)
+    var wg sync.WaitGroup
 
-go func() { time.Sleep(1*time.Second); ch1 &lt;- "one" }()
-go func() { time.Sleep(2*time.Second); ch2 &lt;- "two" }()
-
-// Handle whichever arrives first
-for i := 0; i &lt; 2; i++ {
-    select {
-    case msg := &lt;-ch1:
-        fmt.Println("Received from ch1:", msg)
-    case msg := &lt;-ch2:
-        fmt.Println("Received from ch2:", msg)
-    case &lt;-time.After(3 * time.Second):
-        fmt.Println("Timeout!")
+    for i := 0; i &lt; numWorkers; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            for job := range jobs {   // range blocks until jobs closed
+                results &lt;- process(job)
+            }
+        }()
     }
+
+    // Close results when all workers done
+    go func() { wg.Wait(); close(results) }()
+    return results
 }
 
-// Non-blocking with default
-select {
-case msg := &lt;-ch1:
-    fmt.Println(msg)
-default:
-    fmt.Println("No message, continuing") // runs immediately if ch1 empty
-}</pre></div>
+// Usage
+jobs := make(chan int, 100)
+results := workerPool(5, jobs)  // 5 concurrent workers
+
+for i := 0; i &lt; 100; i++ { jobs &lt;- i }
+close(jobs)  // signal workers to stop
+
+for r := range results { fmt.Println(r) }</pre></div>
     </div>
   </div>
 </div>
 
-<h2 class="section-title">sync.WaitGroup — wait for goroutines</h2>
-<div class="code-block"><pre>import "sync"
+<h2 class="section-title">sync.WaitGroup, Mutex, Once</h2>
+<div class="code-block"><pre>// WaitGroup — wait for goroutines to finish
+var wg sync.WaitGroup
+for i := 0; i &lt; 5; i++ {
+    wg.Add(1)
+    go func(id int) {        // pass i as param — avoid closure capture bug!
+        defer wg.Done()
+        fmt.Printf("Worker %d done\n", id)
+    }(i)
+}
+wg.Wait()
 
-func main() {
-    var wg sync.WaitGroup
-    results := make([]int, 5)
+// Mutex — protect shared state
+var mu sync.Mutex
+counter := 0
+for i := 0; i &lt; 1000; i++ {
+    go func() {
+        mu.Lock()
+        counter++
+        mu.Unlock()
+    }()
+}
 
-    for i := 0; i &lt; 5; i++ {
-        wg.Add(1)  // increment counter BEFORE goroutine
-        go func(i int) {
-            defer wg.Done()  // decrement when done (in defer for safety)
-            results[i] = i * i
-        }(i)  // pass i as param — avoid closure capture bug!
-    }
+// sync.Once — run exactly once (singleton, init)
+var once sync.Once
+var instance *DB
+func getInstance() *DB {
+    once.Do(func() { instance = &DB{} })
+    return instance
+}
 
-    wg.Wait()  // block until all goroutines call Done()
-    fmt.Println(results)  // [0, 1, 4, 9, 16]
-}</pre></div>
+// sync.RWMutex — multiple readers OR one writer
+var rwmu sync.RWMutex
+rwmu.RLock()   // read lock (multiple goroutines can hold)
+defer rwmu.RUnlock()
+// OR
+rwmu.Lock()    // write lock (exclusive)
+defer rwmu.Unlock()</pre></div>
 
 <h2 class="section-title">Context — cancellation & timeouts</h2>
-<div class="code-block"><pre>import "context"
+<div class="code-block"><pre>// Context carries deadlines, cancellation signals, and request-scoped values
+func fetchWithTimeout(url string) ([]byte, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+    defer cancel()  // ALWAYS defer cancel to free resources
 
-func fetchData(ctx context.Context, url string) ([]byte, error) {
     req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
     resp, err := http.DefaultClient.Do(req)
-    // If ctx is cancelled, Do returns immediately with ctx.Err()
-    if err != nil { return nil, err }
+    if err != nil {
+        if errors.Is(err, context.DeadlineExceeded) {
+            return nil, fmt.Errorf("request timed out")
+        }
+        return nil, err
+    }
     defer resp.Body.Close()
     return io.ReadAll(resp.Body)
 }
 
-func main() {
-    // Cancel after 2 seconds
-    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-    defer cancel()  // ALWAYS defer cancel to release resources
+// Propagate cancellation through call chain
+func processRequest(ctx context.Context) {
+    ctx, cancel := context.WithCancel(ctx)
+    defer cancel()
 
-    data, err := fetchData(ctx, "https://api.example.com")
+    go func() {
+        // If parent context cancelled, this returns immediately
+        doDBQuery(ctx)  // passes context down
+    }()
+}</pre></div>
+
+<h2 class="section-title">Error Handling & defer</h2>
+<div class="code-block"><pre>// Go: errors are values, not exceptions
+func readFile(path string) ([]byte, error) {
+    f, err := os.Open(path)
     if err != nil {
-        if err == context.DeadlineExceeded {
-            fmt.Println("Request timed out")
-        }
+        return nil, fmt.Errorf("readFile: %w", err)  // %w wraps for errors.Is()
     }
-}</pre></div>
+    defer f.Close()  // LIFO: runs when function returns, even on panic
 
-<h2 class="section-title">Common Goroutine Patterns & Leak Prevention</h2>
-<div class="accordion">
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Fan-out / Fan-in</div>
-    <div class="accordion-body">
-      <div class="code-block"><pre>// Fan-out: distribute work across goroutines
-func fanOut(input &lt;-chan int, workers int) []&lt;-chan int {
-    channels := make([]&lt;-chan int, workers)
-    for i := range channels {
-        channels[i] = worker(input)
-    }
-    return channels
+    return io.ReadAll(f)
 }
 
-// Fan-in: merge multiple channels into one
-func fanIn(channels ...&lt;-chan int) &lt;-chan int {
-    out := make(chan int)
-    var wg sync.WaitGroup
-    for _, ch := range channels {
-        wg.Add(1)
-        go func(c &lt;-chan int) {
-            defer wg.Done()
-            for v := range c { out &lt;- v }
-        }(ch)
+// Caller handles errors explicitly
+data, err := readFile("config.json")
+if err != nil {
+    if errors.Is(err, os.ErrNotExist) {
+        log.Println("Config not found, using defaults")
+    } else {
+        return fmt.Errorf("startup: %w", err)
     }
-    go func() { wg.Wait(); close(out) }()
-    return out
-}</pre></div>
-    </div>
-  </div>
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Goroutine Leak — the silent bug</div>
-    <div class="accordion-body">
-      <div class="code-block"><pre>// LEAK: goroutine blocks forever on channel, nothing to read it
-func leak() {
-    ch := make(chan int)
-    go func() {
-        ch &lt;- 1  // blocks forever if nobody reads
-    }()
-    // ch is not read — goroutine leaks
 }
 
-// FIX 1: always have a reader
-// FIX 2: use context cancellation
-func noLeak(ctx context.Context) {
-    ch := make(chan int, 1)  // buffered so sender doesn't block
-    go func() {
-        select {
-        case ch &lt;- heavyWork():
-        case &lt;-ctx.Done():  // bail out if cancelled
-            return
+// panic/recover (like try/catch — use sparingly)
+func safeDiv(a, b int) (result int, err error) {
+    defer func() {
+        if r := recover(); r != nil {
+            err = fmt.Errorf("recovered panic: %v", r)
         }
     }()
-}
-
-// FIX 3: close channel when done
-// Use goleak in tests: goleak.VerifyNone(t)</pre></div>
-    </div>
-  </div>
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">defer — cleanup guarantee</div>
-    <div class="accordion-body">
-      <div class="code-block"><pre>func processFile(name string) error {
-    f, err := os.Open(name)
-    if err != nil { return err }
-    defer f.Close()  // ALWAYS runs when function returns, even on panic
-
-    mu.Lock()
-    defer mu.Unlock()  // stack order: Unlock runs before Close
-
-    // multiple defers are LIFO
-    defer fmt.Println("third")
-    defer fmt.Println("second")
-    defer fmt.Println("first")  // prints first
+    return a / b, nil  // panics if b==0, recover catches it
 }</pre></div>
-    </div>
-  </div>
-</div>
 
 ${quizHTML('go-core', [
-  { q: "What is a goroutine?", opts: ["An OS thread", "A lightweight thread managed by Go runtime (~2KB initial stack)", "A coroutine with manual scheduling", "A Go module"], ans: 1, exp: "Goroutines are lightweight, ~2KB initial stack (grows as needed), managed by Go's scheduler. Millions can coexist. The Go scheduler (GOMAXPROCS) multiplexes them onto OS threads (M:N model)." },
-  { q: "Unbuffered channel behavior when sender sends:", opts: ["Sends and continues immediately", "Blocks until a receiver is ready (synchronization point)", "Panics if no receiver", "Drops the value"], ans: 1, exp: "Unbuffered channels synchronize: send blocks until receive happens, and receive blocks until send happens. This makes them perfect for rendezvous-style goroutine coordination." },
-  { q: "How to prevent goroutine leaks?", opts: ["Use buffered channels", "Pass context and listen to ctx.Done(), or ensure channels always have readers", "Call runtime.GC()", "Use sync.Once"], ans: 1, exp: "Goroutines leak when they block forever — waiting on a channel nobody writes to, or waiting on a lock nobody releases. Pass context.Context for cancellation signals, and always ensure goroutines have an exit path." }
-])}`;
+  { q: "What is a goroutine?", opts: ["An OS thread managed by the kernel", "A lightweight thread managed by Go runtime (~2KB initial stack, M:N scheduling)", "A coroutine needing manual yield", "A Go module component"], ans: 1, exp: "Goroutines start with ~2KB stack (grows as needed), managed by Go's runtime scheduler. Millions can coexist. GOMAXPROCS goroutines run in parallel on OS threads. Much cheaper than Java threads (~1MB each)." },
+  { q: "Unbuffered channel: sender blocks until?", opts: ["Buffer has space", "A receiver is ready to read", "Channel is closed", "1 second timeout"], ans: 1, exp: "Unbuffered channels synchronise goroutines: both sender AND receiver must be ready simultaneously. The first to arrive blocks until the other shows up. This makes them perfect rendezvous synchronisation points." },
+  { q: "Go interfaces vs Java interfaces — key difference?", opts: ["Go has no interfaces", "Go uses implicit implementation — no 'implements' keyword needed", "Java interfaces are faster", "Go interfaces can't have methods"], ans: 1, exp: "In Java you explicitly declare 'implements Runnable'. In Go, if a type has all the methods an interface requires, it implements it automatically — no declaration needed. This enables duck typing with compile-time safety." },
+  { q: "Why always defer cancel() after context.WithTimeout?", opts: ["It starts the timer", "It releases resources even if deadline isn't reached — prevents goroutine leaks", "It resets the timeout", "cancel() is optional"], ans: 1, exp: "WithTimeout creates a timer goroutine. If your function returns before the timeout fires (happy path), defer cancel() cleans up that goroutine immediately. Without it, the goroutine leaks until the timer fires." },
+  { q: "sync.WaitGroup vs channels for goroutine coordination?", opts: ["They are identical", "WaitGroup: wait for N goroutines to finish (no data). Channel: pass data between goroutines + synchronise", "Channels are always better", "WaitGroup is deprecated in Go 1.21"], ans: 1, exp: "WaitGroup: Add(n) → N goroutines each call Done() → Wait() blocks until all done. Use when you just need 'wait for all'. Channels: use when goroutines need to pass results/signals. Worker pool uses both." },
+  { q: "Go error handling vs Java exceptions — advantage?", opts: ["Java exceptions are faster", "Go errors are explicit values — callers MUST handle them; can't silently ignore like unchecked exceptions", "No real difference", "Go doesn't support error handling"], ans: 1, exp: "In Go, if a function can fail it returns (value, error). The caller MUST handle the error or explicitly ignore it with _. Java unchecked exceptions (RuntimeException) can silently propagate. Go makes all error paths visible at compile time." },
+  { q: "What does close(channel) signal to range loops?", opts: ["Deletes all data in the channel", "Tells range to stop iterating after all buffered values are consumed", "Causes a panic", "Cancels pending sends"], ans: 1, exp: "close(ch) signals that no more values will be sent. A range loop over the channel processes all remaining buffered values, then exits. Without close(), range blocks forever. This is the standard producer-consumer pattern in Go." },
+  { q: "Go vs Java startup time — why is Go faster?", opts: ["Go skips all initialisation", "Go compiles to native binary — no JVM to start, no JIT warmup, no class loading", "Go has less code", "Go uses less RAM at startup"], ans: 1, exp: "Java starts the JVM (~100-500ms), loads classes, JIT-compiles hot paths. Go compiles to a self-contained native binary — it starts in ~10ms. Critical for serverless functions, CLIs, and rapid scale-out of microservices." },
+  { q: "sync.RWMutex advantage over sync.Mutex?", opts: ["RWMutex is simpler", "Multiple goroutines can hold RLock simultaneously; only exclusive Lock blocks all — perfect for read-heavy workloads", "RWMutex is always faster", "No difference"], ans: 1, exp: "Mutex: only 1 goroutine at a time (even readers block readers). RWMutex: N readers can hold RLock simultaneously, but a writer needs exclusive Lock. For a cache with 99% reads, RWMutex gives massive throughput improvement." }
+])}
+`;
