@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeniorEdge — Senior SWE Interview Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd6;
+  --text: #1a1814;
+  --muted: #7a7065;
+  --accent: #2563eb;
+  --accent2: #059669;
+  --accent3: #d97706;
+  --accent4: #7c3aed;
+  --red: #dc2626;
+  --tag-bg: #eef2ff;
+  --tag-text: #3730a3;
+  --code-bg: #1e1b16;
+  --code-text: #e8dcc8;
+  --sidebar-w: 260px;
+  --header-h: 58px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 15px; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── HEADER ── */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px;
+}
+
+.logo {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.logo span { color: var(--accent); }
+
+.header-search {
+  flex: 1;
+  max-width: 420px;
+  margin-left: auto;
+  position: relative;
+}
+
+.header-search input {
+  width: 100%;
+  padding: 7px 12px 7px 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--surface2);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.header-search input:focus { border-color: var(--accent); background: var(--surface); }
+
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 14px; pointer-events: none;
+}
+
+.header-meta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.progress-pill {
+  background: var(--accent);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  height: calc(100vh - var(--header-h));
+  position: sticky;
+  top: var(--header-h);
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.nav-section {
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 10px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  user-select: none;
+  position: relative;
+}
+
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+
+.nav-item.active {
+  background: #eef2ff;
+  color: var(--accent);
+}
+
+.nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  background: var(--accent);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.nav-item .nav-badge.green { background: var(--accent2); }
+.nav-item .nav-badge.amber { background: var(--accent3); }
+.nav-item .nav-badge.purple { background: var(--accent4); }
+
+.nav-sub {
+  padding-left: 28px;
+  display: none;
+}
+.nav-sub.open { display: block; }
+
+.nav-sub-item {
+  display: block;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.1s;
+  text-decoration: none;
+}
+.nav-sub-item:hover { background: var(--surface2); color: var(--text); }
+.nav-sub-item.active { color: var(--accent); font-weight: 500; }
+
+.nav-divider { height: 1px; background: var(--border); margin: 8px 10px; }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 920px;
+  min-width: 0;
+}
+
+/* ── PAGE ── */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── BREADCRUMB ── */
+.breadcrumb {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 6px;
+}
+.breadcrumb span { color: var(--text); }
+
+/* ── PAGE HEADER ── */
+.page-header { margin-bottom: 28px; }
+
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.page-subtitle { color: var(--muted); font-size: 14.5px; line-height: 1.6; max-width: 640px; }
+
+/* ── TAGS ── */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  margin-right: 4px;
+}
+.tag.green { background: #dcfce7; color: #166534; }
+.tag.amber { background: #fef3c7; color: #92400e; }
+.tag.red { background: #fee2e2; color: #991b1b; }
+.tag.purple { background: #ede9fe; color: #5b21b6; }
+.tag.gray { background: var(--surface2); color: var(--muted); }
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 36px;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  padding: 14px 18px;
+  border-radius: 10px;
+  border-left: 3px solid;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+}
+.callout.blue { background: #eff6ff; border-color: var(--accent); color: #1e3a8a; }
+.callout.green { background: #f0fdf4; border-color: var(--accent2); color: #14532d; }
+.callout.amber { background: #fffbeb; border-color: var(--accent3); color: #78350f; }
+.callout.red { background: #fef2f2; border-color: var(--red); color: #7f1d1d; }
+.callout.purple { background: #faf5ff; border-color: var(--accent4); color: #4c1d95; }
+
+.callout strong { font-weight: 700; }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: #0d1117;
+  border-radius: 10px;
+  border: 1px solid #30363d;
+  padding: 0;
+  margin: 14px 0;
+  overflow: hidden;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #e6edf3;
+  position: relative;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 18px 22px;
+  overflow-x: auto;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.code-block .code-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 7px 16px;
+  font-size: 11px;
+  color: #8b949e;
+  letter-spacing: 0.4px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+}
+
+.code-block .kw  { color: #ff7b72; }
+.code-block .str { color: #a5d6ff; }
+.code-block .cm  { color: #8b949e; font-style: italic; }
+.code-block .num { color: #79c0ff; }
+.code-block .cls { color: #ffa657; }
+.code-block .fn  { color: #d2a8ff; }
+.code-block .ann { color: #7ee787; }
+.code-block .op  { color: #ff7b72; }
+
+/* ── CARD GRID ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(37,99,235,0.08); transform: translateY(-1px); }
+.card.active { border-color: var(--accent); background: #eff6ff; }
+
+.card-icon { font-size: 22px; margin-bottom: 8px; }
+.card-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.card-complexity { margin-top: 8px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent); }
+
+/* ── PATTERN CARDS ── */
+.pattern-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.15s;
+}
+.pattern-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+.pattern-card .pnumber {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.pattern-card .ptitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.pattern-card .pcue {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  background: var(--tag-bg);
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.pattern-card .pdesc { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+
+.pattern-card .pflow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  background: var(--code-bg);
+  padding: 10px 14px;
+  border-radius: 8px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.pattern-card .ptype-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+/* ── DIAGRAM ── */
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 16px 0;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  overflow-x: auto;
+}
+
+.diagram svg { max-width: 100%; height: auto; }
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--surface2);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--surface2); }
+
+/* ── ACCORDION ── */
+.accordion { margin-bottom: 8px; }
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.15s;
+  user-select: none;
+}
+.accordion-header:hover { background: var(--surface2); border-color: var(--accent); }
+.accordion-header.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+
+.accordion-arrow { transition: transform 0.2s; font-size: 12px; color: var(--muted); }
+.accordion-header.open .accordion-arrow { transform: rotate(180deg); color: var(--accent); }
+
+.accordion-body {
+  display: none;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.accordion-body.open { display: block; animation: slideDown 0.2s ease; }
+
+@keyframes slideDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+
+/* ── QUIZ ── */
+.quiz-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.quiz-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quiz-title { font-size: 16px; font-weight: 700; }
+
+.quiz-progress {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.quiz-question {
+  font-size: 14.5px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+
+.quiz-option {
+  padding: 11px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  transition: all 0.15s;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+}
+.quiz-option:hover { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+.quiz-option.correct { border-color: var(--accent2); background: #f0fdf4; color: #166534; }
+.quiz-option.wrong { border-color: var(--red); background: #fee2e2; color: #991b1b; }
+.quiz-option:disabled, .quiz-option[disabled] { cursor: not-allowed; }
+
+.quiz-explanation {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  display: none;
+}
+.quiz-explanation.show { display: block; animation: fadeIn 0.2s; }
+
+.quiz-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 20px;
+}
+
+.quiz-score {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── COMPLEXITY CHIP ── */
+.complexity {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text);
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+/* ── TWO COL ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── INFO BOX ── */
+.info-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.info-box .info-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+/* ── STEPS ── */
+.steps { counter-reset: step; }
+.step {
+  display: flex; gap: 14px;
+  margin-bottom: 16px;
+}
+.step-num {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-content { flex: 1; }
+.step-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── MEMORY TIP ── */
+.memory-tip {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 13.5px;
+}
+.memory-tip .mt-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #b45309;
+  margin-bottom: 4px;
+}
+.memory-tip .mt-content { color: #78350f; line-height: 1.6; }
+
+/* ── REVISION TRACKER ── */
+.revision-controls {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.revision-btn {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.revision-btn:hover { border-color: var(--accent); color: var(--accent); }
+.revision-btn.mastered { background: #f0fdf4; border-color: var(--accent2); color: var(--accent2); }
+.revision-btn.review { background: #fef3c7; border-color: var(--accent3); color: var(--accent3); }
+
+/* ── HOMEPAGE CARDS ── */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.home-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.home-card:hover { border-color: var(--accent); box-shadow: 0 6px 24px rgba(37,99,235,0.1); transform: translateY(-2px); }
+
+.home-card-icon { font-size: 28px; margin-bottom: 12px; }
+.home-card-title { font-size: 15px; font-weight: 700; margin-bottom: 5px; color: var(--text); }
+.home-card-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+.home-card-topics { font-size: 11.5px; color: var(--accent); font-weight: 600; }
+
+/* ── PILL TABS ── */
+.pill-tabs {
+  display: flex; gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pill-tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.pill-tab:hover { border-color: var(--accent); color: var(--accent); }
+.pill-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ── COMPLEXITY TABLE ── */
+.big-o-row td:first-child { font-family: 'DM Mono', monospace; font-size: 13px; }
+.o1 { color: var(--accent2); font-weight: 700; }
+.ologn { color: #0284c7; font-weight: 600; }
+.on { color: var(--accent3); }
+.on2 { color: var(--red); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .main { padding: 20px 18px; }
+  .sidebar { width: 220px; min-width: 220px; }
+  --sidebar-w: 220px;
+}
+
+@media (max-width: 650px) {
+  .sidebar { display: none; }
+  .main { padding: 16px; }
+}
+
+/* ── MUSK RULE BOX ── */
+.elon-box {
+  background: linear-gradient(135deg, #0f172a, #1e1b4b);
+  border: 1px solid #3730a3;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 16px 0;
+  color: #e0e7ff;
+}
+.elon-box .eb-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #818cf8;
+  margin-bottom: 6px;
+}
+.elon-box .eb-rule { font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px; }
+.elon-box .eb-desc { font-size: 13px; color: #a5b4fc; line-height: 1.6; }
+
+/* Progress ring */
+.progress-ring-wrap { display: flex; align-items: center; gap: 8px; }
+
+hr.section-sep { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+ul.content-list { padding-left: 20px; }
+ul.content-list li { margin-bottom: 5px; font-size: 13.5px; line-height: 1.6; }
+
+ol.content-list { padding-left: 20px; }
+ol.content-list li { margin-bottom: 5px; font-size: 13.5px; line-height: 1.6; }
+
+strong { font-weight: 700; }
+em { color: var(--muted); }
+
+p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
+
+.inline-code {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  background: var(--surface2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent4);
+}
+
+/* ── HAMBURGER ── */
+.menu-toggle {
+  display: none;
+  background: none; border: none;
+  cursor: pointer; font-size: 20px;
+  color: var(--text);
+}
+
+@media (max-width: 650px) {
+  .menu-toggle { display: block; }
+  .sidebar.open { display: block; position: fixed; top: var(--header-h); left: 0; bottom: 0; z-index: 90; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="logo">Senior<span>Edge</span></div>
+  <div class="header-search">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Search topics, patterns, questions..." oninput="handleSearch(this.value)" />
+  </div>
+  <div class="header-meta">
+    <span id="progress-display" class="progress-pill">0% Complete</span>
+  </div>
+</header>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-section-label">Start Here</div>
+    <div class="nav-item active" onclick="showPage('home')">
+      <span class="nav-icon">🏠</span> Home
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">System Design</div>
+    <div class="nav-item" onclick="toggleSub('sd-sub'); showPage('sd-intro')">
+      <span class="nav-icon">🏗️</span> Framework
+    </div>
+    <div class="nav-item" onclick="showPage('sd-estimation')">
+      <span class="nav-icon">📊</span> Estimation
+    </div>
+    <div class="nav-item" onclick="showPage('sd-patterns')">
+      <span class="nav-icon">✨</span> 11 Patterns <span class="nav-badge">NEW</span>
+    </div>
+    <div class="nav-item" onclick="toggleSub('sd-case-sub'); showPage('sd-cases')">
+      <span class="nav-icon">📚</span> Case Studies
+    </div>
+    <div class="nav-sub" id="sd-case-sub">
+      <div class="nav-sub-item" onclick="showPage('sd-url')">URL Shortener</div>
+      <div class="nav-sub-item" onclick="showPage('sd-feed')">News Feed</div>
+      <div class="nav-sub-item" onclick="showPage('sd-chat')">Chat System</div>
+      <div class="nav-sub-item" onclick="showPage('sd-ratelimit')">Rate Limiter</div>
+    </div>
+    <div class="nav-item" onclick="showPage('sd-building')">
+      <span class="nav-icon">🧱</span> Building Blocks
+    </div>
+    <div class="nav-item" onclick="showPage('sd-auth')">
+      <span class="nav-icon">🔐</span> Auth & APIs
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">DS &amp; Algorithms</div>
+    <div class="nav-item" onclick="showPage('ds-overview')">
+      <span class="nav-icon">📐</span> Overview
+    </div>
+    <div class="nav-item" onclick="toggleSub('ds-sub'); showPage('ds-arrays')">
+      <span class="nav-icon">📦</span> Data Structures
+    </div>
+    <div class="nav-sub" id="ds-sub">
+      <div class="nav-sub-item" onclick="showPage('ds-arrays')">Arrays &amp; Strings</div>
+      <div class="nav-sub-item" onclick="showPage('ds-linkedlist')">Linked Lists</div>
+      <div class="nav-sub-item" onclick="showPage('ds-hashmap')">HashMap</div>
+      <div class="nav-sub-item" onclick="showPage('ds-trees')">Trees &amp; Tries</div>
+      <div class="nav-sub-item" onclick="showPage('ds-graph')">Graphs</div>
+      <div class="nav-sub-item" onclick="showPage('ds-heap')">Heap / Priority Queue</div>
+    </div>
+    <div class="nav-item" onclick="toggleSub('algo-sub'); showPage('algo-patterns')">
+      <span class="nav-icon">🔄</span> Algo Patterns
+    </div>
+    <div class="nav-sub" id="algo-sub">
+      <div class="nav-sub-item" onclick="showPage('algo-twopointer')">Two Pointers</div>
+      <div class="nav-sub-item" onclick="showPage('algo-sliding')">Sliding Window</div>
+      <div class="nav-sub-item" onclick="showPage('algo-binsearch')">Binary Search</div>
+      <div class="nav-sub-item" onclick="showPage('algo-bfsdfs')">BFS / DFS</div>
+      <div class="nav-sub-item" onclick="showPage('algo-backtrack')">Backtracking</div>
+      <div class="nav-sub-item" onclick="showPage('algo-topk')">Top-K / Heap</div>
+    </div>
+    <div class="nav-item" onclick="showPage('ds-revision')">
+      <span class="nav-icon">🔁</span> Revision Tracker <span class="nav-badge amber">Track</span>
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Languages &amp; Frameworks</div>
+    <div class="nav-item" onclick="toggleSub('java-sub'); showPage('java-core')">
+      <span class="nav-icon">☕</span> Java
+    </div>
+    <div class="nav-sub" id="java-sub">
+      <div class="nav-sub-item" onclick="showPage('java-core')">Core Concepts</div>
+      <div class="nav-sub-item" onclick="showPage('java-collections')">Collections</div>
+      <div class="nav-sub-item" onclick="showPage('java-concurrency')">Concurrency</div>
+      <div class="nav-sub-item" onclick="showPage('java-streams')">Streams &amp; Lambda</div>
+      <div class="nav-sub-item" onclick="showPage('java-memory')">Memory Model</div>
+    </div>
+    <div class="nav-item" onclick="showPage('spring-core')">
+      <span class="nav-icon">🍃</span> Spring Boot
+    </div>
+    <div class="nav-item" onclick="showPage('go-core')">
+      <span class="nav-icon">🐹</span> Go / Goroutines
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Infrastructure</div>
+    <div class="nav-item" onclick="toggleSub('k8s-sub'); showPage('k8s-core')">
+      <span class="nav-icon">⚙️</span> Kubernetes
+    </div>
+    <div class="nav-sub" id="k8s-sub">
+      <div class="nav-sub-item" onclick="showPage('k8s-core')">Core Concepts</div>
+      <div class="nav-sub-item" onclick="showPage('k8s-troubleshoot')">Troubleshooting</div>
+      <div class="nav-sub-item" onclick="showPage('k8s-advanced')">Advanced: CRD / Operator</div>
+      <div class="nav-sub-item" onclick="showPage('k8s-observability')">Observability</div>
+    </div>
+    <div class="nav-item" onclick="showPage('distributed')">
+      <span class="nav-icon">🌐</span> Distributed Systems
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="main-content">
+</main>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────
+const state = {
+  currentPage: 'home',
+  mastered: JSON.parse(localStorage.getItem('se_mastered') || '[]'),
+  review: JSON.parse(localStorage.getItem('se_review') || '[]'),
+  quizScores: JSON.parse(localStorage.getItem('se_scores') || '{}'),
+};
+
+function saveState() {
+  localStorage.setItem('se_mastered', JSON.stringify(state.mastered));
+  localStorage.setItem('se_review', JSON.stringify(state.review));
+  localStorage.setItem('se_scores', JSON.stringify(state.quizScores));
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = 40;
+  const pct = Math.round((state.mastered.length / total) * 100);
+  document.getElementById('progress-display').textContent = pct + '% Complete';
+}
+
+// ─── NAVIGATION ──────────────────────────────────
+function showPage(name) {
+  state.currentPage = name;
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+
+  // highlight active nav item
+  document.querySelectorAll('.nav-sub-item').forEach(i => {
+    if (i.getAttribute('onclick') && i.getAttribute('onclick').includes("'" + name + "'")) {
+      i.classList.add('active');
+    }
+  });
+  document.querySelectorAll('.nav-item').forEach(i => {
+    if (i.getAttribute('onclick') && i.getAttribute('onclick').includes("'" + name + "'")) {
+      i.classList.add('active');
+    }
+  });
+
+  const main = document.getElementById('main-content');
+  const builder = pages[name];
+  if (!builder) {
+    main.innerHTML = '<div class="page active" style="padding:40px"><h2>Page not found: ' + name + '</h2></div>';
+    return;
+  }
+
+  main.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'page active';
+  el.innerHTML = builder();
+  main.appendChild(el);
+  main.scrollTop = 0;
+  window.scrollTo(0, 0);
+
+  // Auto-init all quizzes on this page (scripts don't run inside innerHTML)
+  el.querySelectorAll('.quiz-container').forEach(function(container) {
+    var id = container.id.replace('quiz-', '');
+    var questions = window['__quiz_' + id];
+    if (questions && questions.length) {
+      initQuiz(id, questions);
+    }
+  });
+
+  // Re-apply revision button states
+  el.querySelectorAll('.revision-btn').forEach(function(btn) {
+    var topic = btn.getAttribute('data-topic');
+    btn.classList.remove('mastered', 'review');
+    if (state.mastered.includes(topic)) btn.classList.add('mastered');
+    else if (state.review.includes(topic)) btn.classList.add('review');
+  });
+
+  if (window.innerWidth < 650) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+function toggleSub(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function toggleAccordion(el) {
+  const body = el.nextElementSibling;
+  const isOpen = el.classList.contains('open');
+  el.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function handleSearch(val) {
+  if (!val) return;
+  // basic search
+}
+// ─── PAGE-SPECIFIC HELPERS ────────────────────────────────────────────────────
+function filterPatterns(type, btn) {
+  document.querySelectorAll('.pill-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pattern-card').forEach(c => {
+    c.style.display = (type === 'all' || c.dataset.type === type) ? 'block' : 'none';
+  });
+}
+
+function showBlock(id, btn) {
+  document.querySelectorAll('.block-section').forEach(s => s.style.display = 'none');
+  document.getElementById('block-' + id).style.display = 'block';
+  document.querySelectorAll('.pill-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+
+
+// ─── QUIZ ENGINE ─────────────────────────────────
+const quizState = {};
+
+function initQuiz(id, questions) {
+  quizState[id] = { current: 0, score: 0, answered: false, questions };
+  renderQuiz(id);
+}
+
+function renderQuiz(id) {
+  const qs = quizState[id];
+  if (!qs) return;
+  const q = qs.questions[qs.current];
+  const wrap = document.getElementById('quiz-' + id);
+  if (!wrap) return;
+  
+  wrap.querySelector('.quiz-question').textContent = `Q${qs.current + 1}. ${q.q}`;
+  wrap.querySelector('.quiz-progress').textContent = `${qs.current + 1} / ${qs.questions.length}`;
+  wrap.querySelector('.quiz-score').textContent = `Score: ${qs.score}/${qs.questions.length}`;
+  
+  const opts = wrap.querySelector('.quiz-options');
+  opts.innerHTML = q.opts.map((o, i) => 
+    `<button class="quiz-option" onclick="answerQuiz('${id}', ${i})">${o}</button>`
+  ).join('');
+  
+  wrap.querySelector('.quiz-explanation').classList.remove('show');
+  wrap.querySelector('.quiz-explanation').textContent = '';
+  
+  const nextBtn = wrap.querySelector('.quiz-next');
+  if (nextBtn) nextBtn.disabled = true;
+  qs.answered = false;
+}
+
+function answerQuiz(id, chosen) {
+  const qs = quizState[id];
+  if (qs.answered) return;
+  qs.answered = true;
+  
+  const q = qs.questions[qs.current];
+  const wrap = document.getElementById('quiz-' + id);
+  const buttons = wrap.querySelectorAll('.quiz-option');
+  
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.ans) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+  
+  if (chosen === q.ans) qs.score++;
+  wrap.querySelector('.quiz-score').textContent = `Score: ${qs.score}/${qs.questions.length}`;
+  
+  const exp = wrap.querySelector('.quiz-explanation');
+  exp.textContent = q.exp;
+  exp.classList.add('show');
+  
+  const nextBtn = wrap.querySelector('.quiz-next');
+  if (nextBtn) nextBtn.disabled = false;
+}
+
+function nextQuestion(id) {
+  const qs = quizState[id];
+  if (qs.current < qs.questions.length - 1) {
+    qs.current++;
+    renderQuiz(id);
+  } else {
+    state.quizScores[id] = qs.score;
+    saveState();
+    const wrap = document.getElementById('quiz-' + id);
+    wrap.innerHTML = `<div style="text-align:center;padding:30px">
+      <div style="font-size:36px;margin-bottom:12px">${qs.score === qs.questions.length ? '🎉' : qs.score >= qs.questions.length/2 ? '👍' : '📖'}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px">Quiz Complete!</div>
+      <div style="color:var(--muted);margin-bottom:20px">You scored <strong>${qs.score}/${qs.questions.length}</strong></div>
+      <button class="btn btn-primary" onclick="initQuiz('${id}', window['__quiz_${id}'])">Retry</button>
+    </div>`;
+  }
+}
+
+// quiz HTML helper
+function quizHTML(id, questions) {
+  // store questions globally for retry (use safe key without hyphens)
+  var safeKey = '__quiz_' + id.replace(/-/g, '_');
+  window[safeKey] = questions;
+  window['__quiz_' + id] = questions; // also keep hyphenated for compat
+  return `<div class="quiz-container" id="quiz-${id}">
+    <div class="quiz-header">
+      <span style="font-size:18px">🧪</span>
+      <span class="quiz-title">Knowledge Check</span>
+      <span class="quiz-progress">1/${questions.length}</span>
+    </div>
+    <div class="quiz-question"></div>
+    <div class="quiz-options"></div>
+    <div class="quiz-explanation"></div>
+    <div class="quiz-nav">
+      <span class="quiz-score">Score: 0/${questions.length}</span>
+      <button class="btn btn-primary quiz-next" onclick="nextQuestion('${id}')" disabled>Next →</button>
+    </div>
+  </div>`;
+}
+
+// ─── REVISION ────────────────────────────────────
+function markTopic(topic, status) {
+  if (status === 'mastered') {
+    state.mastered = [...new Set([...state.mastered, topic])];
+    state.review = state.review.filter(t => t !== topic);
+  } else {
+    state.review = [...new Set([...state.review, topic])];
+    state.mastered = state.mastered.filter(t => t !== topic);
+  }
+  saveState();
+  const btns = document.querySelectorAll('.revision-btn');
+  btns.forEach(b => { b.classList.remove('mastered','review'); });
+  document.querySelectorAll(`.revision-btn[data-topic="${topic}"]`).forEach(b => {
+    if (status === 'mastered') b.classList.add('mastered');
+    else if (status === 'review') b.classList.add('review');
+  });
+}
+
+function revisionControls(topic) {
+  const isMastered = state.mastered.includes(topic);
+  const isReview = state.review.includes(topic);
+  return `<div class="revision-controls">
+    <span style="font-size:12px;color:var(--muted);font-weight:600;">Track Progress:</span>
+    <button class="revision-btn ${isMastered ? 'mastered' : ''}" data-topic="${topic}" onclick="markTopic('${topic}','mastered')">✓ Mastered</button>
+    <button class="revision-btn ${isReview ? 'review' : ''}" data-topic="${topic}" onclick="markTopic('${topic}','review')">📌 Need Review</button>
+  </div>`;
+}
+
+// ─── INIT ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  showPage('home');
+  updateProgress();
+  // auto-init quizzes after render
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('accordion-header')) {
+      toggleAccordion(e.target);
+    }
+  });
+});
+
+// ─── PAGES ───────────────────────────────────────
+const pages = {};
+</script>
+<script src="pages-home.js"></script>
+<script src="pages-sd.js"></script>
+<script src="pages-ds.js"></script>
+<script src="pages-java.js"></script>
+<script src="pages-infra.js"></script>
+</body>
+</html>
