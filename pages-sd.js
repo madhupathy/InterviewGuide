@@ -826,6 +826,39 @@ pages['sd-building'] = () => `
     <br><br>
     <strong>Consistency models spectrum:</strong> Strong consistency → Causal consistency → Read-your-own-writes → Monotonic reads → Eventual consistency. Each relaxation gains performance.
   </div>
+
+<h2 class="section-title" style="margin-top:24px">SAGA Pattern — Distributed Transactions</h2>
+<div class="callout callout-amber">
+  <strong>Problem:</strong> 2-Phase Commit (2PC) holds locks across services — slow and a single point of failure. <strong>Saga</strong> breaks a distributed transaction into local steps with compensating transactions for rollback. No cross-service locks.
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0">
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:8px">Choreography Saga (Event-Driven)</div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;line-height:1.9;color:#374151">
+      OrderService: OrderPlaced →<br>
+      PaymentService: PaymentProcessed →<br>
+      InventoryService: InventoryReserved →<br>
+      ShippingService: ShipmentScheduled<br><br>
+      On failure: compensating events run in reverse
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">✅ Decoupled. ❌ Hard to trace the flow.</div>
+  </div>
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:14px">
+    <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:8px">Orchestration Saga (Central Coordinator)</div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;line-height:1.9;color:#374151">
+      SagaOrchestrator:<br>
+      1. call PaymentService.charge() <br>
+      2. call Inventory.reserve() <br>
+         on fail → refund payment<br>
+      3. call Shipping.schedule()<br>
+         on fail → release inventory + refund
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">✅ Clear flow. ❌ Orchestrator can be bottleneck.</div>
+  </div>
+</div>
+<div class="callout callout-blue">
+  <strong>SAGA vs 2PC:</strong> 2PC holds distributed locks during both phases — slow, blocking, single point of failure if coordinator crashes. SAGA: each step is a local transaction; rollback via compensating transactions. No locks. Much better availability.
+</div>
 </div></div>
 
 <div id="block-sharding" class="block-section" style="display:none">
@@ -861,6 +894,22 @@ key = user_id + "_" + random(0, 100)  // 100 sub-shards
       </div>
     </div>
   </div>
+
+<h2 class="section-title" style="margin-top:24px">Consistent Hashing</h2>
+<div class="callout callout-green">
+  <strong>Problem with naive hash(key) % N:</strong> Adding/removing a node changes N, causing almost all keys to rehash — catastrophic cache miss storm. Consistent hashing: keys and nodes sit on a ring (0–2³²). Each key is served by the first node clockwise. Adding a node only affects ~1/N keys.
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+  Hash ring (0 → 2³²):<br>
+  &nbsp;&nbsp;Node A at position 100 → Node B at 250 → Node C at 400 → back to A<br>
+  Key "user:123" hashes to 180 → served by Node B (next clockwise)<br><br>
+  Add Node D at position 320:<br>
+  &nbsp;&nbsp;Only keys between 250 and 320 move from B to D (~1/N of all keys)<br>
+  &nbsp;&nbsp;All other keys unaffected ✅
+</div>
+<div class="callout callout-amber">
+  <strong>Virtual nodes:</strong> Each physical node owns 100-200 positions on the ring. Prevents hot spots when servers have different capacities. Adding a server: picks up some virtual nodes from each existing server. Used by: Cassandra, DynamoDB, CDNs, Memcached.
+</div>
 </div>
 
 <div id="block-replication" class="block-section" style="display:none">
@@ -928,18 +977,6 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
   <tr><td><strong>Multi-Leader</strong></td><td>Any leader (multiple DCs)</td><td>Local leader</td><td>Must resolve (last-write-wins, CRDT)</td><td>Multi-region, offline-capable apps</td></tr>
   <tr><td><strong>Leaderless</strong></td><td>Any node (quorum)</td><td>Any node (quorum)</td><td>Handled by versioning/CRDTs</td><td>Cassandra, DynamoDB — max availability</td></tr>
 </table>
-</div>
-
-<h2 class="section-title" style="margin-top:24px">Sync vs Async Replication</h2>
-<table class="data-table">
-  <tr><th>Type</th><th>How</th><th>Durability</th><th>Write Latency</th><th>Availability</th></tr>
-  <tr><td><strong>Synchronous</strong></td><td>Write confirmed only when ALL replicas ack</td><td>Strongest — no data loss</td><td>High — waits for all replicas</td><td>Lower — one slow replica blocks all</td></tr>
-  <tr><td><strong>Asynchronous</strong></td><td>Write confirmed after primary writes; replicas catch up later</td><td>Risk of data loss if primary crashes before replication</td><td>Low — doesn't wait</td><td>High — primary can handle writes alone</td></tr>
-  <tr><td><strong>Semi-synchronous</strong></td><td>Write confirmed when at least one replica acks</td><td>Good balance</td><td>Medium</td><td>Good balance</td></tr>
-</table>
-<div class="callout callout-blue">
-  <strong>MySQL semi-sync:</strong> Default in production MySQL — at least one replica must confirm before commit. Prevents data loss on primary failure while maintaining reasonable write latency. PostgreSQL synchronous_commit=on forces full sync.
-</div>
 
 <h2 class="section-title" style="margin-top:20px">Replication Strategies Summary</h2>
 <table class="data-table">
@@ -948,8 +985,7 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
   <tr><td><strong>Multi-Leader</strong></td><td>Any leader (multiple DCs)</td><td>Local leader</td><td>Must resolve (last-write-wins, CRDT)</td><td>Multi-region, offline-capable apps</td></tr>
   <tr><td><strong>Leaderless</strong></td><td>Any node (quorum)</td><td>Any node (quorum)</td><td>Handled by versioning/CRDTs</td><td>Cassandra, DynamoDB — max availability</td></tr>
 </table>
-
-<div id="block-acid" class="block-section" style="display:none">
+</div><div id="block-acid" class="block-section" style="display:none">
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
   <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
     <div style="background:#16a34a;color:white;border-radius:6px;padding:6px 12px;font-weight:900;font-size:16px;min-width:36px;text-align:center">A</div>
@@ -1024,40 +1060,8 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
 <div class="callout callout-amber">
   <strong>Real systems blend both:</strong> Use ACID (PostgreSQL) for payments and inventory. Use BASE (Redis/Cassandra) for caching, session storage, and analytics. Don't choose globally — choose per feature.
 </div>
-</div>
 
-<h2 class="section-title" style="margin-top:24px">BASE — The Alternative to ACID</h2>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0">
-  <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px;text-align:center">
-    <div style="font-size:20px;font-weight:900;color:#c2410c;margin-bottom:4px">BA</div>
-    <div style="font-weight:700;color:#c2410c;margin-bottom:6px">Basically Available</div>
-    <div style="font-size:13px;color:#374151">System always responds — even if data may be stale</div>
-  </div>
-  <div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:14px;text-align:center">
-    <div style="font-size:20px;font-weight:900;color:#1d4ed8;margin-bottom:4px">S</div>
-    <div style="font-weight:700;color:#1d4ed8;margin-bottom:6px">Soft State</div>
-    <div style="font-size:13px;color:#374151">State changes over time even without new input as replicas sync</div>
-  </div>
-  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px;text-align:center">
-    <div style="font-size:20px;font-weight:900;color:#065f46;margin-bottom:4px">E</div>
-    <div style="font-weight:700;color:#065f46;margin-bottom:6px">Eventually Consistent</div>
-    <div style="font-size:13px;color:#374151">All replicas converge to the same value — given no new writes</div>
-  </div>
-</div>
-<table class="data-table">
-  <tr><th>Aspect</th><th>ACID</th><th>BASE</th></tr>
-  <tr><td>Consistency</td><td>Strong — immediately consistent</td><td>Eventual — temporarily diverged is OK</td></tr>
-  <tr><td>Availability</td><td>May block to maintain consistency</td><td>Always available, serves possibly stale data</td></tr>
-  <tr><td>Scalability</td><td>Harder — coordination overhead</td><td>Designed for linear horizontal scale</td></tr>
-  <tr><td>Developer burden</td><td>Low — DB enforces all rules</td><td>High — app must handle conflicts</td></tr>
-  <tr><td>Best for</td><td>Finance, bookings, inventory, healthcare</td><td>Social media, analytics, caching, IoT</td></tr>
-  <tr><td>Examples</td><td>PostgreSQL, MySQL, Oracle, SQL Server</td><td>Cassandra, DynamoDB, MongoDB, Redis</td></tr>
-</table>
-<div class="callout callout-amber">
-  <strong>Real systems blend both:</strong> Use ACID (PostgreSQL) for payments and inventory. Use BASE (Redis/Cassandra) for caching, session storage, and analytics. Don't choose globally — choose per feature.
-</div>
-
-<div id="block-indexes" class="block-section" style="display:none">
+</div><div id="block-indexes" class="block-section" style="display:none">
   <h2 class="section-title">Database Indexes</h2>
   <div class="callout callout-blue">
     An index is a separate data structure (B-Tree or Hash) that enables fast lookups without a full table scan. <strong>Trade-off:</strong> faster reads, slower writes (index must be updated on insert/update/delete).
@@ -1098,19 +1102,29 @@ EXPLAIN SELECT * FROM orders WHERE user_id=5 AND created_at > '2024-01-01';
 
 <div id="block-scaling" class="block-section" style="display:none">
   <h2 class="section-title">Scaling Strategies</h2>
-  <table class="data-table">
-    <tr><th>Strategy</th><th>What</th><th>When</th><th>Limit</th></tr>
-    <tr><td><strong>Vertical Scale-up</strong></td><td>Bigger server (more CPU/RAM)</td><td>Quick fix, small-medium scale</td><td>Hardware ceiling, single point of failure</td></tr>
-    <tr><td><strong>Horizontal Scale-out</strong></td><td>Add more servers behind LB</td><td>Stateless services</td><td>Session/state management complexity</td></tr>
-    <tr><td><strong>Read Replicas</strong></td><td>DB replicas handle reads</td><td>Read-heavy (90%+ reads)</td><td>Replication lag, eventual consistency</td></tr>
-    <tr><td><strong>Caching Layer</strong></td><td>Redis/Memcached in front of DB</td><td>Repetitive reads, high QPS</td><td>Cache invalidation complexity</td></tr>
-    <tr><td><strong>Sharding</strong></td><td>Split DB horizontally</td><td>DB is bottleneck despite replicas</td><td>Cross-shard queries, resharding pain</td></tr>
-    <tr><td><strong>CDN</strong></td><td>Edge servers for static/media</td><td>Global users, media-heavy</td><td>Cache invalidation, cost</td></tr>
-    <tr><td><strong>Async / Queue</strong></td><td>Decouple slow operations via MQ</td><td>Email, notifications, processing</td><td>Eventual consistency, complexity</td></tr>
-    <tr><td><strong>Microservices</strong></td><td>Split monolith by domain</td><td>Teams scaling, independent deploys</td><td>Network hops, distributed tracing</td></tr>
-  </table>
   <div class="callout callout-blue">
-    <strong>Scaling interview framework:</strong> Start with vertical → add caching → read replicas → CDN → async queues → horizontal sharding. Each step 10× the capacity. Don't over-engineer upfront.
+    <strong>Rule: don't skip steps.</strong> Each step adds ~10× capacity. Sharding is last — it's the most operationally expensive. Most systems never need it.
+  </div>
+  <table class="data-table">
+    <tr><th>#</th><th>Strategy</th><th>What it does</th><th>Use when</th><th>Limit</th></tr>
+    <tr><td>1</td><td><strong>Vertical scale-up</strong></td><td>Bigger server (more CPU, RAM, NVMe)</td><td>Quick win, single bottleneck</td><td>Hardware ceiling, SPOF</td></tr>
+    <tr><td>2</td><td><strong>Caching layer</strong></td><td>Redis/Memcached in front of DB</td><td>Repetitive reads, high QPS</td><td>Cache invalidation complexity</td></tr>
+    <tr><td>3</td><td><strong>Read replicas</strong></td><td>Replica DBs handle reads, primary handles writes</td><td>Read:write &gt; 5:1</td><td>Replication lag, eventual consistency</td></tr>
+    <tr><td>4</td><td><strong>CDN</strong></td><td>Edge servers cache static/media near users</td><td>Global users, media-heavy</td><td>Cache invalidation, egress cost</td></tr>
+    <tr><td>5</td><td><strong>Horizontal scale-out</strong></td><td>More stateless app servers behind LB</td><td>CPU-bound, stateless services</td><td>Session state must be external (Redis)</td></tr>
+    <tr><td>6</td><td><strong>Async queue</strong></td><td>Decouple slow ops via Kafka/SQS</td><td>Email, video, notifications, analytics</td><td>Eventual consistency, complex failures</td></tr>
+    <tr><td>7</td><td><strong>DB sharding</strong></td><td>Split DB horizontally across nodes</td><td>DB write bottleneck despite replicas + cache</td><td>Cross-shard queries, resharding pain</td></tr>
+    <tr><td>8</td><td><strong>Microservices</strong></td><td>Split monolith by domain</td><td>Team scaling, independent deploys</td><td>Network hops, distributed tracing</td></tr>
+  </table>
+  <h2 class="section-title" style="margin-top:20px">Scaling Decision Tree</h2>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.4">
+    Read bottleneck? → Add Redis cache → add read replicas → done for 99% of cases<br>
+    Write bottleneck? → Async queue (decouple slow ops) → shard if still needed<br>
+    Compute bottleneck? → Horizontal scale-out behind load balancer<br>
+    Bandwidth/media? → CDN + object storage (S3/GCS)
+  </div>
+  <div class="callout callout-amber">
+    <strong>Numbers to know:</strong> 1 Redis node ≈ 100K ops/sec. 1 Postgres primary ≈ 5K writes/sec. 1 web server ≈ 10K req/sec. 5 read replicas ≈ 5× read throughput. Each shard adds write capacity linearly.
   </div>
 </div>
 
@@ -1235,8 +1249,6 @@ X-RateLimit-Limit:     1000    <span class="cm">// total allowed per window</spa
 X-RateLimit-Remaining: 842     <span class="cm">// left in current window</span>
 X-RateLimit-Reset:     1704067 <span class="cm">// epoch when window resets</span>
 Retry-After:           30      <span class="cm">// seconds (on 429 only)</span></pre></div>
-</div>
-
 
 <div class="section-title">HTTPS & TLS</div>
 <div class="accordion">
@@ -1284,9 +1296,7 @@ ${quizHTML('sd-auth', [
   { q: "SSO (Single Sign-On) uses which protocols?", opts: ["Only OAuth2", "SAML 2.0 (enterprise/XML) or OIDC (modern/JSON) — both enable one login for multiple apps", "Only JWT", "HTTP Basic Auth"], ans: 1, exp: "SAML 2.0: XML-based, enterprise-focused (Okta, Active Directory). OIDC: JSON/JWT-based, modern web/mobile (Google, GitHub). Both allow one authentication session to grant access to multiple applications without re-login." }
 ])}
 </div>
-
-
-<div id="block-auth" class="block-section" style="display:none">
+</div><div id="block-auth" class="block-section" style="display:none">
 <div class="section-title">Authentication Patterns (7)</div>
 
 <div class="accordion">

@@ -29,7 +29,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; font-size: 16px; }
+html { scroll-behavior: smooth; font-size: 17px; }
 
 body {
   font-family: 'DM Sans', sans-serif;
@@ -270,7 +270,7 @@ body {
 }
 
 .section-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 14px;
@@ -285,7 +285,7 @@ body {
   border-radius: 10px;
   border-left: 3px solid;
   margin-bottom: 16px;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .callout.blue { background: #eff6ff; border-color: var(--accent); color: #1e3a8a; }
 .callout.green { background: #f0fdf4; border-color: var(--accent2); color: #14532d; }
@@ -304,8 +304,8 @@ body {
   margin: 14px 0;
   overflow: hidden;
   font-family: 'DM Mono', monospace;
-  font-size: 14.5px;
-  line-height: 1.85;
+  font-size: 15px;
+  line-height: 1.9;
   color: #e6edf3;
   position: relative;
 }
@@ -445,7 +445,7 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 15px;
   margin: 16px 0;
 }
 .data-table th {
@@ -484,7 +484,7 @@ body {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   transition: all 0.15s;
   user-select: none;
 }
@@ -502,7 +502,7 @@ body {
   border-top: none;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.75;
 }
 .accordion-body.open { display: block; animation: slideDown 0.2s ease; }
@@ -863,7 +863,8 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <span class="nav-icon">🧱</span> Building Blocks
     </div>
     <div class="nav-sub" id="sd-building-sub">
-      <div class="nav-sub-item" onclick="showPage('sd-auth')">Auth &amp; APIs</div>
+      <div class="nav-sub-item" onclick="showPage('sd-building')">All Blocks</div>
+      <div class="nav-sub-item" onclick="showPage('sd-auth')">Auth &amp; Security</div>
     </div>
     <div class="nav-item" onclick="showPage('sd-patterns')">
       <span class="nav-icon">✨</span> 11 Patterns
