@@ -1,0 +1,10 @@
+# Old filenames
+senioredge.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
