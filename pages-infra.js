@@ -893,3 +893,156 @@ ${quizHTML('distributed', [
   { q: "What is idempotency key and why is it essential for payments?", opts: ["An encryption key", "A unique request ID — allows safely retrying failed requests; server detects duplicate and returns cached result", "A hash of the payment amount", "A session token"], ans: 1, exp: "Payment timeout: did it succeed or not? Retry without idempotency = double charge. Idempotency key: client generates UUID, sends with request. Server: if key seen before, return cached result. If not, process and store result with key. Stripe, PayPal all require idempotency keys for payments." },
   { q: "Leader election — what guarantees does ZooKeeper provide?", opts: ["Eventual consistency", "Strong consistency via ZAB protocol (Zookeeper Atomic Broadcast) — linearizable reads from leader, sequential consistency", "No consistency guarantees", "Only availability"], ans: 1, exp: "ZooKeeper uses ZAB (Paxos-like). Writes: always go through leader, applied in total order. Reads from leader: linearizable (see all committed writes). Ephemeral znodes: auto-deleted when client session ends — used for leader election (first to create wins, others watch for deletion)." }
 ])}`;
+
+pages['k8s-gpu'] = () => `
+<div class="page-header">
+  <div class="breadcrumb">Infrastructure → Kubernetes</div>
+  <h1 class="page-title">GPU Operator & Multi-Node AI Clusters</h1>
+  <p class="page-subtitle">NVIDIA GPU Operator, KubeRay, vLLM — running LLMs at production scale on Kubernetes.</p>
+  ${revisionControls('k8s-gpu')}
+</div>
+
+<div class="elon-box">
+  <strong>⚡ Real-world context:</strong> Meta Llama 4 Maverick (~749 GB model) runs across 16 NVIDIA H200 GPUs spanning 2 servers, managed by Kubernetes + KubeRay, with ~376 Gbit/s RDMA interconnect. This is how modern AI inference works at scale.
+</div>
+
+<h2 class="section-title">NVIDIA GPU Operator</h2>
+<div class="callout callout-blue">
+  The GPU Operator automates deployment and management of all NVIDIA software needed to run GPU workloads in Kubernetes. Without it, you'd manually install drivers, toolkits, and plugins on every node.
+</div>
+<table class="data-table">
+  <tr><th>Component</th><th>What It Does</th></tr>
+  <tr><td><strong>Device Plugin</strong></td><td>Exposes GPUs as schedulable K8s resources (<code>nvidia.com/gpu: 8</code>) — scheduler can assign GPUs to pods</td></tr>
+  <tr><td><strong>Container Toolkit</strong></td><td>Lets containers access host NVIDIA drivers/CUDA without bundling them in every image</td></tr>
+  <tr><td><strong>GPU Feature Discovery</strong></td><td>Auto-labels nodes with GPU metadata (product, driver version, CUDA capability) for intelligent scheduling</td></tr>
+  <tr><td><strong>DCGM Exporter</strong></td><td>Exports GPU telemetry (temp, utilization, memory, power, ECC errors) as Prometheus metrics</td></tr>
+</table>
+<div class="code-block"><pre><span class="cm"># Pod requesting specific GPU resources</span>
+resources:
+  limits:
+    nvidia.com/gpu: <span class="num">8</span>      <span class="cm"># 8 GPUs requested</span>
+
+<span class="cm"># Node selector for specific GPU type</span>
+nodeSelector:
+  nvidia.com/gpu.product: H200-NVL
+
+<span class="cm"># GPU Operator config — use host-installed driver</span>
+driver:
+  enabled: false          <span class="cm"># operator skips driver install</span></pre></div>
+
+<h2 class="section-title">Multi-Node Architecture</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:14px;color:#1e40af;margin-bottom:10px">XE7740 (Node 1) — Pipeline Stage 1</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      ${['GPU0','GPU1','GPU2','GPU3','GPU4','GPU5','GPU6','GPU7'].map(g=>`<span style="background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:600;color:#1d4ed8">${g}</span>`).join('')}
+    </div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">
+      8× H200 NVL (141 GB each)<br>
+      Model Layers 1-48<br>
+      Tensor Parallel = 8 (within node)<br>
+      Ray Head + vLLM API Server
+    </div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:10px">XE7745 (Node 2) — Pipeline Stage 2</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      ${['GPU0','GPU1','GPU2','GPU3','GPU4','GPU5','GPU6','GPU7'].map(g=>`<span style="background:#dcfce7;border:1px solid #16a34a;border-radius:4px;padding:3px 8px;font-size:12px;font-weight:600;color:#14532d">${g}</span>`).join('')}
+    </div>
+    <div style="font-size:13px;color:#374151;line-height:1.8">
+      8× H200 NVL (141 GB each)<br>
+      Model Layers 49-96<br>
+      Tensor Parallel = 8 (within node)<br>
+      Ray Worker
+    </div>
+  </div>
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;font-size:13px;color:var(--muted)">
+  ↕ RoCE/RDMA inter-node ~376 Gbit/s | GPU-to-GPU bypasses CPU entirely
+</div>
+
+<h2 class="section-title">Parallelism Strategies</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Tensor Parallelism (TP) — within one node <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="callout callout-blue">
+        Each GPU holds a <strong>vertical slice</strong> of every layer's weight matrix. All 8 GPUs compute their slice in parallel → NCCL AllReduce combines results. Requires ultra-low latency (microseconds) — only practical within one server via PCIe P2P.
+      </div>
+      <div class="code-block"><pre>Layer weight matrix: 16384 x 16384
+With TP=8: each GPU holds 16384 x 2048 slice
+All 8 GPUs compute in parallel → AllReduce → final output</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Pipeline Parallelism (PP) — across nodes <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="callout callout-green">
+        Model layers split <strong>sequentially</strong> across nodes. Node 1 processes layers 1-48, passes activations to Node 2 for layers 49-96. Tolerates higher latency than TP — only one inter-node transfer per pipeline stage per token.
+      </div>
+      <div class="code-block"><pre>Request flow per token:
+1. Input → XE7740 (layers 1-48) → intermediate activations
+2. Activations sent via RoCE/GDRDMA → XE7745 (layers 49-96)
+3. Output logits → back to XE7740 → emit token → next iteration</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">NCCL — GPU communication library <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Scenario</th><th>Transport</th><th>Speed</th></tr>
+        <tr><td>GPUs on same server</td><td>P2P/IPC (PCIe direct) or SHM</td><td>Microseconds</td></tr>
+        <tr><td>GPUs on different servers</td><td>NET/IB/GDRDMA (RoCE — GPU-to-GPU bypassing CPU)</td><td>~376 Gbit/s</td></tr>
+        <tr><td>Initial process group setup</td><td>Gloo over TCP (management network)</td><td>One-time handshake only</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">KubeRay — Kubernetes Operator for Ray</h2>
+<div class="callout callout-amber">
+  KubeRay manages the lifecycle of Ray clusters on Kubernetes. When a Ray worker pod crashes, KubeRay automatically recreates and reconnects it. The entire Ray cluster is defined in a single <code>RayCluster</code> YAML manifest.
+</div>
+<div class="code-block"><pre><span class="cm"># RayCluster custom resource — deploys head + worker pods</span>
+apiVersion: ray.io/v1
+kind: RayCluster
+spec:
+  headGroupSpec:
+    template:
+      spec:
+        nodeSelector: {kubernetes.io/hostname: xe7740}  <span class="cm"># pin to Node 1</span>
+        resources:
+          limits: {nvidia.com/gpu: "8"}
+  workerGroupSpecs:
+  - replicas: 1
+    template:
+      spec:
+        nodeSelector: {kubernetes.io/hostname: xe7745}  <span class="cm"># pin to Node 2</span>
+        resources:
+          limits: {nvidia.com/gpu: "8"}</pre></div>
+
+<h2 class="section-title">vLLM — High Performance Inference Engine</h2>
+<table class="data-table">
+  <tr><th>Feature</th><th>What It Does</th></tr>
+  <tr><td><strong>PagedAttention</strong></td><td>Manages KV cache like OS virtual memory — eliminates memory fragmentation, maximizes concurrent users</td></tr>
+  <tr><td><strong>Continuous batching</strong></td><td>Dynamically batches requests to maximise GPU utilisation vs idle waiting</td></tr>
+  <tr><td><strong>OpenAI-compatible API</strong></td><td>Exposes /v1/chat/completions — any OpenAI SDK works out of the box</td></tr>
+  <tr><td><strong>Distributed inference</strong></td><td>Tensor + Pipeline parallelism via Ray across multiple GPUs and nodes</td></tr>
+</table>
+
+<div class="callout callout-green">
+  <strong>KV cache sizing matters for concurrency:</strong>
+  <table class="data-table" style="margin-top:8px">
+    <tr><th>Config</th><th>Model per GPU</th><th>Free for KV Cache</th><th>Concurrent users (64K ctx)</th></tr>
+    <tr><td>8 GPUs (1 node)</td><td>~93.7 GB</td><td>~32 GB</td><td>~25×</td></tr>
+    <tr><td>16 GPUs (2 nodes)</td><td>~46.9 GB</td><td>~73 GB</td><td><strong>~98×</strong></td></tr>
+  </table>
+</div>
+
+${quizHTML('k8s-gpu', [
+  { q: "What does the NVIDIA Device Plugin do in Kubernetes?", opts: ["Installs GPU drivers", "Exposes GPUs as schedulable K8s resources (nvidia.com/gpu: 8) so the scheduler can assign GPUs to pods", "Monitors GPU temperature", "Enables CUDA in containers"], ans: 1, exp: "Without the device plugin, Kubernetes doesn't know GPUs exist. The plugin registers each GPU as a resource, enables pods to request specific GPU counts via resource limits, and manages GPU allocation to prevent double-booking." },
+  { q: "Tensor Parallelism vs Pipeline Parallelism — key difference?", opts: ["TP is faster always", "TP splits each layer vertically across GPUs within a node (microsecond comms). PP splits layers sequentially across nodes (tolerates ms latency)", "PP is only for CPUs", "No difference"], ans: 1, exp: "TP: GPU 0 and GPU 1 each compute half of every layer simultaneously — requires synchronization after every layer (high frequency, must be fast, PCIe/NVLink). PP: GPU 0 does layers 1-48, GPU 1 does 49-96 — only one transfer per stage per token (tolerates network latency)." },
+  { q: "Why use 16 GPUs instead of 8 for a single large model?", opts: ["16 GPUs = 2x faster always", "Each GPU holds less model weight, freeing more GPU memory for KV cache → 4x more concurrent users", "16 GPUs cheaper than 8", "Required by Kubernetes"], ans: 1, exp: "With 8 GPUs: 93.7 GB model per GPU, only 32 GB for KV cache (~25 concurrent users at 64K context). With 16 GPUs: 46.9 GB model per GPU, 73 GB for KV cache (~98 concurrent users). Nearly 4x concurrency improvement by spreading model across more GPUs." }
+])}
+`;
+

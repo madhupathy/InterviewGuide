@@ -304,15 +304,15 @@ body {
   margin: 14px 0;
   overflow: hidden;
   font-family: 'DM Mono', monospace;
-  font-size: 13.5px;
-  line-height: 1.8;
+  font-size: 14.5px;
+  line-height: 1.85;
   color: #e6edf3;
   position: relative;
 }
 
 .code-block pre {
   margin: 0;
-  padding: 18px 22px;
+  padding: 20px 24px;
   overflow-x: auto;
   tab-size: 2;
   white-space: pre;
@@ -868,6 +868,14 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
     <div class="nav-item" onclick="showPage('sd-patterns')">
       <span class="nav-icon">✨</span> 11 Patterns
     </div>
+    <div class="nav-item" onclick="toggleSub('sd-dist-sub'); showPage('sd-msgqueue')">
+      <span class="nav-icon">📨</span> Distributed Systems
+    </div>
+    <div class="nav-sub" id="sd-dist-sub">
+      <div class="nav-sub-item" onclick="showPage('sd-msgqueue')">Message Queues</div>
+      <div class="nav-sub-item" onclick="showPage('distributed')">Consensus &amp; CAP</div>
+      <div class="nav-sub-item" onclick="showPage('sd-tradeoffs')">Trade-offs</div>
+    </div>
     <div class="nav-item" onclick="toggleSub('sd-case-sub'); showPage('sd-cases')">
       <span class="nav-icon">📚</span> Case Studies
     </div>
@@ -932,7 +940,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <span class="nav-icon">🍃</span> Spring Boot
     </div>
     <div class="nav-item" onclick="showPage('go-core')">
-      <span class="nav-icon">🐹</span> Go / Goroutines
+      <span class="nav-icon">🐹</span> Golang
     </div>
   </div>
 
@@ -948,9 +956,7 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
       <div class="nav-sub-item" onclick="showPage('k8s-troubleshoot')">Troubleshooting</div>
       <div class="nav-sub-item" onclick="showPage('k8s-advanced')">Advanced: CRD / Operator</div>
       <div class="nav-sub-item" onclick="showPage('k8s-observability')">Observability</div>
-    </div>
-    <div class="nav-item" onclick="showPage('distributed')">
-      <span class="nav-icon">🌐</span> Distributed Systems
+      <div class="nav-sub-item" onclick="showPage('k8s-gpu')">GPU Operator</div>
     </div>
   </div>
 </nav>
@@ -1072,9 +1078,19 @@ function filterPatterns(type, btn) {
 
 function showBlock(id, btn) {
   document.querySelectorAll('.block-section').forEach(s => s.style.display = 'none');
-  document.getElementById('block-' + id).style.display = 'block';
+  var block = document.getElementById('block-' + id);
+  if (!block) return;
+  block.style.display = 'block';
   document.querySelectorAll('.pill-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
+  // Init any quizzes inside this block that haven't been initialised yet
+  block.querySelectorAll('.quiz-container').forEach(function(container) {
+    var qid = container.id.replace('quiz-', '');
+    if (!quizState[qid]) {
+      var questions = window['__quiz_' + qid];
+      if (questions && questions.length) initQuiz(qid, questions);
+    }
+  });
 }
 
 

@@ -687,24 +687,78 @@ pages['sd-building'] = () => `
 </div>
 
 <div id="block-cap" class="block-section" style="display:none">
-  <h2 class="section-title">CAP Theorem & PACELC</h2>
+  <h2 class="section-title">CAP Theorem &amp; PACELC</h2>
+
+  <h3 style="font-size:15px;font-weight:700;margin:16px 0 10px">Core Concepts</h3>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+    <div style="background:#dbeafe;border:2px solid #2563eb;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-size:22px;font-weight:900;color:#1e40af;margin-bottom:6px">C</div>
+      <div style="font-weight:700;color:#1e40af;margin-bottom:4px">Consistency</div>
+      <div style="font-size:13px;color:#1d4ed8">Every user sees the same data at the same time</div>
+    </div>
+    <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-size:22px;font-weight:900;color:#065f46;margin-bottom:6px">A</div>
+      <div style="font-weight:700;color:#065f46;margin-bottom:4px">Availability</div>
+      <div style="font-size:13px;color:#166534">Every request receives a response (success or failure)</div>
+    </div>
+    <div style="background:#fae8ff;border:2px solid #a855f7;border-radius:10px;padding:14px;text-align:center">
+      <div style="font-size:22px;font-weight:900;color:#6b21a8;margin-bottom:6px">P</div>
+      <div style="font-weight:700;color:#6b21a8;margin-bottom:4px">Partition Tolerance</div>
+      <div style="font-size:13px;color:#7e22ce">System remains functional despite network failures between nodes</div>
+    </div>
+  </div>
+
+  <div class="callout callout-amber">
+    <strong>The Design Trade-off:</strong> In distributed systems, <strong>partition tolerance is non-negotiable</strong> — networks always fail eventually. The real choice is between Consistency and Availability when a partition occurs.
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin:16px 0 10px">When to Choose CP vs AP</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+    <div style="background:#fef2f2;border:2px solid #dc2626;border-radius:10px;padding:14px">
+      <div style="font-weight:700;font-size:14px;color:#991b1b;margin-bottom:8px">Choose CP (Consistency)</div>
+      <div style="font-size:13px;line-height:1.9;color:#374151">
+        When stale data leads to catastrophic outcomes:<br>
+        • Double-booking seats on a flight<br>
+        • Inventory errors on Amazon (selling out-of-stock items)<br>
+        • Financial transaction inaccuracies<br>
+        • Healthcare records or prescriptions
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#6b7280">Use: PostgreSQL, MySQL, etcd, ZooKeeper</div>
+    </div>
+    <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px">
+      <div style="font-weight:700;font-size:14px;color:#065f46;margin-bottom:8px">Choose AP (Availability)</div>
+      <div style="font-size:13px;line-height:1.9;color:#374151">
+        When eventual consistency is acceptable:<br>
+        • Social media posts and user profiles<br>
+        • Netflix content viewing<br>
+        • Yelp restaurant search results<br>
+        • Product recommendations
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#6b7280">Use: Cassandra, DynamoDB, CouchDB</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;margin:16px 0 10px">PACELC — The Extended Model</h3>
   <div class="callout callout-blue">
-    <strong>CAP:</strong> In the presence of a network Partition, choose Consistency OR Availability — you can't have both.
-    <br><strong>PACELC:</strong> Extends CAP. Even without partitions (Else), there's a Latency vs Consistency trade-off.
+    <strong>PACELC:</strong> If Partition → choose Availability or Consistency. <strong>Else</strong> (no partition) → choose Latency or Consistency. Even without failures, there's a latency vs consistency trade-off.
   </div>
   <table class="data-table">
     <tr><th>System</th><th>CAP</th><th>PACELC</th><th>Why</th></tr>
-    <tr><td>Cassandra</td><td>AP</td><td>PA/EL</td><td>Tunable consistency: ONE, QUORUM, ALL</td></tr>
-    <tr><td>DynamoDB</td><td>AP</td><td>PA/EL</td><td>Eventual by default, strong reads opt-in</td></tr>
-    <tr><td>Zookeeper / etcd</td><td>CP</td><td>PC/EC</td><td>Raft consensus, stops serving on partition</td></tr>
-    <tr><td>MongoDB (primary reads)</td><td>CP</td><td>PC/EC</td><td>Primary holds truth, secondary may lag</td></tr>
+    <tr><td>Cassandra</td><td>AP</td><td>PA/EL</td><td>Tunable: ONE, QUORUM, ALL consistency levels</td></tr>
+    <tr><td>DynamoDB</td><td>AP</td><td>PA/EL</td><td>Eventual by default, strong reads opt-in (+latency)</td></tr>
+    <tr><td>ZooKeeper/etcd</td><td>CP</td><td>PC/EC</td><td>Raft/ZAB consensus, stops serving on partition</td></tr>
+    <tr><td>MongoDB (primary)</td><td>CP</td><td>PC/EC</td><td>Primary holds truth, secondaries may lag</td></tr>
     <tr><td>PostgreSQL</td><td>CP</td><td>PC/EC</td><td>WAL-based, strict durability</td></tr>
-    <tr><td>Redis (no persistence)</td><td>AP</td><td>PA/EL</td><td>Speed over durability, async replication</td></tr>
+    <tr><td>Redis (async replication)</td><td>AP</td><td>PA/EL</td><td>Speed over durability, async replica sync</td></tr>
+    <tr><td>HBase/BigTable</td><td>CP</td><td>PC/EC</td><td>Always consistent, higher latency</td></tr>
   </table>
-  <div class="callout callout-amber">
-    <strong>Interview tip:</strong> Interviewers love CAP. Say: "Since network partitions always happen, the real choice is between CP (stop accepting writes to stay consistent) vs AP (serve potentially stale data to stay available). For a banking system I'd pick CP; for a social feed I'd pick AP."
+
+  <div class="callout callout-purple">
+    <strong>Senior-level nuance:</strong> A single system can have mixed requirements per feature. Ticketmaster needs CP for booking (can't double-book) but AP for search (stale seat counts are fine). Design at the feature level, not system level.
+    <br><br>
+    <strong>Consistency models spectrum:</strong> Strong consistency → Causal consistency → Read-your-own-writes → Monotonic reads → Eventual consistency. Each relaxation gains performance.
   </div>
-</div>
+</div></div>
 
 <div id="block-sharding" class="block-section" style="display:none">
   <h2 class="section-title">Sharding (Horizontal Partitioning)</h2>
@@ -788,6 +842,25 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
   </div>
 </div>
 
+<h2 class="section-title" style="margin-top:24px">Sync vs Async Replication</h2>
+<table class="data-table">
+  <tr><th>Type</th><th>How</th><th>Durability</th><th>Write Latency</th><th>Availability</th></tr>
+  <tr><td><strong>Synchronous</strong></td><td>Write confirmed only when ALL replicas ack</td><td>Strongest — no data loss</td><td>High — waits for all replicas</td><td>Lower — one slow replica blocks all</td></tr>
+  <tr><td><strong>Asynchronous</strong></td><td>Write confirmed after primary writes; replicas catch up later</td><td>Risk of data loss if primary crashes before replication</td><td>Low — doesn't wait</td><td>High — primary can handle writes alone</td></tr>
+  <tr><td><strong>Semi-synchronous</strong></td><td>Write confirmed when at least one replica acks</td><td>Good balance</td><td>Medium</td><td>Good balance</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>MySQL semi-sync:</strong> Default in production MySQL — at least one replica must confirm before commit. Prevents data loss on primary failure while maintaining reasonable write latency. PostgreSQL synchronous_commit=on forces full sync.
+</div>
+
+<h2 class="section-title" style="margin-top:20px">Replication Strategies Summary</h2>
+<table class="data-table">
+  <tr><th>Strategy</th><th>Writes</th><th>Reads</th><th>Conflict</th><th>Best for</th></tr>
+  <tr><td><strong>Single Leader</strong></td><td>Leader only</td><td>Leader or replicas</td><td>None (single writer)</td><td>Most RDBMS, read-heavy apps</td></tr>
+  <tr><td><strong>Multi-Leader</strong></td><td>Any leader (multiple DCs)</td><td>Local leader</td><td>Must resolve (last-write-wins, CRDT)</td><td>Multi-region, offline-capable apps</td></tr>
+  <tr><td><strong>Leaderless</strong></td><td>Any node (quorum)</td><td>Any node (quorum)</td><td>Handled by versioning/CRDTs</td><td>Cassandra, DynamoDB — max availability</td></tr>
+</table>
+
 <div id="block-acid" class="block-section" style="display:none">
   <h2 class="section-title">ACID Properties</h2>
   <table class="data-table">
@@ -812,6 +885,37 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
       </div>
     </div>
   </div>
+</div>
+
+<h2 class="section-title" style="margin-top:24px">BASE — The Alternative to ACID</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0">
+  <div style="background:#fff7ed;border:2px solid #ea580c;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#c2410c;margin-bottom:4px">BA</div>
+    <div style="font-weight:700;color:#c2410c;margin-bottom:6px">Basically Available</div>
+    <div style="font-size:13px;color:#374151">System always responds — even if data may be stale</div>
+  </div>
+  <div style="background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#1d4ed8;margin-bottom:4px">S</div>
+    <div style="font-weight:700;color:#1d4ed8;margin-bottom:6px">Soft State</div>
+    <div style="font-size:13px;color:#374151">State changes over time even without new input as replicas sync</div>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:20px;font-weight:900;color:#065f46;margin-bottom:4px">E</div>
+    <div style="font-weight:700;color:#065f46;margin-bottom:6px">Eventually Consistent</div>
+    <div style="font-size:13px;color:#374151">All replicas converge to the same value — given no new writes</div>
+  </div>
+</div>
+<table class="data-table">
+  <tr><th>Aspect</th><th>ACID</th><th>BASE</th></tr>
+  <tr><td>Consistency</td><td>Strong — immediately consistent</td><td>Eventual — temporarily diverged is OK</td></tr>
+  <tr><td>Availability</td><td>May block to maintain consistency</td><td>Always available, serves possibly stale data</td></tr>
+  <tr><td>Scalability</td><td>Harder — coordination overhead</td><td>Designed for linear horizontal scale</td></tr>
+  <tr><td>Developer burden</td><td>Low — DB enforces all rules</td><td>High — app must handle conflicts</td></tr>
+  <tr><td>Best for</td><td>Finance, bookings, inventory, healthcare</td><td>Social media, analytics, caching, IoT</td></tr>
+  <tr><td>Examples</td><td>PostgreSQL, MySQL, Oracle, SQL Server</td><td>Cassandra, DynamoDB, MongoDB, Redis</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Real systems blend both:</strong> Use ACID (PostgreSQL) for payments and inventory. Use BASE (Redis/Cassandra) for caching, session storage, and analytics. Don't choose globally — choose per feature.
 </div>
 
 <div id="block-indexes" class="block-section" style="display:none">
@@ -932,7 +1036,7 @@ With consistent hashing:    add 1 server → move only ~1/N keys
 
   
 <div id="block-auth" class="block-section" style="display:none">
-<div class="section-title">7 Authentication Patterns</div>
+<div class="section-title">Authentication Patterns (7)</div>
 
 <div class="accordion">
   <div class="accordion-header" onclick="toggleAccordion(this)">1. Basic Authentication <span class="accordion-arrow">▼</span></div>
@@ -1059,7 +1163,7 @@ pages['sd-auth'] = () => `
   <div class="page-subtitle">7 auth patterns, REST vs gRPC vs GraphQL, and API design principles for senior engineers.</div>
 </div>
 
-<div class="section-title">7 Authentication Patterns</div>
+<div class="section-title">Authentication Patterns (7)</div>
 
 <div class="accordion">
   <div class="accordion-header" onclick="toggleAccordion(this)">1. Basic Authentication <span class="accordion-arrow">▼</span></div>
@@ -1113,6 +1217,82 @@ App → Resource Server (with token) → User's data</pre></div>
   <div class="accordion-body">
     <p><strong>SAML 2.0:</strong> XML-based, enterprise SSO (Okta, ADFS). User logs in once, gets assertions to access multiple services. XML heavy, complex, but mature.</p>
     <p style="margin-top:8px"><strong>OIDC (OpenID Connect):</strong> Identity layer on top of OAuth 2.0. Returns an ID token (JWT) with user identity claims. Used by Google, GitHub login. More modern and developer-friendly than SAML.</p>
+  </div>
+</div>
+
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">7. mTLS — Mutual TLS <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <p><strong>What:</strong> Both client AND server present certificates, verifying each other's identity. Normal TLS only verifies the server.</p>
+      <p style="margin-top:8px"><strong>Use for:</strong> Service-to-service auth in microservices. Istio implements this automatically via sidecar proxies — zero app code changes.</p>
+      <div class="code-block"><pre><span class="cm"># Normal TLS: only server proves identity</span>
+Client → "Who are you?" → Server sends certificate → Client verifies ✅
+
+<span class="cm"># mTLS: both sides prove identity</span>
+Client sends cert → Server verifies ✅
+Server sends cert → Client verifies ✅
+<span class="cm"># Result: guaranteed identity in both directions</span>
+
+<span class="cm"># Istio enables mTLS cluster-wide with one config:</span>
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata: {name: default}
+spec:
+  mtls:
+    mode: STRICT  <span class="cm"># all pods must use mTLS</span></pre></div>
+      <div class="callout callout-blue">mTLS prevents man-in-the-middle attacks between internal services. A rogue service can't impersonate another — it needs a valid certificate signed by your CA.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-sep">
+
+<div class="section-title">Hashing — MD5, SHA, Checksums</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">MD5 — Fast hash, NOT for passwords <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="callout callout-amber"><strong>MD5 is broken for security</strong> — collision attacks are feasible. Never use for passwords or digital signatures. Use only for non-security checksums (file integrity, data deduplication).</div>
+      <div class="code-block"><pre><span class="cm">// Java MD5 checksum (file integrity only, not security)</span>
+MessageDigest md = MessageDigest.getInstance(<span class="str">"MD5"</span>);
+byte[] hash = md.digest(fileBytes);
+String hex = DatatypeConverter.printHexBinary(hash).toLowerCase();
+<span class="cm">// "5d41402abc4b2a76b9719d911017c592" — 32 hex chars = 128 bits</span>
+
+<span class="cm">// Use cases: detect accidental corruption, deduplication, ETag headers</span>
+<span class="cm">// NOT for: password storage, digital signatures, security tokens</span></pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">SHA-256 / SHA-3 — Cryptographic hashing <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm">// SHA-256: 256-bit output, collision-resistant, cryptographically secure</span>
+MessageDigest sha = MessageDigest.getInstance(<span class="str">"SHA-256"</span>);
+byte[] hash = sha.digest(data.getBytes(StandardCharsets.UTF_8));
+
+<span class="cm">// Use cases: digital signatures, TLS certificates, Git commit IDs,
+// JWT signing (HS256/RS256), file integrity verification</span>
+
+<span class="cm">// For passwords: use bcrypt or Argon2 (slow by design, salted)</span>
+<span class="cm">// NEVER hash passwords with MD5 or SHA alone (too fast = brute forceable)</span>
+String hashed = BCrypt.hashpw(password, BCrypt.gensalt(12));</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Checksums in System Design <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Algorithm</th><th>Output Size</th><th>Speed</th><th>Use For</th></tr>
+        <tr><td>CRC32</td><td>32 bits</td><td>Fastest</td><td>Network packet integrity, ZIP files</td></tr>
+        <tr><td>MD5</td><td>128 bits</td><td>Fast</td><td>File checksums, ETags, deduplication</td></tr>
+        <tr><td>SHA-1</td><td>160 bits</td><td>Fast</td><td>Git object IDs (legacy security)</td></tr>
+        <tr><td>SHA-256</td><td>256 bits</td><td>Medium</td><td>TLS, JWT, digital signatures, blockchain</td></tr>
+        <tr><td>bcrypt/Argon2</td><td>Varies</td><td>Intentionally slow</td><td>Password storage — slow = brute-force resistant</td></tr>
+        <tr><td>HMAC-SHA256</td><td>256 bits</td><td>Medium</td><td>API request signing, JWT HS256</td></tr>
+      </table>
+      <div class="callout callout-green"><strong>Checksum in APIs:</strong> Add Content-MD5 or checksum header to uploads. S3 verifies checksum server-side. Detects corruption in transit. Also used for ETag (caching) and deduplication in object storage.</div>
+    </div>
   </div>
 </div>
 
@@ -1724,6 +1904,524 @@ ${quizHTML('sd-lru', [
   { q: "Caffeine vs Guava cache for Java local caching?", opts: ["Guava is always better", "Caffeine is superior: W-TinyLFU eviction (better hit rate than LRU), near-optimal, faster, active development", "They are identical", "Guava has more features"], ans: 1, exp: "Caffeine uses W-TinyLFU (Window Tiny LFU) — a hybrid algorithm that tracks both frequency AND recency, outperforming pure LRU on most real workloads. It's the recommended replacement for Guava cache and is used by Spring Boot's default cache." },
   { q: "For a distributed cache, what's the consistency trade-off?", opts: ["No trade-off exists", "Cache may serve stale data (AP) — choose TTL to balance freshness vs DB load", "Must use strong consistency always", "Cache is always consistent"], ans: 1, exp: "Distributed cache is eventually consistent by design. TTL controls staleness: short TTL = fresher data, more DB hits; long TTL = stale data risk, fewer DB hits. For user profiles: 5 min TTL is fine. For inventory/prices: shorter TTL or event-based invalidation." },
   { q: "LRU cache size: 1M entries with 1KB average value. How much RAM?", opts: ["~1 MB", "~1 GB + overhead", "~1 TB", "~100 MB"], ans: 1, exp: "1M × 1KB = 1GB for values + HashMap overhead (~50 bytes/entry × 1M = 50MB) + DLL node overhead (~32 bytes × 1M = 32MB) ≈ 1.1GB total. Redis adds ~65 bytes per key overhead. Always estimate cache RAM requirements during system design." }
+])}
+`;
+
+pages['sd-msgqueue'] = () => `
+<div class="page-header">
+  <div class="breadcrumb">System Design → Distributed Systems</div>
+  <h1 class="page-title">Message Queues</h1>
+  <p class="page-subtitle">RabbitMQ vs Kafka — when to use each, how they work, and real-world patterns.</p>
+  ${revisionControls('sd-msgqueue')}
+</div>
+
+<div class="elon-box">
+  <strong>⚡ Core distinction:</strong> RabbitMQ is a <em>smart broker</em> — routes and forgets. Kafka is a <em>distributed log</em> — stores and replays. Choose based on whether consumers need replay or just delivery.
+</div>
+
+<h2 class="section-title">RabbitMQ vs Kafka — Side by Side</h2>
+<table class="data-table">
+  <tr><th></th><th>RabbitMQ</th><th>Kafka</th></tr>
+  <tr><td><strong>Model</strong></td><td>Message broker — routes to queues, deletes on ACK</td><td>Distributed append-only log — messages persist and replay</td></tr>
+  <tr><td><strong>Consumers</strong></td><td>Competing consumers — one message → one consumer</td><td>Consumer groups — each group reads independently at its own offset</td></tr>
+  <tr><td><strong>Ordering</strong></td><td>Per-queue FIFO (global with single consumer)</td><td>Per-partition only — allows parallel throughput</td></tr>
+  <tr><td><strong>Throughput</strong></td><td>4K–10K msg/sec (low latency 1–5ms)</td><td>Millions of events/sec (batch processing, consistent latency)</td></tr>
+  <tr><td><strong>Retention</strong></td><td>Until consumed (or TTL)</td><td>Configurable — hours, days, forever</td></tr>
+  <tr><td><strong>Replay</strong></td><td>❌ Not supported</td><td>✅ Seek to any offset and replay</td></tr>
+  <tr><td><strong>Routing</strong></td><td>✅ Smart — exchanges, bindings, topics, fanout</td><td>Basic — topics and partitions</td></tr>
+  <tr><td><strong>Complexity</strong></td><td>Low (single binary)</td><td>Higher (ZooKeeper/KRaft, partitions, consumer groups)</td></tr>
+  <tr><td><strong>Best for</strong></td><td>Task queues, background jobs, RPC</td><td>Event streaming, audit logs, CDC, analytics</td></tr>
+</table>
+
+<h2 class="section-title">RabbitMQ Deep Dive</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">How RabbitMQ works — Exchanges, Queues, Bindings <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px">
+        <div style="font-family:'DM Mono',monospace;font-size:13px;line-height:2">
+          Producer → <strong>Exchange</strong> (routing logic) → <strong>Queue(s)</strong> → Consumer(s)<br>
+          Exchange types: <strong>Direct</strong> (exact key match), <strong>Fanout</strong> (broadcast all), <strong>Topic</strong> (wildcard), <strong>Headers</strong> (attribute match)
+        </div>
+      </div>
+      <div class="code-block"><pre><span class="cm">// Java - Spring AMQP</span>
+<span class="ann">@Bean</span>
+Queue orderQueue() { <span class="kw">return new</span> Queue(<span class="str">"orders"</span>); }
+
+<span class="ann">@Bean</span>
+DirectExchange exchange() { <span class="kw">return new</span> DirectExchange(<span class="str">"order-exchange"</span>); }
+
+<span class="ann">@Bean</span>
+Binding binding() {
+  <span class="kw">return</span> BindingBuilder.bind(orderQueue()).to(exchange()).with(<span class="str">"new-order"</span>);
+}
+
+<span class="ann">@RabbitListener</span>(queues = <span class="str">"orders"</span>)
+<span class="kw">void</span> processOrder(Order order) {
+  <span class="cm">// message deleted from queue after this returns without exception</span>
+  paymentService.charge(order);
+}</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Dead Letter Queues & Retries <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="callout callout-amber">
+        When a message fails (consumer throws exception or message expires), it goes to a <strong>Dead Letter Exchange (DLX)</strong> → Dead Letter Queue. This prevents poison messages from blocking the main queue.
+      </div>
+      <div class="code-block"><pre><span class="cm">// Configure DLX on queue creation</span>
+Map&lt;String, Object&gt; args = <span class="kw">new</span> HashMap&lt;&gt;();
+args.put(<span class="str">"x-dead-letter-exchange"</span>, <span class="str">"dlx"</span>);
+args.put(<span class="str">"x-message-ttl"</span>, <span class="num">60000</span>);         <span class="cm">// 60 sec TTL</span>
+args.put(<span class="str">"x-max-retries"</span>, <span class="num">3</span>);              <span class="cm">// max 3 attempts</span>
+<span class="kw">return new</span> Queue(<span class="str">"orders"</span>, true, false, false, args);</pre></div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Kafka Deep Dive</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Why Kafka is fast — the internals <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="callout callout-blue" style="margin:0">
+          <strong>Sequential disk writes</strong><br>
+          Kafka appends to log files sequentially — OS page cache makes this near-RAM speed. Random writes (DB) = 100x slower.
+        </div>
+        <div class="callout callout-green" style="margin:0">
+          <strong>Zero-copy (sendfile)</strong><br>
+          Kernel copies data directly disk→NIC bypassing user space. Eliminates 2 extra data copies per message.
+        </div>
+        <div class="callout callout-amber" style="margin:0">
+          <strong>Batching + compression</strong><br>
+          Producers batch messages. LZ4/Snappy/ZSTD compress batches. 10x throughput improvement.
+        </div>
+        <div class="callout callout-purple" style="margin:0">
+          <strong>Partitions = parallelism</strong><br>
+          N partitions → N consumers in parallel. Scale throughput linearly by adding partitions.
+        </div>
+      </div>
+      <div class="code-block"><pre>Topic: "user-events"
+  ├── Partition 0: [offset 0][offset 1][offset 2]...
+  ├── Partition 1: [offset 0][offset 1]...
+  └── Partition 2: [offset 0][offset 1][offset 2][offset 3]...
+
+Consumer Group "analytics":
+  Consumer A → reads Partition 0
+  Consumer B → reads Partition 1
+  Consumer C → reads Partition 2
+  <span class="cm">// Each consumer tracks its own offset independently</span>
+
+Consumer Group "billing" (separate — reads ALL messages independently):
+  Consumer X → reads Partition 0, 1, 2</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Producer & Consumer patterns <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div class="code-block"><pre><span class="cm">// Producer — Java</span>
+Properties props = <span class="kw">new</span> Properties();
+props.put(<span class="str">"bootstrap.servers"</span>, <span class="str">"kafka:9092"</span>);
+props.put(<span class="str">"key.serializer"</span>, StringSerializer.class.getName());
+props.put(<span class="str">"value.serializer"</span>, StringSerializer.class.getName());
+props.put(<span class="str">"acks"</span>, <span class="str">"all"</span>);                       <span class="cm">// wait for all replicas</span>
+props.put(<span class="str">"enable.idempotence"</span>, <span class="str">"true"</span>);     <span class="cm">// exactly-once producer</span>
+
+KafkaProducer&lt;String, String&gt; producer = <span class="kw">new</span> KafkaProducer&lt;&gt;(props);
+producer.send(<span class="kw">new</span> ProducerRecord&lt;&gt;(<span class="str">"orders"</span>, userId, orderJson));
+
+<span class="cm">// Consumer — Java</span>
+props.put(<span class="str">"group.id"</span>, <span class="str">"payment-service"</span>);  <span class="cm">// consumer group</span>
+props.put(<span class="str">"auto.offset.reset"</span>, <span class="str">"earliest"</span>); <span class="cm">// replay from start</span>
+
+KafkaConsumer&lt;String, String&gt; consumer = <span class="kw">new</span> KafkaConsumer&lt;&gt;(props);
+consumer.subscribe(Arrays.asList(<span class="str">"orders"</span>));
+<span class="kw">while</span> (true) {
+  ConsumerRecords&lt;String, String&gt; records = consumer.poll(Duration.ofMillis(<span class="num">100</span>));
+  <span class="kw">for</span> (ConsumerRecord record : records) {
+    processOrder(record.value());
+    <span class="cm">// commit offset manually for at-least-once guarantees</span>
+  }
+  consumer.commitSync();
+}</pre></div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Kafka delivery guarantees — at-least-once vs exactly-once <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <tr><th>Guarantee</th><th>Config</th><th>Risk</th><th>Use When</th></tr>
+        <tr><td>At-most-once</td><td>acks=0, auto-commit</td><td>Data loss</td><td>Metrics, logging (loss OK)</td></tr>
+        <tr><td>At-least-once</td><td>acks=all, manual commit</td><td>Duplicates</td><td>Most use cases — make consumers idempotent</td></tr>
+        <tr><td>Exactly-once</td><td>enable.idempotence=true + transactions</td><td>Overhead</td><td>Financial, inventory</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">When to Choose Which</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:15px;color:#065f46;margin-bottom:10px">✅ Use RabbitMQ when:</div>
+    <ul style="margin:0 0 0 16px;line-height:2.2;font-size:14px">
+      <li>Task-oriented workloads (send email, process payment)</li>
+      <li>Smart routing (different queues for different message types)</li>
+      <li>Request-Reply / RPC patterns</li>
+      <li>Moderate throughput (&lt;100K msg/sec)</li>
+      <li>Simple ops — single binary, easy to reason about</li>
+      <li>Messages must be deleted after processing</li>
+    </ul>
+  </div>
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:15px;color:#1e40af;margin-bottom:10px">✅ Use Kafka when:</div>
+    <ul style="margin:0 0 0 16px;line-height:2.2;font-size:14px">
+      <li>Multiple systems consume the same events independently</li>
+      <li>Replayability needed (reprocess historical events)</li>
+      <li>Massive scale (millions of events/sec)</li>
+      <li>Event sourcing / CDC (Change Data Capture)</li>
+      <li>Analytics pipelines and audit logs</li>
+      <li>Stream processing (Kafka Streams, Flink)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout callout-amber">
+  <strong>Managed services:</strong> Don't run Kafka yourself if you can avoid it. Use <strong>Confluent Cloud</strong>, <strong>Amazon MSK</strong>, or <strong>Upstash</strong>. Similarly for RabbitMQ: <strong>CloudAMQP</strong> or <strong>Amazon MQ</strong>.
+</div>
+
+${quizHTML('sd-msgqueue', [
+  { q: "Key difference between Kafka and RabbitMQ message retention?", opts: ["RabbitMQ keeps messages longer", "Kafka persists messages configurable forever allowing replay; RabbitMQ deletes on acknowledgment", "Both delete immediately", "No difference"], ans: 1, exp: "RabbitMQ: message is gone once a consumer acknowledges it — designed for task queues. Kafka: messages persist by time or size policy (days, forever). Multiple consumer groups can read the same message independently. Replay past events anytime." },
+  { q: "Why is Kafka throughput orders of magnitude higher than RabbitMQ?", opts: ["Kafka uses more memory", "Sequential disk writes + OS page cache + zero-copy sendfile + producer batching", "Kafka uses UDP", "RabbitMQ limits connections"], ans: 1, exp: "Kafka's speed: 1) Sequential log appends (OS page cache ≈ RAM speed), 2) sendfile() zero-copy skips user-space, 3) Producer batching compresses 10-100 messages together, 4) Partitions allow N-parallel consumers. RabbitMQ maintains per-message ACK state — much more overhead." },
+  { q: "Consumer groups in Kafka mean?", opts: ["Only one consumer per topic", "Multiple independent groups each read ALL messages — billing and analytics can both consume orders independently", "Groups share a single offset", "Groups delete messages faster"], ans: 1, exp: "Each consumer group maintains its own offset per partition. Add a new consumer group and it starts reading from the beginning (or any offset). This is Kafka's killer feature for event streaming — fanout to N systems with zero coupling." },
+  { q: "What is a Dead Letter Queue in RabbitMQ?", opts: ["A queue for system logs", "A queue receiving messages that failed processing — prevents poison messages blocking the main queue", "RabbitMQ's internal queue", "A backup queue"], ans: 1, exp: "DLQ: when a message is rejected (consumer throws exception, TTL expires, max retries reached), it routes to the Dead Letter Exchange → Dead Letter Queue. Ops team can inspect, fix, and replay from DLQ. Critical for production reliability." },
+  { q: "Kafka ordering guarantee — what's the caveat?", opts: ["Global ordering across all partitions", "Ordering guaranteed per partition only — not globally across all partitions", "No ordering at all", "Ordered by timestamp always"], ans: 1, exp: "Within a partition: strict offset order guaranteed. Across partitions: no global order. Solution: use a partition key (userId, orderId) — all messages for the same key go to the same partition, giving per-entity ordering. This is intentional — it enables parallelism." },
+  { q: "Idempotent consumers in Kafka — why needed?", opts: ["For better performance", "At-least-once delivery can duplicate messages on failure — consumers must handle duplicate processing safely", "Required by Kafka protocol", "Only for multi-partition topics"], ans: 1, exp: "With at-least-once: consumer processes message, commits offset, but crashes before commit → message reprocessed. Make consumers idempotent: check if already processed (dedup by event ID), use DB upserts. Exactly-once Kafka transactions are available but add overhead." },
+  { q: "When would you choose RabbitMQ over Kafka for a payment system?", opts: ["Never — always use Kafka", "For task-queue style: each payment processed once, smart routing by payment type, simpler ops, no need for replay", "When scale exceeds 1M/sec", "When using Python only"], ans: 1, exp: "Payment processing is often task-queue style: each message processed once, ACK on success, NACK (+ DLQ) on failure. RabbitMQ routing lets you send domestic vs international payments to different queues with different consumers. Much simpler than Kafka for moderate throughput." },
+  { q: "What is Change Data Capture (CDC) with Kafka?", opts: ["A backup strategy", "Capturing every DB change as a Kafka event — Debezium reads MySQL/Postgres WAL and publishes changes as events", "A Kafka compression method", "Consumer group management"], ans: 1, exp: "CDC with Debezium: reads database WAL (Write-Ahead Log), publishes INSERT/UPDATE/DELETE as Kafka events. Use cases: sync DB to Elasticsearch, invalidate caches on DB change, audit trail, microservice event sourcing. Zero impact on application code." },
+  { q: "Kafka partition count — why does it matter for scaling?", opts: ["Only affects storage", "Partitions = max parallel consumers; 10 partitions = max 10 consumers in a group can process in parallel", "More partitions = slower", "Partitions are unlimited"], ans: 1, exp: "Each partition assigned to at most one consumer per group. 3 partitions + 10 consumers = 3 active, 7 idle. To scale to 10 parallel consumers: need 10 partitions. Partitions can be increased (but causes rebalancing) — plan partition count for expected peak parallelism." }
+])}
+`;
+
+pages['sd-tradeoffs'] = () => `
+<div class="page-header">
+  <div class="breadcrumb">System Design → Distributed Systems</div>
+  <h1 class="page-title">System Design Trade-offs</h1>
+  <p class="page-subtitle">The definitive comparison guide. Every senior engineer question answered clearly.</p>
+  ${revisionControls('sd-tradeoffs')}
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+  ${[
+    ['consistency','Strong vs Eventual Consistency'],
+    ['latency','Latency vs Throughput'],
+    ['acid-base','ACID vs BASE'],
+    ['cache-rw','Read-Through vs Write-Through Cache'],
+    ['batch-stream','Batch vs Stream Processing'],
+    ['lb-apigw','Load Balancer vs API Gateway'],
+    ['proxy','Proxy vs Reverse Proxy'],
+    ['sql-nosql','SQL vs NoSQL'],
+    ['replication','Primary-Replica vs Peer-to-Peer'],
+    ['polling','Polling vs Long-Poll vs WebSockets vs Webhooks'],
+    ['stateful','Stateful vs Stateless'],
+    ['rate-algo','Token Bucket vs Leaky Bucket'],
+    ['read-write','Read Heavy vs Write Heavy'],
+    ['cdn','CDN vs Direct Serving'],
+    ['serverless','Serverless vs Traditional'],
+    ['compress','Compression vs Deduplication'],
+    ['rest-rpc','REST vs RPC'],
+    ['caching-sides','Server-Side vs Client-Side Cache']
+  ].map((item,i) => `<button class="pill-tab${i===0?' active':''}" onclick="showBlock('td-${item[0]}',this)">${item[1]}</button>`).join('')}
+</div>
+
+<div id="block-td-consistency" class="block-section">
+<h2 class="section-title">Strong vs Eventual Consistency</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Strong Consistency</th><th>Eventual Consistency</th></tr>
+  <tr><td><strong>Guarantee</strong></td><td>Every read sees the latest write — no stale data</td><td>Reads may be stale briefly; all replicas converge over time</td></tr>
+  <tr><td><strong>Latency</strong></td><td>Higher — must coordinate across replicas before confirming</td><td>Lower — write to local node, replicate asynchronously</td></tr>
+  <tr><td><strong>Availability</strong></td><td>May block during network partition to stay consistent</td><td>Stays available even during partition (serves stale data)</td></tr>
+  <tr><td><strong>Examples</strong></td><td>Postgres, MySQL, etcd, ZooKeeper, Spanner</td><td>Cassandra, DynamoDB, Redis (async replication), DNS</td></tr>
+  <tr><td><strong>Use when</strong></td><td>Banking, inventory, bookings — stale = catastrophic</td><td>Social feeds, profiles, analytics — brief staleness OK</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>Interview tip:</strong> "Since partitions always happen in distributed systems, the real choice is CP (refuse requests to stay consistent) vs AP (serve stale data to stay available). For payments I choose CP; for a news feed I choose AP."
+</div>
+<div class="callout callout-amber">
+  <strong>Advanced nuance:</strong> Mixed requirements are normal — Ticketmaster needs CP for booking but AP for search. Consistency models beyond binary: causal consistency, read-your-own-writes, monotonic reads, bounded staleness.
+</div>
+</div>
+
+<div id="block-td-latency" class="block-section" style="display:none">
+<h2 class="section-title">Latency vs Throughput</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Latency</th><th>Throughput</th></tr>
+  <tr><td><strong>Definition</strong></td><td>Time for one request start-to-finish</td><td>Volume of work completed per unit time</td></tr>
+  <tr><td><strong>Measured in</strong></td><td>ms / seconds</td><td>req/sec, MB/sec, events/sec</td></tr>
+  <tr><td><strong>Improves with</strong></td><td>CDN, caching, closer servers, faster DB queries</td><td>Parallelism, batching, horizontal scaling, sharding</td></tr>
+  <tr><td><strong>Trade-off</strong></td><td>Batching increases throughput but increases latency</td><td>High throughput systems often accept higher per-request latency</td></tr>
+  <tr><td><strong>Critical for</strong></td><td>Gaming, trading, real-time comms, interactive UX</td><td>ETL pipelines, video streaming, bulk analytics</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>Key insight:</strong> You can have low latency OR high throughput easily, but both simultaneously requires careful engineering. A trade-off: sending data in larger batches improves throughput but increases time-to-first-byte latency.
+</div>
+</div>
+
+<div id="block-td-acid-base" class="block-section" style="display:none">
+<h2 class="section-title">ACID vs BASE</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0">
+  <div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:15px;color:#065f46;margin-bottom:12px">ACID — Strong Consistency</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+      <div><strong style="color:#16a34a">A</strong>tomicity — all or nothing</div>
+      <div><strong style="color:#16a34a">C</strong>onsistency — valid state always</div>
+      <div><strong style="color:#16a34a">I</strong>solation — no interference between transactions</div>
+      <div><strong style="color:#16a34a">D</strong>urability — committed = persisted</div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:#374151">Use for: banking, orders, inventory, healthcare</div>
+    <div style="margin-top:6px;font-size:13px;color:#374151">Examples: PostgreSQL, MySQL, Oracle, SQL Server</div>
+  </div>
+  <div style="background:#eef2ff;border:2px solid #2563eb;border-radius:10px;padding:16px">
+    <div style="font-weight:700;font-size:15px;color:#1e40af;margin-bottom:12px">BASE — High Availability</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+      <div><strong style="color:#2563eb">BA</strong>sically Available — always responds</div>
+      <div><strong style="color:#2563eb">S</strong>oft state — data in flux, eventually updates</div>
+      <div><strong style="color:#2563eb">E</strong>ventually consistent — converges over time</div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:#374151">Use for: social media, recommendations, analytics</div>
+    <div style="margin-top:6px;font-size:13px;color:#374151">Examples: Cassandra, DynamoDB, MongoDB, Redis</div>
+  </div>
+</div>
+<table class="data-table">
+  <tr><th>Aspect</th><th>ACID</th><th>BASE</th></tr>
+  <tr><td>Consistency</td><td>Strong — all transactions immediately consistent</td><td>Eventual — temporary divergence allowed</td></tr>
+  <tr><td>Availability</td><td>May reduce availability to maintain consistency</td><td>High — system stays up even during partitions</td></tr>
+  <tr><td>Scalability</td><td>Harder to scale horizontally</td><td>Designed for horizontal scale-out</td></tr>
+  <tr><td>Developer complexity</td><td>DB handles consistency automatically</td><td>App must handle conflict resolution</td></tr>
+</table>
+</div>
+
+<div id="block-td-cache-rw" class="block-section" style="display:none">
+<h2 class="section-title">Read-Through vs Write-Through Cache</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Read-Through</th><th>Write-Through</th></tr>
+  <tr><td><strong>When data loads</strong></td><td>On cache miss — lazy load from DB</td><td>On every write — sync to cache AND DB</td></tr>
+  <tr><td><strong>Consistency</strong></td><td>May serve stale data between writes</td><td>Always consistent — cache = DB</td></tr>
+  <tr><td><strong>Write latency</strong></td><td>Normal (writes go straight to DB)</td><td>Higher — must write to both</td></tr>
+  <tr><td><strong>Read latency (hit)</strong></td><td>Very fast</td><td>Very fast</td></tr>
+  <tr><td><strong>Read latency (miss)</strong></td><td>Slow — must fetch from DB</td><td>Rare — cache usually populated on write</td></tr>
+  <tr><td><strong>Best for</strong></td><td>Read-heavy, infrequently updated data</td><td>Write-heavy where reads must be fresh</td></tr>
+  <tr><td><strong>Examples</strong></td><td>Product catalog, user profiles, blog posts</td><td>Banking balances, inventory counts, session data</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Write-Behind (async):</strong> Write to cache, return immediately, flush to DB asynchronously. Best write performance but risk of data loss if cache crashes before flush. Use for analytics counters, view counts.
+</div>
+</div>
+
+<div id="block-td-batch-stream" class="block-section" style="display:none">
+<h2 class="section-title">Batch Processing vs Stream Processing</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Batch Processing</th><th>Stream Processing</th></tr>
+  <tr><td><strong>When processed</strong></td><td>Scheduled intervals (hourly, daily)</td><td>Continuously, as data arrives</td></tr>
+  <tr><td><strong>Latency</strong></td><td>Minutes to hours</td><td>Milliseconds to seconds</td></tr>
+  <tr><td><strong>Throughput</strong></td><td>Very high (optimised for large volumes)</td><td>Lower per job but continuous</td></tr>
+  <tr><td><strong>Complexity</strong></td><td>Simple — collect, process, store</td><td>Complex — windowing, state, backpressure</td></tr>
+  <tr><td><strong>Tools</strong></td><td>Spark, Hadoop, AWS Glue, dbt</td><td>Kafka Streams, Flink, Spark Streaming</td></tr>
+  <tr><td><strong>Use when</strong></td><td>Payroll, reports, ETL, ML training data</td><td>Fraud detection, real-time analytics, IoT alerts</td></tr>
+</table>
+</div>
+
+<div id="block-td-lb-apigw" class="block-section" style="display:none">
+<h2 class="section-title">Load Balancer vs API Gateway vs Reverse Proxy</h2>
+<table class="data-table">
+  <tr><th>Component</th><th>Purpose</th><th>Layer</th><th>Features</th><th>Examples</th></tr>
+  <tr><td><strong>Load Balancer</strong></td><td>Distribute traffic across multiple instances</td><td>L4 or L7</td><td>Health checks, failover, sticky sessions, SSL termination</td><td>AWS ALB/NLB, nginx, HAProxy</td></tr>
+  <tr><td><strong>Reverse Proxy</strong></td><td>Forward client requests to backend servers, hide server identity</td><td>L7</td><td>Load balancing, SSL termination, caching, compression</td><td>nginx, Caddy, Envoy</td></tr>
+  <tr><td><strong>API Gateway</strong></td><td>Manage, secure, route API calls to microservices</td><td>L7 (application)</td><td>Auth, rate limiting, routing, transformation, analytics</td><td>Kong, AWS API GW, Apigee</td></tr>
+</table>
+<div class="callout callout-blue">
+  <strong>Typical architecture:</strong> Internet → Load Balancer (distribute across API Gateway instances) → API Gateway (auth, rate limit, route) → Microservices → internal Load Balancer
+</div>
+<div class="callout callout-green">
+  <strong>Forward Proxy vs Reverse Proxy:</strong> Forward proxy = acts for the <em>client</em> (hides client IP, content filtering). Reverse proxy = acts for the <em>server</em> (hides server, load balancing). Nginx is almost always used as a reverse proxy.
+</div>
+</div>
+
+<div id="block-td-proxy" class="block-section" style="display:none">
+<h2 class="section-title">Proxy vs Reverse Proxy</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Forward Proxy</th><th>Reverse Proxy</th></tr>
+  <tr><td><strong>Sits between</strong></td><td>Client and internet</td><td>Internet and backend servers</td></tr>
+  <tr><td><strong>Hides</strong></td><td>Client identity from servers</td><td>Server identity from clients</td></tr>
+  <tr><td><strong>Main uses</strong></td><td>Privacy, content filtering, corporate internet control, geo-bypass</td><td>Load balancing, SSL termination, caching, DDoS protection</td></tr>
+  <tr><td><strong>Direction</strong></td><td>Outbound (client → internet)</td><td>Inbound (internet → servers)</td></tr>
+  <tr><td><strong>Examples</strong></td><td>Squid, corporate proxy, VPN</td><td>nginx, Cloudflare, AWS ALB</td></tr>
+</table>
+</div>
+
+<div id="block-td-sql-nosql" class="block-section" style="display:none">
+<h2 class="section-title">SQL vs NoSQL</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>SQL (Relational)</th><th>NoSQL</th></tr>
+  <tr><td><strong>Schema</strong></td><td>Fixed, defined upfront</td><td>Flexible, schemaless</td></tr>
+  <tr><td><strong>ACID</strong></td><td>Full ACID transactions ✅</td><td>Eventual consistency (usually)</td></tr>
+  <tr><td><strong>Scaling</strong></td><td>Vertical + read replicas</td><td>Horizontal sharding built-in</td></tr>
+  <tr><td><strong>Queries</strong></td><td>Complex JOINs, aggregations, ad-hoc</td><td>Simple key lookups, limited joins</td></tr>
+  <tr><td><strong>Types</strong></td><td>Tables & rows</td><td>Document, KV, Wide-col, Graph</td></tr>
+  <tr><td><strong>Examples</strong></td><td>PostgreSQL, MySQL, Aurora</td><td>MongoDB, Cassandra, DynamoDB, Redis, Neo4j</td></tr>
+  <tr><td><strong>Use when</strong></td><td>Complex relationships, transactions, reporting</td><td>Massive scale, flexible schema, simple lookups</td></tr>
+</table>
+<div class="callout callout-blue"><strong>Rule of thumb:</strong> Default to SQL (PostgreSQL). Switch to NoSQL only when you have a specific, proven need — scale, schema flexibility, or a data model that doesn't fit tables.</div>
+</div>
+
+<div id="block-td-replication" class="block-section" style="display:none">
+<h2 class="section-title">Primary-Replica vs Peer-to-Peer Replication</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Primary-Replica (Leader-Follower)</th><th>Peer-to-Peer (Leaderless)</th></tr>
+  <tr><td><strong>Writes</strong></td><td>Only to primary/leader</td><td>Any node</td></tr>
+  <tr><td><strong>Reads</strong></td><td>Primary (strong) or replica (eventual)</td><td>Any node (quorum-based)</td></tr>
+  <tr><td><strong>Consistency</strong></td><td>Strong on primary, eventual on replicas</td><td>Tunable via W+R &gt; N quorum</td></tr>
+  <tr><td><strong>Failover</strong></td><td>Replica promoted to primary</td><td>No failover needed — any node accepts writes</td></tr>
+  <tr><td><strong>Conflict</strong></td><td>No conflicts — single writer</td><td>Possible — last-write-wins or CRDT</td></tr>
+  <tr><td><strong>Examples</strong></td><td>MySQL, PostgreSQL, MongoDB, Redis Sentinel</td><td>Cassandra, DynamoDB, Riak</td></tr>
+</table>
+<div class="callout callout-amber"><strong>Replication sync:</strong> Sync replication — write confirmed only when all replicas ack (strong, slow). Async — write confirmed when primary writes (fast, eventual). Semi-sync — confirmed when at least one replica acks (balanced).</div>
+</div>
+
+<div id="block-td-polling" class="block-section" style="display:none">
+<h2 class="section-title">Polling vs Long-Polling vs WebSockets vs Webhooks</h2>
+<table class="data-table">
+  <tr><th>Method</th><th>How</th><th>Latency</th><th>Overhead</th><th>Best For</th></tr>
+  <tr><td><strong>Polling</strong></td><td>Client asks server every N seconds</td><td>Up to N seconds</td><td>High — many empty responses</td><td>Low-frequency checks (email every 5min)</td></tr>
+  <tr><td><strong>Long-Polling</strong></td><td>Client asks, server holds until data ready</td><td>Near real-time</td><td>Medium — new request per event</td><td>Chat/notifications when WebSockets unavailable</td></tr>
+  <tr><td><strong>WebSockets</strong></td><td>Persistent bi-directional TCP connection</td><td>Real-time (&lt;10ms)</td><td>Low per-message, 1 connection</td><td>Chat, games, live dashboards, collaborative tools</td></tr>
+  <tr><td><strong>Webhooks</strong></td><td>Server POSTs to your URL on event</td><td>Real-time (server-to-server)</td><td>Very low — only on events</td><td>Payment notifications, CI/CD triggers, 3rd party integrations</td></tr>
+</table>
+<div class="callout callout-blue"><strong>Choosing:</strong> Default to WebSockets for user-facing real-time. Use Webhooks for server-to-server event notification. Use Long-Polling as fallback when WebSockets unavailable. Avoid Polling unless update frequency is very low.</div>
+</div>
+
+<div id="block-td-stateful" class="block-section" style="display:none">
+<h2 class="section-title">Stateful vs Stateless Architecture</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Stateful</th><th>Stateless</th></tr>
+  <tr><td><strong>Session data</strong></td><td>Server stores session — responses depend on history</td><td>Every request self-contained — no server memory</td></tr>
+  <tr><td><strong>Scaling</strong></td><td>Complex — sticky sessions or shared session store needed</td><td>Simple — any server can handle any request</td></tr>
+  <tr><td><strong>Fault tolerance</strong></td><td>Server crash loses session state</td><td>Server crash transparent — next request goes elsewhere</td></tr>
+  <tr><td><strong>Examples</strong></td><td>FTP, game servers, VoIP calls</td><td>REST APIs, microservices, Lambda functions</td></tr>
+  <tr><td><strong>Use when</strong></td><td>Real-time continuous interaction (gaming, streaming)</td><td>Default choice — most web APIs, microservices</td></tr>
+</table>
+<div class="callout callout-green"><strong>Modern approach:</strong> Make services stateless, externalise state to Redis/DB. Enables horizontal scaling without sticky sessions. JWT tokens are a stateless auth mechanism.</div>
+</div>
+
+<div id="block-td-rate-algo" class="block-section" style="display:none">
+<h2 class="section-title">Token Bucket vs Leaky Bucket</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Token Bucket</th><th>Leaky Bucket</th></tr>
+  <tr><td><strong>Bursts</strong></td><td>✅ Allowed up to bucket capacity</td><td>❌ No bursts — constant output rate</td></tr>
+  <tr><td><strong>Output</strong></td><td>Variable — burst then throttle</td><td>Smooth constant rate regardless of input</td></tr>
+  <tr><td><strong>Mechanism</strong></td><td>Tokens refill at rate R. Request needs token to proceed.</td><td>Requests queue. Released at constant rate. Overflow discarded.</td></tr>
+  <tr><td><strong>Use when</strong></td><td>API rate limiting, web servers (bursts OK)</td><td>VoIP, video streaming (smooth output required)</td></tr>
+  <tr><td><strong>Used by</strong></td><td>AWS API Gateway, most rate limiters</td><td>Network traffic shaping, ISP bandwidth control</td></tr>
+</table>
+</div>
+
+<div id="block-td-read-write" class="block-section" style="display:none">
+<h2 class="section-title">Read Heavy vs Write Heavy Systems</h2>
+<table class="data-table">
+  <tr><th>Strategy</th><th>Read Heavy</th><th>Write Heavy</th></tr>
+  <tr><td><strong>Primary bottleneck</strong></td><td>DB read throughput</td><td>DB write throughput, disk I/O</td></tr>
+  <tr><td><strong>Caching</strong></td><td>Aggressive — Redis in front of DB</td><td>Limited — cache invalidation complex</td></tr>
+  <tr><td><strong>DB scaling</strong></td><td>Read replicas — route reads to replicas</td><td>Write sharding — distribute writes across nodes</td></tr>
+  <tr><td><strong>Data model</strong></td><td>Denormalize for fast reads</td><td>Normalize to reduce write amplification</td></tr>
+  <tr><td><strong>Tools</strong></td><td>CDN, Redis, read replicas, Elasticsearch</td><td>Cassandra, Kafka, time-series DBs, LSM-tree stores</td></tr>
+  <tr><td><strong>Examples</strong></td><td>News feeds, product catalogs, CDNs (99% reads)</td><td>IoT sensors, logging, analytics ingestion, chat</td></tr>
+</table>
+<div class="callout callout-blue"><strong>Identify your ratio first:</strong> Most systems are 80-95% reads. A 100:1 read/write ratio should immediately trigger caching + read replicas as the solution, not premature write optimisation.</div>
+</div>
+
+<div id="block-td-cdn" class="block-section" style="display:none">
+<h2 class="section-title">CDN vs Direct Server Serving</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>CDN</th><th>Direct Server</th></tr>
+  <tr><td><strong>Latency</strong></td><td>Low — serves from nearest edge node</td><td>Depends on server location</td></tr>
+  <tr><td><strong>Global users</strong></td><td>Excellent — edge nodes worldwide</td><td>Poor for distant users</td></tr>
+  <tr><td><strong>Cost</strong></td><td>Per-GB egress + CDN fees</td><td>Just origin server bandwidth</td></tr>
+  <tr><td><strong>Cache invalidation</strong></td><td>Complex — TTL, API purge, URL versioning</td><td>Instant — no cache</td></tr>
+  <tr><td><strong>Use for</strong></td><td>Static assets, media, global apps</td><td>Dynamic data, small/local apps</td></tr>
+</table>
+</div>
+
+<div id="block-td-serverless" class="block-section" style="display:none">
+<h2 class="section-title">Serverless vs Traditional Server-Based</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Serverless</th><th>Traditional</th></tr>
+  <tr><td><strong>Scaling</strong></td><td>Automatic — scales to zero and to millions</td><td>Manual provisioning and scaling</td></tr>
+  <tr><td><strong>Cost model</strong></td><td>Pay per execution (ms)</td><td>Pay for running servers 24/7</td></tr>
+  <tr><td><strong>Cold starts</strong></td><td>100ms–3s latency on first invocation</td><td>No cold starts</td></tr>
+  <tr><td><strong>State</strong></td><td>Stateless — external state required</td><td>Can maintain in-memory state</td></tr>
+  <tr><td><strong>Vendor lock-in</strong></td><td>High (Lambda, Cloud Functions)</td><td>Low — portable</td></tr>
+  <tr><td><strong>Use for</strong></td><td>Event-driven, variable workloads, APIs, glue code</td><td>Predictable load, low-latency, stateful apps</td></tr>
+</table>
+</div>
+
+<div id="block-td-compress" class="block-section" style="display:none">
+<h2 class="section-title">Data Compression vs Deduplication</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Compression</th><th>Deduplication</th></tr>
+  <tr><td><strong>Works on</strong></td><td>Single file — removes redundancies within</td><td>Across dataset — removes identical copies</td></tr>
+  <tr><td><strong>Types</strong></td><td>Lossless (ZIP, LZ4) or lossy (JPEG, MP3)</td><td>Always lossless — pointer to single copy</td></tr>
+  <tr><td><strong>Best for</strong></td><td>Individual files, network transmission, Kafka messages</td><td>Backup systems, storage with repeated data</td></tr>
+  <tr><td><strong>Overhead</strong></td><td>CPU to compress/decompress</td><td>CPU to hash and compare blocks</td></tr>
+</table>
+</div>
+
+<div id="block-td-rest-rpc" class="block-section" style="display:none">
+<h2 class="section-title">REST vs RPC (gRPC)</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>REST</th><th>gRPC / RPC</th></tr>
+  <tr><td><strong>Protocol</strong></td><td>HTTP/1.1 or HTTP/2, JSON</td><td>HTTP/2, Protocol Buffers (binary)</td></tr>
+  <tr><td><strong>Performance</strong></td><td>Good</td><td>Excellent — binary, multiplexed, streaming</td></tr>
+  <tr><td><strong>Typing</strong></td><td>Loose</td><td>Strongly typed .proto schema</td></tr>
+  <tr><td><strong>Streaming</strong></td><td>SSE/WebSocket workaround</td><td>Native bi-directional streaming</td></tr>
+  <tr><td><strong>Browser support</strong></td><td>Universal</td><td>Limited (gRPC-Web needed)</td></tr>
+  <tr><td><strong>Use for</strong></td><td>Public APIs, browser clients, 3rd party integrations</td><td>Internal microservices, low-latency, streaming data</td></tr>
+</table>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
+  <div style="font-weight:700;margin-bottom:10px">Decision flowchart:</div>
+  <div style="font-family:'DM Mono',monospace;font-size:13px;line-height:2">
+    Is the API client-facing (browser/mobile)? → REST or GraphQL<br>
+    &nbsp;&nbsp;├─ Over-fetching/under-fetching a concern? → GraphQL<br>
+    &nbsp;&nbsp;└─ Standard CRUD? → REST<br>
+    Is it internal microservice communication? → gRPC<br>
+    Need real-time bidirectional streaming? → gRPC streaming or WebSockets
+  </div>
+</div>
+</div>
+
+<div id="block-td-caching-sides" class="block-section" style="display:none">
+<h2 class="section-title">Server-Side vs Client-Side Caching</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Server-Side Cache</th><th>Client-Side Cache</th></tr>
+  <tr><td><strong>Location</strong></td><td>Redis, Memcached on server</td><td>Browser cache, localStorage, service worker</td></tr>
+  <tr><td><strong>Shared across users</strong></td><td>✅ Yes — one cached response serves all</td><td>❌ No — per-device</td></tr>
+  <tr><td><strong>Network saved</strong></td><td>Reduces DB load</td><td>Reduces network requests entirely</td></tr>
+  <tr><td><strong>Invalidation</strong></td><td>Immediate — delete key</td><td>Difficult — TTL/ETag/versioned URLs</td></tr>
+  <tr><td><strong>Offline access</strong></td><td>❌ No</td><td>✅ Yes (service workers)</td></tr>
+  <tr><td><strong>Use for</strong></td><td>DB query results, API responses, computed data</td><td>Static assets, fonts, app shell, user preferences</td></tr>
+</table>
+<div class="callout callout-green"><strong>Best practice:</strong> Use both. Server-side cache for shared data (Redis caching DB queries). Client-side for static assets (long TTL with content-hash URLs). CDN sits in between — server-side edge cache.</div>
+</div>
+
+${quizHTML('sd-tradeoffs', [
+  { q: "Which consistency model should you use for a bank transfer?", opts: ["Eventual consistency — faster", "Strong consistency — stale balance = double spend", "Either works", "Depends on bank size"], ans: 1, exp: "Banking requires strong consistency. If two servers have different balances, a user could spend money they don't have or funds could be deducted twice. Use CP systems (Postgres with serializable isolation) and accept the latency cost." },
+  { q: "REST vs gRPC — when to choose gRPC for microservices?", opts: ["Always use REST", "gRPC for internal services: binary protocol, typed schema, streaming, 5-10x lower overhead than JSON/HTTP", "gRPC when browser support needed", "gRPC only for Google services"], ans: 1, exp: "gRPC wins for internal microservices: Protocol Buffers are ~6x smaller than JSON, HTTP/2 multiplexes multiple streams on one connection, native bi-directional streaming. Use REST for public APIs and browser clients where gRPC-Web adds complexity." },
+  { q: "WebSockets vs Long-Polling — main advantage of WebSockets?", opts: ["Simpler to implement", "Persistent bi-directional connection with sub-millisecond latency vs new HTTP request per event", "Works without HTTP", "Better security"], ans: 1, exp: "WebSockets: one persistent TCP connection, either side sends anytime, no HTTP overhead per message. Long-polling: must make new HTTP request after each event (connection setup/teardown overhead). For high-frequency real-time (gaming, collaborative editing, live trading): WebSockets." },
+  { q: "Read-heavy system with 100:1 read/write ratio — first optimization?", opts: ["Add more write servers", "Add Redis caching + read replicas — eliminates 80-90% of DB reads", "Shard the database immediately", "Switch to NoSQL"], ans: 1, exp: "Pareto principle: 20% of content generates 80% of reads. Cache the hot 20% in Redis. Read replicas offload remaining reads from primary. This alone handles 100:1 read/write ratios. Only add sharding when write throughput or storage exceeds single node after these steps." },
+  { q: "Stateless services: why are they easier to scale?", opts: ["They use less memory", "Any server can handle any request — add servers behind LB without sticky sessions or state sync", "They don't need a database", "Stateless services are always faster"], ans: 1, exp: "Stateless = all state in external store (DB, Redis, JWT token). Add 10 new servers: each can immediately serve any request. Stateful = must route same user to same server (sticky sessions) or sync session state across servers — complex, error-prone." },
+  { q: "Token bucket vs leaky bucket — which allows bursts?", opts: ["Leaky bucket", "Token bucket — allows burst traffic up to bucket capacity before throttling", "Neither allows bursts", "Both allow identical bursts"], ans: 1, exp: "Token bucket: accumulates tokens up to capacity. A client that hasn't sent requests for a while has a full bucket and can burst. Leaky bucket: regardless of input burst, output is constant rate — overflow dropped. Token bucket is standard for API rate limiting." },
+  { q: "When would you choose NoSQL over SQL?", opts: ["Always — NoSQL is modern", "When you need massive horizontal scale, schema flexibility, or a specific data model (document, graph, time-series)", "When the team prefers it", "For all new projects after 2020"], ans: 1, exp: "Default to SQL (PostgreSQL). Switch to NoSQL for: Cassandra (very high write throughput, multi-region), MongoDB (nested document structure, flexible schema), Redis (sub-ms caching), Neo4j (graph traversal), InfluxDB (time-series). 'Use the right tool' not 'use the new thing'." },
+  { q: "CDN — what is the biggest challenge?", opts: ["Cost", "Cache invalidation — stale content at edge nodes after origin updates", "Geographic coverage", "Setting up origin pull"], ans: 1, exp: "CDN invalidation strategies: 1) Short TTL (content expires quickly but more origin hits), 2) Content-hash URLs (/app.a3f5b2.js — new deploy = new URL, cached forever), 3) API purge (CloudFront CreateInvalidation — instant but costs money). URL versioning is the most reliable approach." },
+  { q: "Batch vs stream processing — which to use for fraud detection?", opts: ["Batch — process daily transactions overnight", "Stream processing — analyze each transaction in real-time as it happens", "Both are equally good", "Batch with 5-minute intervals"], ans: 1, exp: "Fraud detection requires stream processing: analyze each transaction the moment it occurs, flag and block before the fraudster gets away. Batch processing (nightly reports) would be useless — the fraudulent transactions have already completed." }
 ])}
 `;
 

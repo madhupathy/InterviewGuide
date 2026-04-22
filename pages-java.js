@@ -1132,8 +1132,8 @@ ${quizHTML('spring-core', [
 // ─── GO ──────────────────────────────────────────────────────────────────────
 pages['go-core'] = () => `
 <div class="page-header">
-  <div class="breadcrumb">Go</div>
-  <h1 class="page-title">Go — Concurrency & Core Concepts</h1>
+  <div class="breadcrumb">Golang</div>
+  <h1 class="page-title">Golang — Concurrency & Core Concepts</h1>
   <p class="page-subtitle">Goroutines, channels, select, WaitGroup, defer — and why Go beats Java for concurrent services.</p>
   ${revisionControls('go-core')}
 </div>
