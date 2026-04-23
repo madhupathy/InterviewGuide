@@ -728,7 +728,7 @@ pages['algo-patterns'] = () => `
 <div class="breadcrumb">Algorithms → <span>Patterns Overview</span></div>
 <div class="page-header">
   <div class="page-title">Algorithm Patterns</div>
-  <div class="page-subtitle">Master 8 patterns and you can solve 90% of coding problems. Recognize the pattern → apply the template → adjust for specifics.</div>
+  <div class="page-subtitle">Master 9 patterns and you can solve 90% of coding problems. Recognize the pattern → apply the template → adjust for specifics.</div>
 </div>
 
 <div class="card-grid">
@@ -738,11 +738,23 @@ pages['algo-patterns'] = () => `
     <div class="card-desc">Sorted arrays, palindromes, pair sums</div>
     <div class="card-complexity">O(n) from O(n²)</div>
   </div>
+  <div class="card" onclick="document.getElementById('p-fastslow').scrollIntoView({behavior:'smooth'})">
+    <div class="card-icon">🐢🐇</div>
+    <div class="card-title">Fast &amp; Slow Pointers</div>
+    <div class="card-desc">Cycle detection, middle of list</div>
+    <div class="card-complexity">O(n) time, O(1) space</div>
+  </div>
   <div class="card" onclick="showPage('algo-sliding')">
     <div class="card-icon">🪟</div>
     <div class="card-title">Sliding Window</div>
     <div class="card-desc">Subarrays, substrings, contiguous range</div>
     <div class="card-complexity">O(n) with O(1) window ops</div>
+  </div>
+  <div class="card" onclick="document.getElementById('p-prefix').scrollIntoView({behavior:'smooth'})">
+    <div class="card-icon">📊</div>
+    <div class="card-title">Prefix Sum</div>
+    <div class="card-desc">Range queries, subarray sum</div>
+    <div class="card-complexity">O(n) preprocess, O(1) query</div>
   </div>
   <div class="card" onclick="showPage('algo-binsearch')">
     <div class="card-icon">🔎</div>
@@ -753,8 +765,14 @@ pages['algo-patterns'] = () => `
   <div class="card" onclick="showPage('algo-bfsdfs')">
     <div class="card-icon">🌊</div>
     <div class="card-title">BFS / DFS</div>
-    <div class="card-desc">Trees, graphs, grid problems</div>
+    <div class="card-desc">Trees, graphs, shortest path</div>
     <div class="card-complexity">O(V+E)</div>
+  </div>
+  <div class="card" onclick="document.getElementById('p-matrix').scrollIntoView({behavior:'smooth'})">
+    <div class="card-icon">🔲</div>
+    <div class="card-title">Matrix Traversal</div>
+    <div class="card-desc">2D grids — islands, flood fill, paths</div>
+    <div class="card-complexity">O(m × n)</div>
   </div>
   <div class="card" onclick="showPage('algo-backtrack')">
     <div class="card-icon">🔙</div>
@@ -770,34 +788,76 @@ pages['algo-patterns'] = () => `
   </div>
 </div>
 
+<div class="callout callout-blue" style="margin-top:24px">
+  <strong>How to pick a pattern fast:</strong> Read the problem and scan for keywords.
+  <strong>"sorted" + "pair"</strong> → Two Pointers.
+  <strong>"cycle" / "middle"</strong> → Fast &amp; Slow.
+  <strong>"contiguous subarray"</strong> → Sliding Window.
+  <strong>"range sum"</strong> → Prefix Sum.
+  <strong>"sorted array"</strong> → Binary Search.
+  <strong>"shortest path unweighted"</strong> → BFS.
+  <strong>"connectivity / islands"</strong> → DFS or Matrix Traversal.
+  <strong>"all combinations"</strong> → Backtracking.
+  <strong>"K largest / smallest"</strong> → Heap.
+</div>
 
-<h2 class="section-title" style="margin-top:24px">3 More Essential Patterns</h2>
+<h2 class="section-title" style="margin-top:24px">Quick Templates &amp; Tricks</h2>
+<p style="font-size:13px;color:var(--muted);margin-top:-8px">Templates for patterns that don't have a dedicated sub-page. Click a card above to jump here.</p>
 
-<div style="background:var(--surface);border:2px solid #2563eb;border-radius:10px;padding:16px;margin:14px 0">
+<div id="p-fastslow" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">📊</span>
-    <strong style="font-size:16px;color:#1e40af">Prefix Sum</strong>
-    <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) preprocess, O(1) query</span>
+    <span style="font-size:22px">🐢🐇</span>
+    <strong style="font-size:16px">Fast &amp; Slow Pointers (Tortoise &amp; Hare)</strong>
+    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) time, O(1) space</span>
   </div>
   <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> Multiple range sum queries on an array. Subarray sum = K. Equilibrium index. Running averages.<br>
-    <strong>Idea:</strong> Precompute <code>prefix[i] = sum of arr[0..i]</code>. Range sum <code>[l, r]</code> = <code>prefix[r] - prefix[l-1]</code>.
+    <strong>When:</strong> Cycle detection in linked lists. Finding the middle node in one pass. Detecting start of a cycle. Happy number problem.<br>
+    <strong>Trick:</strong> slow moves 1 step, fast moves 2. If there's a cycle they <em>must</em> meet. If fast hits null first, no cycle. When slow reaches the middle, fast has reached the end.
+  </div>
+  <div class="code-block"><pre><span class="cm">// Cycle detection — LeetCode 141</span>
+<span class="kw">boolean</span> hasCycle(ListNode head) {
+  ListNode slow = head, fast = head;
+  <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+    slow = slow.next;
+    fast = fast.next.next;
+    <span class="kw">if</span> (slow == fast) <span class="kw">return true</span>;
+  }
+  <span class="kw">return false</span>;
+}
+
+<span class="cm">// Middle of linked list — LeetCode 876</span>
+<span class="cm">// When fast reaches end, slow is at the middle</span>
+<span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+  slow = slow.next;
+  fast = fast.next.next;
+}
+<span class="kw">return</span> slow;</pre></div>
+  <div style="font-size:12px;color:#6b7280;margin-top:8px">
+    <strong>Classic problems:</strong> Linked List Cycle (141), Cycle II — find start (142), Middle of LL (876), Happy Number (202), Palindrome LL (234)
+  </div>
+</div>
+
+<div id="p-prefix" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:22px">📊</span>
+    <strong style="font-size:16px">Prefix Sum</strong>
+    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) preprocess, O(1) query</span>
+  </div>
+  <div style="font-size:14px;margin-bottom:10px">
+    <strong>When:</strong> Multiple range sum queries. Subarray sum equals K. Equilibrium index. Running averages.<br>
+    <strong>Trick:</strong> Precompute <code>prefix[i]</code> = sum of elements from 0 to i-1. Then any range sum <code>[l, r]</code> is just <code>prefix[r+1] - prefix[l]</code> — O(1). For "subarray sum = K", combine with a HashMap of prefix sums seen.
   </div>
   <div class="code-block"><pre><span class="cm">// Build prefix sum array</span>
 <span class="kw">int</span>[] prefix = <span class="kw">new int</span>[nums.length + <span class="num">1</span>];
 <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {
   prefix[i + <span class="num">1</span>] = prefix[i] + nums[i];
 }
-
 <span class="cm">// Range sum arr[l..r] in O(1)</span>
-<span class="kw">int</span> rangeSum(<span class="kw">int</span> l, <span class="kw">int</span> r) {
-  <span class="kw">return</span> prefix[r + <span class="num">1</span>] - prefix[l];
-}
+<span class="kw">int</span> rangeSum = prefix[r + <span class="num">1</span>] - prefix[l];
 
 <span class="cm">// Pattern: Subarray Sum Equals K (LeetCode 560)</span>
-<span class="cm">// Use HashMap&lt;prefixSum, count&gt; — if (prefix - k) was seen before, add its count</span>
 Map&lt;Integer, Integer&gt; seen = <span class="kw">new</span> HashMap&lt;&gt;();
-seen.put(<span class="num">0</span>, <span class="num">1</span>);  <span class="cm">// empty prefix has sum 0</span>
+seen.put(<span class="num">0</span>, <span class="num">1</span>);
 <span class="kw">int</span> sum = <span class="num">0</span>, count = <span class="num">0</span>;
 <span class="kw">for</span> (<span class="kw">int</span> n : nums) {
   sum += n;
@@ -809,150 +869,53 @@ seen.put(<span class="num">0</span>, <span class="num">1</span>);  <span class="
   </div>
 </div>
 
-<div style="background:var(--surface);border:2px solid #ea580c;border-radius:10px;padding:16px;margin:14px 0">
+<div id="p-matrix" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">📚</span>
-    <strong style="font-size:16px;color:#c2410c">Monotonic Stack</strong>
-    <span style="background:#fff7ed;color:#c2410c;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) total — each element pushed/popped once</span>
+    <span style="font-size:22px">🔲</span>
+    <strong style="font-size:16px">Matrix Traversal</strong>
+    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(m × n)</span>
   </div>
   <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> "Next/previous greater/smaller element" problems. Stock spans. Rectangle in histogram. Daily temperatures.<br>
-    <strong>Idea:</strong> Maintain a stack where elements are monotonically increasing (or decreasing). Pop elements that violate the order — that's where the answer for popped items is found.
+    <strong>When:</strong> 2D grid problems — count islands, flood fill, shortest path in a grid, word search.<br>
+    <strong>Trick:</strong> Treat the grid as a graph. Each cell is a node; neighbors are the 4 (or 8) adjacent cells. Use DFS when you need to explore connected regions. Use BFS when you need shortest path. Always mark cells visited to avoid infinite loops.
   </div>
-  <div class="code-block"><pre><span class="cm">// Next Greater Element — for each i, find next j where arr[j] &gt; arr[i]</span>
-<span class="kw">int</span>[] result = <span class="kw">new int</span>[nums.length];
-Arrays.fill(result, -<span class="num">1</span>);
-Deque&lt;Integer&gt; stack = <span class="kw">new</span> ArrayDeque&lt;&gt;();  <span class="cm">// stores indices</span>
+  <div class="code-block"><pre><span class="cm">// Number of Islands (LeetCode 200) — DFS flood fill</span>
+<span class="kw">int</span>[][] DIRS = {{-<span class="num">1</span>,<span class="num">0</span>},{<span class="num">1</span>,<span class="num">0</span>},{<span class="num">0</span>,-<span class="num">1</span>},{<span class="num">0</span>,<span class="num">1</span>}};
 
-<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {
-  <span class="cm">// pop everything smaller than nums[i] — they found their answer</span>
-  <span class="kw">while</span> (!stack.isEmpty() &amp;&amp; nums[stack.peek()] &lt; nums[i]) {
-    result[stack.pop()] = nums[i];
-  }
-  stack.push(i);
-}
-<span class="cm">// remaining indices in stack have no greater element → stay -1</span>
-
-<span class="cm">// Pattern variations:</span>
-<span class="cm">// • Decreasing stack → next smaller element</span>
-<span class="cm">// • Traverse right-to-left → previous greater/smaller</span>
-<span class="cm">// • Store values instead of indices for simpler cases</span></pre></div>
-  <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic problems:</strong> Daily Temperatures (739), Next Greater Element (496, 503), Largest Rectangle in Histogram (84), Trapping Rain Water (42), Remove K Digits (402)
-  </div>
-</div>
-
-<div style="background:var(--surface);border:2px solid #16a34a;border-radius:10px;padding:16px;margin:14px 0">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">📅</span>
-    <strong style="font-size:16px;color:#15803d">Merge Intervals</strong>
-    <span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n log n) — sort dominates</span>
-  </div>
-  <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> Overlapping intervals. Meeting rooms. Calendar conflicts. Time-based scheduling.<br>
-    <strong>Idea:</strong> Sort by start time. Merge each interval with the previous if overlapping (<code>current.start &lt;= prev.end</code>), otherwise start a new interval.
-  </div>
-  <div class="code-block"><pre><span class="cm">// Merge overlapping intervals — LeetCode 56</span>
-<span class="kw">int</span>[][] merge(<span class="kw">int</span>[][] intervals) {
-  Arrays.sort(intervals, (a, b) -&gt; a[<span class="num">0</span>] - b[<span class="num">0</span>]);
-  List&lt;<span class="kw">int</span>[]&gt; result = <span class="kw">new</span> ArrayList&lt;&gt;();
-  <span class="kw">int</span>[] current = intervals[<span class="num">0</span>];
-  result.add(current);
-
-  <span class="kw">for</span> (<span class="kw">int</span>[] next : intervals) {
-    <span class="kw">if</span> (next[<span class="num">0</span>] &lt;= current[<span class="num">1</span>]) {          <span class="cm">// overlap</span>
-      current[<span class="num">1</span>] = Math.max(current[<span class="num">1</span>], next[<span class="num">1</span>]);  <span class="cm">// extend</span>
-    } <span class="kw">else</span> {
-      current = next;                        <span class="cm">// disjoint — start new</span>
-      result.add(current);
+<span class="kw">int</span> numIslands(<span class="kw">char</span>[][] grid) {
+  <span class="kw">int</span> count = <span class="num">0</span>;
+  <span class="kw">for</span> (<span class="kw">int</span> r = <span class="num">0</span>; r &lt; grid.length; r++) {
+    <span class="kw">for</span> (<span class="kw">int</span> c = <span class="num">0</span>; c &lt; grid[<span class="num">0</span>].length; c++) {
+      <span class="kw">if</span> (grid[r][c] == <span class="str">'1'</span>) {
+        dfs(grid, r, c);
+        count++;
+      }
     }
   }
-  <span class="kw">return</span> result.toArray(<span class="kw">new int</span>[<span class="num">0</span>][]);
+  <span class="kw">return</span> count;
 }
 
-<span class="cm">// Meeting Rooms II — min rooms needed (LeetCode 253)</span>
-<span class="cm">// Approach: min-heap of end times. For each meeting (sorted by start):</span>
-<span class="cm">//   if heap.peek() &lt;= start → reuse that room (pop), else need new room</span>
-<span class="cm">//   push current end time. Answer = heap.size() at the end.</span></pre></div>
-  <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic problems:</strong> Merge Intervals (56), Insert Interval (57), Meeting Rooms I/II (252, 253), Non-overlapping Intervals (435), Minimum Number of Arrows to Burst Balloons (452)
-  </div>
-</div>
-
-<div style="background:var(--surface);border:2px solid #7c3aed;border-radius:10px;padding:16px;margin:14px 0">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">🧩</span>
-    <strong style="font-size:16px;color:#6b21a8">Dynamic Programming</strong>
-    <span style="background:#fae8ff;color:#6b21a8;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">Depends on state size</span>
-  </div>
-  <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> Problem has <em>overlapping subproblems</em> AND <em>optimal substructure</em>. Keywords: "count ways", "minimum/maximum", "longest/shortest", "can you reach".<br>
-    <strong>Two styles:</strong> Top-down (memoization + recursion) is often easier to write. Bottom-up (tabulation + loops) avoids stack overhead.
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-    <div style="background:#f5f3ff;border:1px solid #a78bfa;border-radius:6px;padding:10px">
-      <div style="font-weight:700;font-size:13px;color:#6b21a8;margin-bottom:6px">Top-Down (Memoization)</div>
-      <div style="font-size:12px;color:#4c1d95;line-height:1.6">Recurse naturally, cache results by state. Easier to write, uses stack.</div>
-    </div>
-    <div style="background:#f5f3ff;border:1px solid #a78bfa;border-radius:6px;padding:10px">
-      <div style="font-weight:700;font-size:13px;color:#6b21a8;margin-bottom:6px">Bottom-Up (Tabulation)</div>
-      <div style="font-size:12px;color:#4c1d95;line-height:1.6">Fill table from base case up. Iterative, no stack, often can drop dimensions.</div>
-    </div>
-  </div>
-  <div class="code-block"><pre><span class="cm">// Climbing Stairs (LeetCode 70) — dp[i] = dp[i-1] + dp[i-2]</span>
-<span class="cm">// Top-down (memoization)</span>
-<span class="kw">int</span> climb(<span class="kw">int</span> n, <span class="kw">int</span>[] memo) {
-  <span class="kw">if</span> (n &lt;= <span class="num">2</span>) <span class="kw">return</span> n;
-  <span class="kw">if</span> (memo[n] != <span class="num">0</span>) <span class="kw">return</span> memo[n];
-  <span class="kw">return</span> memo[n] = climb(n-<span class="num">1</span>, memo) + climb(n-<span class="num">2</span>, memo);
-}
-
-<span class="cm">// Bottom-up — O(1) space since we only need last 2 values</span>
-<span class="kw">int</span> climb(<span class="kw">int</span> n) {
-  <span class="kw">if</span> (n &lt;= <span class="num">2</span>) <span class="kw">return</span> n;
-  <span class="kw">int</span> a = <span class="num">1</span>, b = <span class="num">2</span>;
-  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">3</span>; i &lt;= n; i++) {
-    <span class="kw">int</span> c = a + b;
-    a = b; b = c;
-  }
-  <span class="kw">return</span> b;
-}
-
-<span class="cm">// 2D DP — Longest Common Subsequence (1143)</span>
-<span class="cm">// dp[i][j] = LCS of s1[0..i-1] and s2[0..j-1]</span>
-<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= m; i++) {
-  <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= n; j++) {
-    <span class="kw">if</span> (s1.charAt(i-<span class="num">1</span>) == s2.charAt(j-<span class="num">1</span>))
-      dp[i][j] = dp[i-<span class="num">1</span>][j-<span class="num">1</span>] + <span class="num">1</span>;
-    <span class="kw">else</span>
-      dp[i][j] = Math.max(dp[i-<span class="num">1</span>][j], dp[i][j-<span class="num">1</span>]);
-  }
+<span class="kw">void</span> dfs(<span class="kw">char</span>[][] grid, <span class="kw">int</span> r, <span class="kw">int</span> c) {
+  <span class="kw">if</span> (r &lt; <span class="num">0</span> || r &gt;= grid.length ||
+      c &lt; <span class="num">0</span> || c &gt;= grid[<span class="num">0</span>].length ||
+      grid[r][c] != <span class="str">'1'</span>) <span class="kw">return</span>;
+  grid[r][c] = <span class="str">'0'</span>;  <span class="cm">// mark visited in-place</span>
+  <span class="kw">for</span> (<span class="kw">int</span>[] d : DIRS) dfs(grid, r + d[<span class="num">0</span>], c + d[<span class="num">1</span>]);
 }</pre></div>
   <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic patterns:</strong>
-    <strong>1D DP</strong> — Climbing Stairs (70), House Robber (198), Coin Change (322), Word Break (139).
-    <strong>2D DP</strong> — Longest Common Subsequence (1143), Edit Distance (72), Unique Paths (62).
-    <strong>Knapsack</strong> — 0/1 Knapsack, Partition Equal Subset Sum (416), Target Sum (494).
-    <strong>Interval DP</strong> — Matrix Chain Multiplication, Palindrome Partitioning (131).
-  </div>
-  <div style="background:#fae8ff;border:1px solid #a78bfa;border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#4c1d95">
-    <strong>Identifying DP in interviews:</strong> Can the problem be broken into smaller versions of itself? Do those smaller versions get solved repeatedly? → DP. If you find yourself writing pure recursion with same inputs being recomputed, add memoization and you have top-down DP.
+    <strong>Classic problems:</strong> Number of Islands (200), Rotting Oranges (994), Flood Fill (733), Word Search (79), Shortest Path in Binary Matrix (1091), Pacific Atlantic Water Flow (417)
   </div>
 </div>
 
 ${quizHTML('algo-patterns', [
-  { q: "Which pattern to use when 'find all subsets/permutations'?", opts: ["Binary search", "Sliding window", "Two pointers", "Backtracking — explore all choices recursively, undo each choice before trying next"], ans: 3, exp: "Backtracking = systematic brute force with pruning. Build solution incrementally, abandon paths that can't lead to valid solution. Subsets, permutations, N-Queens, Sudoku all use this pattern." },
-  { q: "Sliding window vs two pointers — key difference?", opts: ["Two pointers only works on sorted arrays", "Sliding window is always O(N²)", "Sliding window maintains a contiguous range and expands/shrinks it. Two pointers can move independently from both ends.", "They're identical"], ans: 2, exp: "Sliding window: contiguous subarray/substring, expand right, shrink left when constraint violated. Two pointers: often start from both ends (sorted array) or fast/slow (linked list). Different problems, different patterns." }
-
-  ,
+  { q: "Which pattern to use when 'find all subsets/permutations'?", opts: ["Two pointers", "Sliding window", "Binary search", "Backtracking — explore all choices recursively, undo each choice before trying next"], ans: 3, exp: "Backtracking = systematic brute force with pruning. Build solution incrementally, abandon paths that can't lead to valid solution. Subsets, permutations, N-Queens, Sudoku all use this pattern." },
+  { q: "Sliding window vs two pointers — key difference?", opts: ["They're identical", "Sliding window maintains a contiguous range and expands/shrinks it. Two pointers can move independently from both ends.", "Two pointers only works on sorted arrays", "Sliding window is always O(n²)"], ans: 1, exp: "Sliding window: contiguous subarray/substring, expand right, shrink left when constraint violated. Two pointers: often start from both ends (sorted array) or fast/slow (linked list). Different problems, different patterns." },
   { q: "Prefix Sum — when does it give O(1) range queries?", opts: ["Only for sorted arrays", "After O(n) preprocessing — prefix[i] = sum of arr[0..i-1], then range(l,r) = prefix[r+1] - prefix[l]", "Only when values are positive", "It doesn't — always O(n)"], ans: 1, exp: "Prefix sum trades O(n) space + one-time O(n) preprocessing for O(1) per query afterwards. For a static array with many range queries, this is optimal. For Subarray Sum Equals K, combine with HashMap tracking prefix sums seen — lookup (currentSum - k) in map gives count of subarrays summing to k." },
-  { q: "Monotonic stack — what problem type screams 'use this'?", opts: ["String matching", "Sorted array search", "Finding next greater/smaller element for each position", "Shortest path in graph"], ans: 2, exp: "Monotonic stack is THE pattern for 'for each element, find next/previous larger/smaller'. Daily Temperatures, Largest Rectangle in Histogram, Next Greater Element all use this. Maintain decreasing stack for 'next greater' — pop while top is smaller than current; popped items' answer is current." },
-  { q: "Merge Intervals — why sort first?", opts: ["To enable binary search", "Not necessary, intervals are already sorted", "Sorting by start time ensures overlapping intervals are adjacent, so you only compare with previous merged interval", "To reduce space complexity"], ans: 2, exp: "After sorting by start time, any overlap must be with the immediately previous merged interval. Without sorting, you'd need O(n²) comparisons. Time complexity = O(n log n) dominated by sort. This is also the approach for Meeting Rooms, Insert Interval, and Non-overlapping Intervals." }
-,
-  { q: "How do you identify a Dynamic Programming problem?", opts: ["When the input is a string", "Always when there's recursion", "Overlapping subproblems + optimal substructure — same smaller problems computed repeatedly, and optimal solution can be built from optimal sub-solutions", "When you need the fastest sort"], ans: 2, exp: "DP requires BOTH: (1) overlapping subproblems — same smaller problems solved multiple times (without memoization you'd recompute), and (2) optimal substructure — optimal solution to the problem uses optimal solutions of its subproblems. Climbing Stairs: f(n) = f(n-1) + f(n-2) satisfies both. Keywords like 'count ways', 'min/max', 'longest/shortest' often signal DP." }
+  { q: "Fast & Slow Pointers — why does slow meet fast if there's a cycle?", opts: ["Because fast moves faster", "Each step fast gains 1 on slow. If they are in a cycle of length L, fast catches up to slow within L steps.", "Random chance", "They do not always meet"], ans: 1, exp: "Inside a cycle, the gap between slow and fast closes by 1 each step (fast advances 2, slow advances 1 → net +1). So fast catches slow in at most L steps where L is cycle length. If there's no cycle, fast hits null first. This is Floyd's Cycle Detection." },
+  { q: "Matrix Traversal — why mark cells as visited in-place (e.g. set '1' → '0')?", opts: ["Saves memory", "Avoids infinite loops and removes need for a separate visited set — trades input mutation for O(1) extra space", "Makes the code shorter", "Required by most APIs"], ans: 1, exp: "Without marking, DFS on a grid revisits cells endlessly. Options: (1) separate boolean[][] visited — O(m×n) extra space, (2) mutate grid in-place — 0 extra space but destroys input, (3) restore on the way back. Interviewers usually accept in-place if you mention the trade-off." }
 ])}
-
 `;
+
 
 pages['algo-twopointer'] = () => `
 <div class="breadcrumb">Algorithms → <span>Two Pointers</span></div>

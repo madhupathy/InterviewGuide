@@ -88,20 +88,20 @@ pages['sd-intro'] = () => `
 <div class="breadcrumb">System Design → <span>Framework</span></div>
 <div class="page-header">
   <div class="page-title">System Design Framework</div>
-  <div class="page-subtitle">A repeatable 5-step process for every system design question. Interviewers grade you on structure, not just solutions.</div>
+  <div class="page-subtitle">A repeatable 6-step process for every system design question. Interviewers grade you on structure, not just solutions.</div>
 </div>
 
 <div class="memory-tip">
   <div class="mt-label">⚡ The Mantra</div>
-  <div class="mt-content"><strong>"Requirements → API → High-Level → Deep Dive → Bottlenecks"</strong>. Say this in your head before you start every SD interview. Interviewers reward candidates who follow a clear process over those who jump straight to technology.</div>
+  <div class="mt-content"><strong>"Requirements → Core Entities → API → Data Flow → High-Level → Deep Dives"</strong>. Say this before every SD interview. Steps 1–4 set up the problem; step 5 (HLD) satisfies functional requirements; step 6 (Deep Dives) satisfies non-functional requirements (scale, latency, availability). Interviewers reward candidates who follow a clear process over those who jump straight to technology.</div>
 </div>
 
 <div class="steps">
   <div class="step">
     <div class="step-num">1</div>
     <div class="step-content">
-      <div class="step-title">Define the Problem Space</div>
-      <div class="step-desc">Spend 5 minutes here. Ask clarifying questions — interviewers often leave requirements vague to test this.</div>
+      <div class="step-title">Requirements</div>
+      <div class="step-desc">Spend 5 minutes here. Ask clarifying questions — interviewers often leave requirements vague to test this. Clearly separate <em>functional</em> (what the system does) from <em>non-functional</em> (how well it does it). Estimate scale early.</div>
     </div>
   </div>
 </div>
@@ -133,8 +133,24 @@ pages['sd-intro'] = () => `
   <div class="step">
     <div class="step-num">2</div>
     <div class="step-content">
-      <div class="step-title">Design the API</div>
-      <div class="step-desc">Define the contract. What do clients call? What's returned? This locks in requirements before you draw boxes.</div>
+      <div class="step-title">Core Entities</div>
+      <div class="step-desc">Identify the main data primitives before drawing anything. "What nouns live in this system?" For Twitter: User, Tweet, Follow, Timeline. For Uber: Rider, Driver, Ride, Location. This anchors the rest of the design — APIs operate on entities, tables store entities, caches index them.</div>
+    </div>
+  </div>
+</div>
+
+<div class="code-block"><pre><span class="cm">// Twitter example — core entities</span>
+User      { id, handle, display_name, created_at }
+Tweet     { id, author_id, content, created_at, media_ids[] }
+Follow    { follower_id, followee_id, created_at }
+Timeline  { user_id, tweet_ids[] }  <span class="cm">// derived, cached per user</span></pre></div>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">API / Interface</div>
+      <div class="step-desc">Define the contract. What do clients call? What's returned? Entities drive the API — most endpoints are CRUD on entities plus a few cross-entity queries. This locks in the surface before you draw boxes.</div>
     </div>
   </div>
 </div>
@@ -147,10 +163,24 @@ GET    /search?q=...        { query, cursor } → tweets[]</pre></div>
 
 <div class="steps">
   <div class="step">
-    <div class="step-num">3</div>
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Data Flow <em style="font-weight:400;color:var(--muted)">(optional)</em></div>
+      <div class="step-desc">Some problems benefit from a quick write-up of how data moves <em>before</em> drawing the architecture — especially pipelines (web crawlers, log processors, analytics). For request/response CRUD systems, skip this step.</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout callout-blue">
+  <strong>When to include Data Flow:</strong> Data processing pipelines (e.g., "design a web crawler" → fetch → parse → extract links → store). Event-driven systems. Stream processing. Skip it for typical CRUD apps (Twitter, Uber, chat) where the data flow is obvious from the API.
+</div>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">5</div>
     <div class="step-content">
       <div class="step-title">High-Level Design</div>
-      <div class="step-desc">Draw 5–6 boxes. Client → LB → Service(s) → DB/Cache. No detail yet — just the architecture skeleton.</div>
+      <div class="step-desc">Draw 5–6 boxes. Client → LB → Service(s) → DB/Cache. No detail yet — just the architecture skeleton that satisfies functional requirements.</div>
     </div>
   </div>
 </div>
@@ -222,17 +252,10 @@ GET    /search?q=...        { query, cursor } → tweets[]</pre></div>
 
 <div class="steps">
   <div class="step">
-    <div class="step-num">4</div>
+    <div class="step-num">6</div>
     <div class="step-content">
-      <div class="step-title">Deep Dive</div>
-      <div class="step-desc">Pick 2–3 components the interviewer cares about. Present options with trade-offs. Show you know the "why" not just the "what".</div>
-    </div>
-  </div>
-  <div class="step">
-    <div class="step-num">5</div>
-    <div class="step-content">
-      <div class="step-title">Identify Bottlenecks &amp; Scale</div>
-      <div class="step-desc">Single points of failure? What breaks at 10x load? Consider: CDN, horizontal sharding, caching layers, rate limiting, async processing.</div>
+      <div class="step-title">Deep Dives</div>
+      <div class="step-desc">Pick 2–3 components the interviewer cares about and drill in. This is where you <em>satisfy non-functional requirements</em>: scaling to target load, meeting latency SLO, handling failures. For each dive: state the problem, present 2 options with trade-offs, pick one with reasoning. Cover bottlenecks, single points of failure, and what breaks at 10× load — consider CDN, horizontal sharding, caching layers, rate limiting, async processing.</div>
     </div>
   </div>
 </div>
@@ -2111,7 +2134,57 @@ pages['sd-ratelimit'] = () => `
   <strong>⚡ Core insight:</strong> Rate limiting is a <strong>distributed counter problem</strong>. The hard part isn't the algorithm — it's ensuring counts are accurate across 10 app servers hitting the same Redis.
 </div>
 
-<h2 class="section-title">Algorithm Comparison</h2>
+
+
+<h2 class="section-title">1. Requirements</h2>
+<div class="two-col">
+  <div class="info-box">
+    <div class="info-title">Functional Requirements</div>
+    <ul class="content-list" style="margin-top:6px">
+      <li>Identify callers by <strong>user id</strong>, <strong>IP address</strong>, or <strong>API key</strong></li>
+      <li>Limit requests based on <strong>configurable rules</strong> (per-minute, per-hour, per-endpoint)</li>
+      <li>Return proper <strong>error headers and status codes</strong> (429 Too Many Requests, <code>Retry-After</code>)</li>
+    </ul>
+  </div>
+  <div class="info-box">
+    <div class="info-title">Non-Functional Requirements</div>
+    <ul class="content-list" style="margin-top:6px">
+      <li><strong>Availability &gt;&gt; Consistency</strong> — better to allow a few extra requests than to fail open or block legitimate traffic</li>
+      <li><strong>Low latency</strong> — rate limit check must add &lt; 10ms to request path</li>
+      <li><strong>Horizontally scalable</strong> to target RPS (see Scale below)</li>
+      <li>Fault-tolerant — a dead cache node shouldn't take down the API</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout callout-blue" style="margin-top:10px">
+  <strong>Scale estimate:</strong> 100M daily users × 10 reqs/day avg = 1B requests/day ≈ <strong>12K RPS average</strong>, peak ≈ <strong>1M RPS</strong> (bursts, sales events). Rate limiter sits in the hot path of <em>every</em> request, so it must be faster and more available than the service it protects.
+</div>
+
+<h2 class="section-title">2. Core Entities</h2>
+<div class="code-block"><pre><span class="cm">// What the rate limiter tracks</span>
+Caller   { id: user_id | ip | api_key, tier: free|paid|enterprise }
+Rule     { scope: endpoint, limit: N, window: M seconds }
+Counter  { key: caller_id + endpoint, count: N, window_start: ts }</pre></div>
+
+<h2 class="section-title">3. API</h2>
+<div class="code-block"><pre><span class="cm">// Single internal check called from every API gateway</span>
+allowRequest(caller_id, endpoint) → { allowed: bool, remaining: N, reset_at: ts }
+
+<span class="cm">// Response headers when blocked (HTTP 429)</span>
+X-RateLimit-Limit:     1000
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset:     1640000000
+Retry-After:           60</pre></div>
+
+<h2 class="section-title">4. High-Level Design</h2>
+<div class="callout callout-blue">
+  Rate limiter runs as a <strong>library inside the API gateway</strong> (not a separate hop — saves latency). All gateway instances share a <strong>Redis cluster</strong> for counters. Rules live in a config service with short-TTL cache. On Redis failure → <em>fail open</em> (allow) or <em>fail closed</em> (deny) based on business need.
+</div>
+
+<h2 class="section-title">5. Algorithm Choice — Deep Dive</h2>
+<p style="margin-top:0;color:var(--muted);font-size:14px"><strong>Compare the 5 standard algorithms, then pick one:</strong></p>
+
 <table class="data-table">
   <tr><th>Algorithm</th><th>Memory</th><th>Burst?</th><th>Accuracy</th><th>Best For</th></tr>
   <tr><td>Token Bucket</td><td>Low</td><td>Yes ✅</td><td>Good</td><td>APIs with bursty traffic</td></tr>
@@ -2121,7 +2194,7 @@ pages['sd-ratelimit'] = () => `
   <tr><td>Sliding Window Counter</td><td>Low</td><td>Partial</td><td>~98%</td><td>Best balance ✅</td></tr>
 </table>
 
-<h2 class="section-title">Algorithm Deep Dives</h2>
+<h3 style="margin-top:24px;font-size:17px">Algorithm Details</h3>
 <div class="accordion">
   <div class="accordion-header" onclick="toggleAccordion(this)">Token Bucket — Most Common</div>
   <div class="accordion-body">
@@ -2200,7 +2273,7 @@ end</pre></div>
   </div>
 </div>
 
-<h2 class="section-title">Distributed Architecture</h2>
+<h2 class="section-title">6. Distributed Architecture — Scale Deep Dive</h2>
 <div class="code-block"><pre><span class="cm">// System design: Rate limiter as middleware across N app servers</span>
 
 Client → Load Balancer → [App1, App2, App3, ... AppN]
