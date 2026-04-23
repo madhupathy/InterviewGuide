@@ -922,9 +922,12 @@ p { margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
     </div>
     <div class="nav-sub" id="algo-sub">
       <div class="nav-sub-item" onclick="showPage('algo-twopointer')">Two Pointers</div>
+      <div class="nav-sub-item" onclick="showPage('algo-fastslow')">Fast &amp; Slow Pointers</div>
       <div class="nav-sub-item" onclick="showPage('algo-sliding')">Sliding Window</div>
+      <div class="nav-sub-item" onclick="showPage('algo-prefix')">Prefix Sum</div>
       <div class="nav-sub-item" onclick="showPage('algo-binsearch')">Binary Search</div>
       <div class="nav-sub-item" onclick="showPage('algo-bfsdfs')">BFS / DFS</div>
+      <div class="nav-sub-item" onclick="showPage('algo-matrix')">Matrix Traversal</div>
       <div class="nav-sub-item" onclick="showPage('algo-backtrack')">Backtracking</div>
       <div class="nav-sub-item" onclick="showPage('algo-topk')">Top-K / Heap</div>
     </div>
@@ -5391,7 +5394,7 @@ pages['algo-patterns'] = () => `
     <div class="card-desc">Sorted arrays, palindromes, pair sums</div>
     <div class="card-complexity">O(n) from O(n²)</div>
   </div>
-  <div class="card" onclick="document.getElementById('p-fastslow').scrollIntoView({behavior:'smooth'})">
+  <div class="card" onclick="showPage('algo-fastslow')">
     <div class="card-icon">🐢🐇</div>
     <div class="card-title">Fast &amp; Slow Pointers</div>
     <div class="card-desc">Cycle detection, middle of list</div>
@@ -5403,7 +5406,7 @@ pages['algo-patterns'] = () => `
     <div class="card-desc">Subarrays, substrings, contiguous range</div>
     <div class="card-complexity">O(n) with O(1) window ops</div>
   </div>
-  <div class="card" onclick="document.getElementById('p-prefix').scrollIntoView({behavior:'smooth'})">
+  <div class="card" onclick="showPage('algo-prefix')">
     <div class="card-icon">📊</div>
     <div class="card-title">Prefix Sum</div>
     <div class="card-desc">Range queries, subarray sum</div>
@@ -5421,7 +5424,7 @@ pages['algo-patterns'] = () => `
     <div class="card-desc">Trees, graphs, shortest path</div>
     <div class="card-complexity">O(V+E)</div>
   </div>
-  <div class="card" onclick="document.getElementById('p-matrix').scrollIntoView({behavior:'smooth'})">
+  <div class="card" onclick="showPage('algo-matrix')">
     <div class="card-icon">🔲</div>
     <div class="card-title">Matrix Traversal</div>
     <div class="card-desc">2D grids — islands, flood fill, paths</div>
@@ -5444,7 +5447,7 @@ pages['algo-patterns'] = () => `
 <div class="callout callout-blue" style="margin-top:24px">
   <strong>How to pick a pattern fast:</strong> Read the problem and scan for keywords.
   <strong>"sorted" + "pair"</strong> → Two Pointers.
-  <strong>"cycle" / "middle"</strong> → Fast &amp; Slow.
+  <strong>"cycle" / "middle of list"</strong> → Fast &amp; Slow.
   <strong>"contiguous subarray"</strong> → Sliding Window.
   <strong>"range sum"</strong> → Prefix Sum.
   <strong>"sorted array"</strong> → Binary Search.
@@ -5454,121 +5457,12 @@ pages['algo-patterns'] = () => `
   <strong>"K largest / smallest"</strong> → Heap.
 </div>
 
-<h2 class="section-title" style="margin-top:24px">Quick Templates &amp; Tricks</h2>
-<p style="font-size:13px;color:var(--muted);margin-top:-8px">Templates for patterns that don't have a dedicated sub-page. Click a card above to jump here.</p>
-
-<div id="p-fastslow" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">🐢🐇</span>
-    <strong style="font-size:16px">Fast &amp; Slow Pointers (Tortoise &amp; Hare)</strong>
-    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) time, O(1) space</span>
-  </div>
-  <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> Cycle detection in linked lists. Finding the middle node in one pass. Detecting start of a cycle. Happy number problem.<br>
-    <strong>Trick:</strong> slow moves 1 step, fast moves 2. If there's a cycle they <em>must</em> meet. If fast hits null first, no cycle. When slow reaches the middle, fast has reached the end.
-  </div>
-  <div class="code-block"><pre><span class="cm">// Cycle detection — LeetCode 141</span>
-<span class="kw">boolean</span> hasCycle(ListNode head) {
-  ListNode slow = head, fast = head;
-  <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
-    slow = slow.next;
-    fast = fast.next.next;
-    <span class="kw">if</span> (slow == fast) <span class="kw">return true</span>;
-  }
-  <span class="kw">return false</span>;
-}
-
-<span class="cm">// Middle of linked list — LeetCode 876</span>
-<span class="cm">// When fast reaches end, slow is at the middle</span>
-<span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
-  slow = slow.next;
-  fast = fast.next.next;
-}
-<span class="kw">return</span> slow;</pre></div>
-  <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic problems:</strong> Linked List Cycle (141), Cycle II — find start (142), Middle of LL (876), Happy Number (202), Palindrome LL (234)
-  </div>
-</div>
-
-<div id="p-prefix" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">📊</span>
-    <strong style="font-size:16px">Prefix Sum</strong>
-    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(n) preprocess, O(1) query</span>
-  </div>
-  <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> Multiple range sum queries. Subarray sum equals K. Equilibrium index. Running averages.<br>
-    <strong>Trick:</strong> Precompute <code>prefix[i]</code> = sum of elements from 0 to i-1. Then any range sum <code>[l, r]</code> is just <code>prefix[r+1] - prefix[l]</code> — O(1). For "subarray sum = K", combine with a HashMap of prefix sums seen.
-  </div>
-  <div class="code-block"><pre><span class="cm">// Build prefix sum array</span>
-<span class="kw">int</span>[] prefix = <span class="kw">new int</span>[nums.length + <span class="num">1</span>];
-<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {
-  prefix[i + <span class="num">1</span>] = prefix[i] + nums[i];
-}
-<span class="cm">// Range sum arr[l..r] in O(1)</span>
-<span class="kw">int</span> rangeSum = prefix[r + <span class="num">1</span>] - prefix[l];
-
-<span class="cm">// Pattern: Subarray Sum Equals K (LeetCode 560)</span>
-Map&lt;Integer, Integer&gt; seen = <span class="kw">new</span> HashMap&lt;&gt;();
-seen.put(<span class="num">0</span>, <span class="num">1</span>);
-<span class="kw">int</span> sum = <span class="num">0</span>, count = <span class="num">0</span>;
-<span class="kw">for</span> (<span class="kw">int</span> n : nums) {
-  sum += n;
-  count += seen.getOrDefault(sum - k, <span class="num">0</span>);
-  seen.merge(sum, <span class="num">1</span>, Integer::sum);
-}</pre></div>
-  <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic problems:</strong> Range Sum Query (303, 304), Subarray Sum Equals K (560), Product of Array Except Self (238), Continuous Subarray Sum (523)
-  </div>
-</div>
-
-<div id="p-matrix" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin:14px 0">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:22px">🔲</span>
-    <strong style="font-size:16px">Matrix Traversal</strong>
-    <span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">O(m × n)</span>
-  </div>
-  <div style="font-size:14px;margin-bottom:10px">
-    <strong>When:</strong> 2D grid problems — count islands, flood fill, shortest path in a grid, word search.<br>
-    <strong>Trick:</strong> Treat the grid as a graph. Each cell is a node; neighbors are the 4 (or 8) adjacent cells. Use DFS when you need to explore connected regions. Use BFS when you need shortest path. Always mark cells visited to avoid infinite loops.
-  </div>
-  <div class="code-block"><pre><span class="cm">// Number of Islands (LeetCode 200) — DFS flood fill</span>
-<span class="kw">int</span>[][] DIRS = {{-<span class="num">1</span>,<span class="num">0</span>},{<span class="num">1</span>,<span class="num">0</span>},{<span class="num">0</span>,-<span class="num">1</span>},{<span class="num">0</span>,<span class="num">1</span>}};
-
-<span class="kw">int</span> numIslands(<span class="kw">char</span>[][] grid) {
-  <span class="kw">int</span> count = <span class="num">0</span>;
-  <span class="kw">for</span> (<span class="kw">int</span> r = <span class="num">0</span>; r &lt; grid.length; r++) {
-    <span class="kw">for</span> (<span class="kw">int</span> c = <span class="num">0</span>; c &lt; grid[<span class="num">0</span>].length; c++) {
-      <span class="kw">if</span> (grid[r][c] == <span class="str">'1'</span>) {
-        dfs(grid, r, c);
-        count++;
-      }
-    }
-  }
-  <span class="kw">return</span> count;
-}
-
-<span class="kw">void</span> dfs(<span class="kw">char</span>[][] grid, <span class="kw">int</span> r, <span class="kw">int</span> c) {
-  <span class="kw">if</span> (r &lt; <span class="num">0</span> || r &gt;= grid.length ||
-      c &lt; <span class="num">0</span> || c &gt;= grid[<span class="num">0</span>].length ||
-      grid[r][c] != <span class="str">'1'</span>) <span class="kw">return</span>;
-  grid[r][c] = <span class="str">'0'</span>;  <span class="cm">// mark visited in-place</span>
-  <span class="kw">for</span> (<span class="kw">int</span>[] d : DIRS) dfs(grid, r + d[<span class="num">0</span>], c + d[<span class="num">1</span>]);
-}</pre></div>
-  <div style="font-size:12px;color:#6b7280;margin-top:8px">
-    <strong>Classic problems:</strong> Number of Islands (200), Rotting Oranges (994), Flood Fill (733), Word Search (79), Shortest Path in Binary Matrix (1091), Pacific Atlantic Water Flow (417)
-  </div>
-</div>
-
 ${quizHTML('algo-patterns', [
-  { q: "Which pattern to use when 'find all subsets/permutations'?", opts: ["Two pointers", "Sliding window", "Binary search", "Backtracking — explore all choices recursively, undo each choice before trying next"], ans: 3, exp: "Backtracking = systematic brute force with pruning. Build solution incrementally, abandon paths that can't lead to valid solution. Subsets, permutations, N-Queens, Sudoku all use this pattern." },
-  { q: "Sliding window vs two pointers — key difference?", opts: ["They're identical", "Sliding window maintains a contiguous range and expands/shrinks it. Two pointers can move independently from both ends.", "Two pointers only works on sorted arrays", "Sliding window is always O(n²)"], ans: 1, exp: "Sliding window: contiguous subarray/substring, expand right, shrink left when constraint violated. Two pointers: often start from both ends (sorted array) or fast/slow (linked list). Different problems, different patterns." },
-  { q: "Prefix Sum — when does it give O(1) range queries?", opts: ["Only for sorted arrays", "After O(n) preprocessing — prefix[i] = sum of arr[0..i-1], then range(l,r) = prefix[r+1] - prefix[l]", "Only when values are positive", "It doesn't — always O(n)"], ans: 1, exp: "Prefix sum trades O(n) space + one-time O(n) preprocessing for O(1) per query afterwards. For a static array with many range queries, this is optimal. For Subarray Sum Equals K, combine with HashMap tracking prefix sums seen — lookup (currentSum - k) in map gives count of subarrays summing to k." },
-  { q: "Fast & Slow Pointers — why does slow meet fast if there's a cycle?", opts: ["Because fast moves faster", "Each step fast gains 1 on slow. If they are in a cycle of length L, fast catches up to slow within L steps.", "Random chance", "They do not always meet"], ans: 1, exp: "Inside a cycle, the gap between slow and fast closes by 1 each step (fast advances 2, slow advances 1 → net +1). So fast catches slow in at most L steps where L is cycle length. If there's no cycle, fast hits null first. This is Floyd's Cycle Detection." },
-  { q: "Matrix Traversal — why mark cells as visited in-place (e.g. set '1' → '0')?", opts: ["Saves memory", "Avoids infinite loops and removes need for a separate visited set — trades input mutation for O(1) extra space", "Makes the code shorter", "Required by most APIs"], ans: 1, exp: "Without marking, DFS on a grid revisits cells endlessly. Options: (1) separate boolean[][] visited — O(m×n) extra space, (2) mutate grid in-place — 0 extra space but destroys input, (3) restore on the way back. Interviewers usually accept in-place if you mention the trade-off." }
+  { q: "Which pattern to use when 'find all subsets/permutations'?", opts: ["Two pointers", "Sliding window", "Binary search", "Backtracking — explore all choices recursively, undo each choice before trying next"], ans: 3, exp: "Backtracking = systematic brute force with pruning. Build solution incrementally, abandon paths that cannot lead to valid solution. Subsets, permutations, N-Queens, Sudoku all use this pattern." },
+  { q: "Two Pointers vs Fast & Slow Pointers — key difference?", opts: ["They are identical", "Classic Two Pointers moves opposite directions on sorted arrays (pair sums, palindromes). Fast & Slow moves same direction at different speeds, almost always on linked lists (cycle, middle).", "Two pointers is always slower", "Fast & Slow only works on sorted arrays"], ans: 1, exp: "Both use 2 pointers, but problem signatures differ. Classic Two Pointers: sorted array + find pair/palindrome → pointers at opposite ends moving toward center. Fast & Slow: linked list + cycle/middle → same-start pointers moving at 1x and 2x. Recognizing the right variant is how you pick the right pattern quickly." },
+  { q: "Sliding window vs two pointers — when to reach for sliding window?", opts: ["Never", "When the problem asks for a contiguous subarray/substring that satisfies a condition — expand right, shrink left when constraint violated", "Only for sorted arrays", "Only for linked lists"], ans: 1, exp: "Sliding window is a specialization: you maintain a contiguous window that satisfies a constraint. Right pointer expands the window, left pointer shrinks it when the constraint is violated. Keywords: longest/shortest substring, maximum sum of size-k subarray." }
 ])}
 `;
-
 
 pages['algo-twopointer'] = () => `
 <div class="breadcrumb">Algorithms → <span>Two Pointers</span></div>
@@ -5581,6 +5475,11 @@ pages['algo-twopointer'] = () => `
   <div class="mt-label">🎯 Trigger Keywords</div>
   <div class="mt-content">"sorted array", "pair with sum", "palindrome", "remove duplicates", "two numbers that...", "container with most water". If you see these + array → think two pointers.</div>
 </div>
+
+<div class="callout callout-amber">
+  <strong>vs Fast &amp; Slow Pointers:</strong> Both patterns use 2 pointers, but the problem signatures are different. <strong>Classic Two Pointers</strong> (this page) starts at opposite ends of a sorted array and moves toward the center — used for pair sums, palindromes, container problems. <strong>Fast &amp; Slow Pointers</strong> starts both at the same position and moves at different speeds (1× and 2×) — used for cycle detection and finding the middle of a linked list. See <a onclick="showPage('algo-fastslow')" style="color:var(--accent);cursor:pointer;text-decoration:underline">Fast &amp; Slow Pointers</a> for that variant.
+</div>
+
 
 <div class="section-title">Templates</div>
 <div class="code-block"><pre><span class="cm">// Template 1: Opposite ends → move toward center</span>
@@ -5850,6 +5749,256 @@ ${quizHTML('algo-topk', [
 // ═══════════════════════════════════════════════
 // REVISION TRACKER
 // ═══════════════════════════════════════════════
+pages['algo-fastslow'] = () => `
+<div class="breadcrumb">Algorithms → <span>Fast &amp; Slow Pointers</span></div>
+<div class="page-header">
+  <div class="page-title">Fast &amp; Slow Pointers (Tortoise &amp; Hare)</div>
+  <div class="page-subtitle">Two pointers starting at the same position but moving at different speeds — the classic technique for cycle detection in linked lists.</div>
+</div>
+
+<div class="memory-tip">
+  <div class="mt-label">🎯 Trigger Keywords</div>
+  <div class="mt-content">"linked list cycle", "find middle node", "nth from end", "happy number", "palindrome linked list". If the problem is on a <em>linked list</em> and needs a second traversal position — think fast &amp; slow.</div>
+</div>
+
+<div class="callout callout-amber">
+  <strong>vs Two Pointers:</strong> Classic Two Pointers (on sorted arrays) moves pointers toward each other from opposite ends. Fast &amp; Slow moves pointers in the <em>same direction</em> at <em>different speeds</em>, almost always on linked lists where you can't index into the middle. Same idea (2 pointers) but very different problem signatures.
+</div>
+
+<div class="section-title">The Core Trick</div>
+<div class="code-block"><pre><span class="cm">// slow = 1 step, fast = 2 steps</span>
+<span class="cm">// • If there's a cycle → fast laps slow → they meet</span>
+<span class="cm">// • If no cycle → fast hits null first</span>
+<span class="cm">// • When fast reaches end → slow is at the middle</span>
+
+ListNode slow = head, fast = head;
+<span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+    slow = slow.next;
+    fast = fast.next.next;
+    <span class="kw">if</span> (slow == fast) <span class="cm">/* cycle detected */</span> ;
+}
+<span class="cm">// after loop: slow is at middle, fast is at end (or null)</span></pre></div>
+
+<div class="section-title">Cycle Detection (LeetCode 141)</div>
+<div class="code-block"><pre><span class="kw">public boolean</span> hasCycle(ListNode head) {
+    ListNode slow = head, fast = head;
+    <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+        <span class="kw">if</span> (slow == fast) <span class="kw">return true</span>;
+    }
+    <span class="kw">return false</span>;
+}</pre></div>
+<div class="callout callout-blue">
+  <strong>Why it works:</strong> Inside a cycle, the gap between slow and fast closes by 1 each step (fast advances 2, slow advances 1 → net +1). So fast catches up in at most L steps where L = cycle length. No cycle → fast reaches null first.
+</div>
+
+<div class="section-title">Find Start of Cycle (LeetCode 142)</div>
+<div class="code-block"><pre><span class="cm">// Floyd's algorithm: after slow &amp; fast meet inside cycle,</span>
+<span class="cm">// reset one pointer to head and advance both at same speed.</span>
+<span class="cm">// They meet again at the cycle start.</span>
+<span class="kw">public</span> ListNode detectCycle(ListNode head) {
+    ListNode slow = head, fast = head;
+    <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+        <span class="kw">if</span> (slow == fast) {                 <span class="cm">// Phase 1: find meeting point</span>
+            ListNode p = head;
+            <span class="kw">while</span> (p != slow) {              <span class="cm">// Phase 2: walk both at 1x</span>
+                p = p.next;
+                slow = slow.next;
+            }
+            <span class="kw">return</span> p;                         <span class="cm">// start of cycle</span>
+        }
+    }
+    <span class="kw">return null</span>;
+}</pre></div>
+
+<div class="section-title">Middle of Linked List (LeetCode 876)</div>
+<div class="code-block"><pre><span class="kw">public</span> ListNode middleNode(ListNode head) {
+    ListNode slow = head, fast = head;
+    <span class="kw">while</span> (fast != <span class="kw">null</span> &amp;&amp; fast.next != <span class="kw">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    <span class="kw">return</span> slow;  <span class="cm">// for even length, this is the 2nd middle (n/2 + 1)</span>
+}</pre></div>
+
+<div class="callout callout-green">
+  <strong>Classic problems:</strong> Linked List Cycle (141), Cycle II — find start (142), Middle of LL (876), Happy Number (202), Palindrome LL (234), Remove Nth from End (19 — uses a gap variant), Reorder List (143).
+</div>
+
+${revisionControls('algo-fastslow')}
+
+${quizHTML('algo-fastslow', [
+  { q: "In Floyd's cycle detection, why does resetting one pointer to head and walking both at 1x find the cycle start?", opts: ["Random chance", "It does not — you need extra space", "Math: if distance from head to cycle start is D and meeting point is K steps into the cycle, then D = L - K (mod L). Walking both at 1x from head and meeting point, they meet at the cycle start.", "Only works for specific cycle lengths"], ans: 2, exp: "When slow and fast meet, slow has traveled D + K steps (D = head to cycle start, K = position in cycle). Fast has traveled 2(D + K) but is at the same node, so cycle length L divides D + K. From meeting point, walking L - K more steps reaches cycle start. From head, walking D steps reaches cycle start. And D = L - K means both pointers meet there." },
+  { q: "How does Fast & Slow differ from classic Two Pointers?", opts: ["They are identical", "Classic Two Pointers moves opposite directions on sorted arrays (pair sums, palindromes). Fast & Slow moves same direction at different speeds, almost always on linked lists (cycle, middle).", "Fast & Slow is always slower", "Classic Two Pointers only works on linked lists"], ans: 1, exp: "Both use 2 pointers, but problem signatures differ. Classic Two Pointers: sorted array + find pair/palindrome → pointers at opposite ends moving toward center. Fast & Slow: linked list + cycle/middle → same-start pointers moving at 1x and 2x. Recognizing the right variant is how you pick the right pattern quickly." }
+])}
+
+`;
+
+pages['algo-prefix'] = () => `
+<div class="breadcrumb">Algorithms → <span>Prefix Sum</span></div>
+<div class="page-header">
+  <div class="page-title">Prefix Sum Pattern</div>
+  <div class="page-subtitle">Precompute cumulative sums to answer unlimited range-sum queries in O(1) each, at the cost of O(n) preprocessing.</div>
+</div>
+
+<div class="memory-tip">
+  <div class="mt-label">🎯 Trigger Keywords</div>
+  <div class="mt-content">"range sum", "subarray sum equals K", "running sum", "equilibrium index", "number of subarrays with sum divisible by K", "product of array except self" (same idea with products). Any time you see <em>many</em> queries over ranges of a static array.</div>
+</div>
+
+<div class="section-title">The Core Trick</div>
+<div class="code-block"><pre><span class="cm">// prefix[i] = sum of arr[0..i-1]  (index-shifted for easy range math)</span>
+<span class="kw">int</span>[] prefix = <span class="kw">new int</span>[nums.length + <span class="num">1</span>];
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {
+    prefix[i + <span class="num">1</span>] = prefix[i] + nums[i];
+}
+
+<span class="cm">// Range sum arr[l..r] inclusive, in O(1)</span>
+<span class="kw">int</span> rangeSum = prefix[r + <span class="num">1</span>] - prefix[l];</pre></div>
+<div class="callout callout-blue">
+  <strong>Why the +1 offset?</strong> Using <code>prefix[0] = 0</code> as an empty-prefix sentinel avoids special-casing <code>l == 0</code>. The formula <code>prefix[r+1] - prefix[l]</code> handles every case uniformly.
+</div>
+
+<div class="section-title">Subarray Sum Equals K (LeetCode 560)</div>
+<div class="callout callout-amber">
+  <strong>Key insight:</strong> A subarray summing to K ending at index <code>j</code> means some prefix sum at index <code>i &lt; j</code> equals <code>prefix[j] - K</code>. Use a HashMap to count how many times each prefix sum has been seen.
+</div>
+<div class="code-block"><pre><span class="kw">public int</span> subarraySum(<span class="kw">int</span>[] nums, <span class="kw">int</span> k) {
+    Map&lt;Integer, Integer&gt; seen = <span class="kw">new</span> HashMap&lt;&gt;();
+    seen.put(<span class="num">0</span>, <span class="num">1</span>);           <span class="cm">// empty prefix has sum 0</span>
+    <span class="kw">int</span> sum = <span class="num">0</span>, count = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> n : nums) {
+        sum += n;
+        count += seen.getOrDefault(sum - k, <span class="num">0</span>);
+        seen.merge(sum, <span class="num">1</span>, Integer::sum);
+    }
+    <span class="kw">return</span> count;
+}</pre></div>
+
+<div class="section-title">2D Prefix Sum (LeetCode 304)</div>
+<div class="code-block"><pre><span class="cm">// sum[i+1][j+1] = sum of matrix[0..i][0..j]</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; m; i++)
+  <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">0</span>; j &lt; n; j++)
+    sum[i+<span class="num">1</span>][j+<span class="num">1</span>] = matrix[i][j]
+                   + sum[i][j+<span class="num">1</span>]      <span class="cm">// row above</span>
+                   + sum[i+<span class="num">1</span>][j]      <span class="cm">// col left</span>
+                   - sum[i][j];         <span class="cm">// subtract double-counted corner</span>
+
+<span class="cm">// Query submatrix (r1,c1) to (r2,c2) in O(1)</span>
+<span class="kw">int</span> region = sum[r2+<span class="num">1</span>][c2+<span class="num">1</span>] - sum[r1][c2+<span class="num">1</span>]
+           - sum[r2+<span class="num">1</span>][c1]   + sum[r1][c1];</pre></div>
+
+<div class="callout callout-green">
+  <strong>Classic problems:</strong> Range Sum Query (303), Range Sum 2D (304), Subarray Sum Equals K (560), Product of Array Except Self (238), Continuous Subarray Sum (523), Contiguous Array (525), Subarray Sums Divisible by K (974).
+</div>
+
+${revisionControls('algo-prefix')}
+
+${quizHTML('algo-prefix', [
+  { q: "Why does prefix sum + HashMap solve 'subarray sum equals K' in O(n)?", opts: ["HashMap sorts the array", "Brute force is already O(n)", "For each j, asking 'is there an i &lt; j with prefix[j] - prefix[i] = K' is equivalent to asking 'was prefix[j] - K ever seen?' — HashMap answers in O(1)", "It does not — that problem is O(n²)"], ans: 2, exp: "Any subarray arr[i+1..j] sums to prefix[j+1] - prefix[i]. So 'subarray ending at j sums to K' ↔ 'some earlier prefix equals prefix[j+1] - K'. HashMap of counts of prefix sums seen so far turns the inner loop into O(1) lookup, total O(n)." },
+  { q: "2D prefix sum inclusion-exclusion — why subtract sum[i][j]?", opts: ["Arrays are 0-indexed", "The rectangle (0,0)-(i-1,j-1) is counted twice when adding row-above and col-left sub-rectangles, so subtract once to correct", "To prevent overflow", "It is not needed"], ans: 1, exp: "sum[i+1][j+1] = matrix[i][j] + sum[i][j+1] (full row above) + sum[i+1][j] (full col left). But the intersection sum[i][j] (top-left rectangle) is included in both. Subtract once to remove the double count — standard inclusion-exclusion." }
+])}
+
+`;
+
+pages['algo-matrix'] = () => `
+<div class="breadcrumb">Algorithms → <span>Matrix Traversal</span></div>
+<div class="page-header">
+  <div class="page-title">Matrix Traversal Pattern</div>
+  <div class="page-subtitle">Treat a 2D grid as a graph where each cell is a node and neighbors are the 4 (or 8) adjacent cells. Apply DFS for connectivity, BFS for shortest path.</div>
+</div>
+
+<div class="memory-tip">
+  <div class="mt-label">🎯 Trigger Keywords</div>
+  <div class="mt-content">"grid", "matrix", "2D array", "islands", "flood fill", "connected regions", "shortest path in grid", "word search", "rotting oranges", "walls and gates". Any problem where the input is a 2D grid and you need to explore it.</div>
+</div>
+
+<div class="section-title">The Standard Setup</div>
+<div class="code-block"><pre><span class="cm">// 4-directional (up, down, left, right)</span>
+<span class="kw">int</span>[][] DIRS = {{-<span class="num">1</span>,<span class="num">0</span>}, {<span class="num">1</span>,<span class="num">0</span>}, {<span class="num">0</span>,-<span class="num">1</span>}, {<span class="num">0</span>,<span class="num">1</span>}};
+<span class="cm">// 8-directional (add diagonals)</span>
+<span class="kw">int</span>[][] DIRS8 = {{-<span class="num">1</span>,-<span class="num">1</span>},{-<span class="num">1</span>,<span class="num">0</span>},{-<span class="num">1</span>,<span class="num">1</span>},{<span class="num">0</span>,-<span class="num">1</span>},
+                 {<span class="num">0</span>,<span class="num">1</span>},{<span class="num">1</span>,-<span class="num">1</span>},{<span class="num">1</span>,<span class="num">0</span>},{<span class="num">1</span>,<span class="num">1</span>}};
+
+<span class="cm">// Bounds check — write once, use everywhere</span>
+<span class="kw">boolean</span> inBounds(<span class="kw">int</span> r, <span class="kw">int</span> c) {
+    <span class="kw">return</span> r &gt;= <span class="num">0</span> &amp;&amp; r &lt; rows &amp;&amp; c &gt;= <span class="num">0</span> &amp;&amp; c &lt; cols;
+}</pre></div>
+
+<div class="section-title">DFS — Number of Islands (LeetCode 200)</div>
+<div class="code-block"><pre><span class="kw">public int</span> numIslands(<span class="kw">char</span>[][] grid) {
+    <span class="kw">int</span> count = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> r = <span class="num">0</span>; r &lt; grid.length; r++) {
+        <span class="kw">for</span> (<span class="kw">int</span> c = <span class="num">0</span>; c &lt; grid[<span class="num">0</span>].length; c++) {
+            <span class="kw">if</span> (grid[r][c] == <span class="str">'1'</span>) {
+                dfs(grid, r, c);
+                count++;
+            }
+        }
+    }
+    <span class="kw">return</span> count;
+}
+
+<span class="kw">void</span> dfs(<span class="kw">char</span>[][] grid, <span class="kw">int</span> r, <span class="kw">int</span> c) {
+    <span class="kw">if</span> (r &lt; <span class="num">0</span> || r &gt;= grid.length ||
+        c &lt; <span class="num">0</span> || c &gt;= grid[<span class="num">0</span>].length ||
+        grid[r][c] != <span class="str">'1'</span>) <span class="kw">return</span>;
+    grid[r][c] = <span class="str">'0'</span>;                <span class="cm">// mark visited in-place</span>
+    <span class="kw">for</span> (<span class="kw">int</span>[] d : DIRS) dfs(grid, r + d[<span class="num">0</span>], c + d[<span class="num">1</span>]);
+}</pre></div>
+<div class="callout callout-amber">
+  <strong>Visited tracking trade-off:</strong> (1) mutate grid in-place — zero extra space but destroys input, (2) separate <code>boolean[][] visited</code> — O(m×n) space, keeps input intact, (3) mutate then restore on the way back — zero space and preserves input but trickier. Mention all 3 and pick based on whether modifying input is acceptable.
+</div>
+
+<div class="section-title">BFS — Shortest Path in Grid</div>
+<div class="code-block"><pre><span class="cm">// Rotting Oranges (LeetCode 994) — multi-source BFS</span>
+<span class="kw">public int</span> orangesRotting(<span class="kw">int</span>[][] grid) {
+    Queue&lt;<span class="kw">int</span>[]&gt; queue = <span class="kw">new</span> ArrayDeque&lt;&gt;();
+    <span class="kw">int</span> fresh = <span class="num">0</span>;
+    <span class="kw">for</span> (<span class="kw">int</span> r = <span class="num">0</span>; r &lt; grid.length; r++)
+      <span class="kw">for</span> (<span class="kw">int</span> c = <span class="num">0</span>; c &lt; grid[<span class="num">0</span>].length; c++) {
+          <span class="kw">if</span> (grid[r][c] == <span class="num">2</span>) queue.offer(<span class="kw">new int</span>[]{r, c});
+          <span class="kw">else if</span> (grid[r][c] == <span class="num">1</span>) fresh++;
+      }
+
+    <span class="kw">int</span> minutes = <span class="num">0</span>;
+    <span class="kw">while</span> (!queue.isEmpty() &amp;&amp; fresh &gt; <span class="num">0</span>) {
+        <span class="kw">int</span> size = queue.size();
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; size; i++) {
+            <span class="kw">int</span>[] p = queue.poll();
+            <span class="kw">for</span> (<span class="kw">int</span>[] d : DIRS) {
+                <span class="kw">int</span> nr = p[<span class="num">0</span>] + d[<span class="num">0</span>], nc = p[<span class="num">1</span>] + d[<span class="num">1</span>];
+                <span class="kw">if</span> (nr &gt;= <span class="num">0</span> &amp;&amp; nr &lt; grid.length &amp;&amp;
+                    nc &gt;= <span class="num">0</span> &amp;&amp; nc &lt; grid[<span class="num">0</span>].length &amp;&amp;
+                    grid[nr][nc] == <span class="num">1</span>) {
+                    grid[nr][nc] = <span class="num">2</span>;
+                    fresh--;
+                    queue.offer(<span class="kw">new int</span>[]{nr, nc});
+                }
+            }
+        }
+        minutes++;
+    }
+    <span class="kw">return</span> fresh == <span class="num">0</span> ? minutes : -<span class="num">1</span>;
+}</pre></div>
+
+<div class="callout callout-green">
+  <strong>Classic problems:</strong> Number of Islands (200), Rotting Oranges (994), Flood Fill (733), Word Search (79), Surrounded Regions (130), Pacific Atlantic Water Flow (417), Shortest Path in Binary Matrix (1091), Walls and Gates (286).
+</div>
+
+${revisionControls('algo-matrix')}
+
+${quizHTML('algo-matrix', [
+  { q: "When should you use BFS over DFS on a matrix?", opts: ["Always BFS", "Always DFS — it is faster", "When you need the shortest path in an unweighted grid. DFS explores deep and may find a longer path first; BFS guarantees the first time you reach a cell is the shortest distance.", "When the grid is larger than 100x100"], ans: 2, exp: "BFS explores in wavefronts — all cells at distance d are visited before any at distance d+1. That makes the first visit to a target cell the shortest distance. DFS goes deep, so the first path found is not necessarily shortest. Use DFS for connectivity/counting components, BFS for shortest path." },
+  { q: "Multi-source BFS — why start with ALL source cells in the queue at once?", opts: ["To confuse the reader", "It does not matter", "Because all sources are at distance 0 simultaneously — seeding them together propagates the wavefront in parallel, giving correct shortest distance from ANY source to each cell in one BFS pass", "Single-source is always better"], ans: 2, exp: "If you need min distance from each cell to its nearest source (rotting oranges, walls and gates, 01 matrix), running BFS from each source is O((m×n)²). Multi-source BFS — enqueue all sources first, then BFS — gives the same result in O(m×n) total. The wavefront treats the combined source set as one super-source." }
+])}
+
+`;
+
+
 pages['ds-revision'] = () => {
   const topics = [
     { id: 'ds-arrays', name: 'Arrays & Strings', cat: 'DS' },
