@@ -879,6 +879,67 @@ Deque&lt;Integer&gt; stack = <span class="kw">new</span> ArrayDeque&lt;&gt;();  
   </div>
 </div>
 
+<div style="background:var(--surface);border:2px solid #7c3aed;border-radius:10px;padding:16px;margin:14px 0">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:22px">🧩</span>
+    <strong style="font-size:16px;color:#6b21a8">Dynamic Programming</strong>
+    <span style="background:#fae8ff;color:#6b21a8;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">Depends on state size</span>
+  </div>
+  <div style="font-size:14px;margin-bottom:10px">
+    <strong>When:</strong> Problem has <em>overlapping subproblems</em> AND <em>optimal substructure</em>. Keywords: "count ways", "minimum/maximum", "longest/shortest", "can you reach".<br>
+    <strong>Two styles:</strong> Top-down (memoization + recursion) is often easier to write. Bottom-up (tabulation + loops) avoids stack overhead.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+    <div style="background:#f5f3ff;border:1px solid #a78bfa;border-radius:6px;padding:10px">
+      <div style="font-weight:700;font-size:13px;color:#6b21a8;margin-bottom:6px">Top-Down (Memoization)</div>
+      <div style="font-size:12px;color:#4c1d95;line-height:1.6">Recurse naturally, cache results by state. Easier to write, uses stack.</div>
+    </div>
+    <div style="background:#f5f3ff;border:1px solid #a78bfa;border-radius:6px;padding:10px">
+      <div style="font-weight:700;font-size:13px;color:#6b21a8;margin-bottom:6px">Bottom-Up (Tabulation)</div>
+      <div style="font-size:12px;color:#4c1d95;line-height:1.6">Fill table from base case up. Iterative, no stack, often can drop dimensions.</div>
+    </div>
+  </div>
+  <div class="code-block"><pre><span class="cm">// Climbing Stairs (LeetCode 70) — dp[i] = dp[i-1] + dp[i-2]</span>
+<span class="cm">// Top-down (memoization)</span>
+<span class="kw">int</span> climb(<span class="kw">int</span> n, <span class="kw">int</span>[] memo) {
+  <span class="kw">if</span> (n &lt;= <span class="num">2</span>) <span class="kw">return</span> n;
+  <span class="kw">if</span> (memo[n] != <span class="num">0</span>) <span class="kw">return</span> memo[n];
+  <span class="kw">return</span> memo[n] = climb(n-<span class="num">1</span>, memo) + climb(n-<span class="num">2</span>, memo);
+}
+
+<span class="cm">// Bottom-up — O(1) space since we only need last 2 values</span>
+<span class="kw">int</span> climb(<span class="kw">int</span> n) {
+  <span class="kw">if</span> (n &lt;= <span class="num">2</span>) <span class="kw">return</span> n;
+  <span class="kw">int</span> a = <span class="num">1</span>, b = <span class="num">2</span>;
+  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">3</span>; i &lt;= n; i++) {
+    <span class="kw">int</span> c = a + b;
+    a = b; b = c;
+  }
+  <span class="kw">return</span> b;
+}
+
+<span class="cm">// 2D DP — Longest Common Subsequence (1143)</span>
+<span class="cm">// dp[i][j] = LCS of s1[0..i-1] and s2[0..j-1]</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= m; i++) {
+  <span class="kw">for</span> (<span class="kw">int</span> j = <span class="num">1</span>; j &lt;= n; j++) {
+    <span class="kw">if</span> (s1.charAt(i-<span class="num">1</span>) == s2.charAt(j-<span class="num">1</span>))
+      dp[i][j] = dp[i-<span class="num">1</span>][j-<span class="num">1</span>] + <span class="num">1</span>;
+    <span class="kw">else</span>
+      dp[i][j] = Math.max(dp[i-<span class="num">1</span>][j], dp[i][j-<span class="num">1</span>]);
+  }
+}</pre></div>
+  <div style="font-size:12px;color:#6b7280;margin-top:8px">
+    <strong>Classic patterns:</strong>
+    <strong>1D DP</strong> — Climbing Stairs (70), House Robber (198), Coin Change (322), Word Break (139).
+    <strong>2D DP</strong> — Longest Common Subsequence (1143), Edit Distance (72), Unique Paths (62).
+    <strong>Knapsack</strong> — 0/1 Knapsack, Partition Equal Subset Sum (416), Target Sum (494).
+    <strong>Interval DP</strong> — Matrix Chain Multiplication, Palindrome Partitioning (131).
+  </div>
+  <div style="background:#fae8ff;border:1px solid #a78bfa;border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#4c1d95">
+    <strong>Identifying DP in interviews:</strong> Can the problem be broken into smaller versions of itself? Do those smaller versions get solved repeatedly? → DP. If you find yourself writing pure recursion with same inputs being recomputed, add memoization and you have top-down DP.
+  </div>
+</div>
+
 ${quizHTML('algo-patterns', [
   { q: "Which pattern to use when 'find all subsets/permutations'?", opts: ["Binary search", "Sliding window", "Two pointers", "Backtracking — explore all choices recursively, undo each choice before trying next"], ans: 3, exp: "Backtracking = systematic brute force with pruning. Build solution incrementally, abandon paths that can't lead to valid solution. Subsets, permutations, N-Queens, Sudoku all use this pattern." },
   { q: "Sliding window vs two pointers — key difference?", opts: ["Two pointers only works on sorted arrays", "Sliding window is always O(N²)", "Sliding window maintains a contiguous range and expands/shrinks it. Two pointers can move independently from both ends.", "They're identical"], ans: 2, exp: "Sliding window: contiguous subarray/substring, expand right, shrink left when constraint violated. Two pointers: often start from both ends (sorted array) or fast/slow (linked list). Different problems, different patterns." }
@@ -887,6 +948,8 @@ ${quizHTML('algo-patterns', [
   { q: "Prefix Sum — when does it give O(1) range queries?", opts: ["Only for sorted arrays", "After O(n) preprocessing — prefix[i] = sum of arr[0..i-1], then range(l,r) = prefix[r+1] - prefix[l]", "Only when values are positive", "It doesn't — always O(n)"], ans: 1, exp: "Prefix sum trades O(n) space + one-time O(n) preprocessing for O(1) per query afterwards. For a static array with many range queries, this is optimal. For Subarray Sum Equals K, combine with HashMap tracking prefix sums seen — lookup (currentSum - k) in map gives count of subarrays summing to k." },
   { q: "Monotonic stack — what problem type screams 'use this'?", opts: ["String matching", "Sorted array search", "Finding next greater/smaller element for each position", "Shortest path in graph"], ans: 2, exp: "Monotonic stack is THE pattern for 'for each element, find next/previous larger/smaller'. Daily Temperatures, Largest Rectangle in Histogram, Next Greater Element all use this. Maintain decreasing stack for 'next greater' — pop while top is smaller than current; popped items' answer is current." },
   { q: "Merge Intervals — why sort first?", opts: ["To enable binary search", "Not necessary, intervals are already sorted", "Sorting by start time ensures overlapping intervals are adjacent, so you only compare with previous merged interval", "To reduce space complexity"], ans: 2, exp: "After sorting by start time, any overlap must be with the immediately previous merged interval. Without sorting, you'd need O(n²) comparisons. Time complexity = O(n log n) dominated by sort. This is also the approach for Meeting Rooms, Insert Interval, and Non-overlapping Intervals." }
+,
+  { q: "How do you identify a Dynamic Programming problem?", opts: ["When the input is a string", "Always when there's recursion", "Overlapping subproblems + optimal substructure — same smaller problems computed repeatedly, and optimal solution can be built from optimal sub-solutions", "When you need the fastest sort"], ans: 2, exp: "DP requires BOTH: (1) overlapping subproblems — same smaller problems solved multiple times (without memoization you'd recompute), and (2) optimal substructure — optimal solution to the problem uses optimal solutions of its subproblems. Climbing Stairs: f(n) = f(n-1) + f(n-2) satisfies both. Keywords like 'count ways', 'min/max', 'longest/shortest' often signal DP." }
 ])}
 
 `;
