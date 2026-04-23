@@ -1220,19 +1220,31 @@ function quizHTML(id, questions) {
 
 // ─── REVISION ────────────────────────────────────
 function markTopic(topic, status) {
-  if (status === 'mastered') {
-    state.mastered = [...new Set([...state.mastered, topic])];
-    state.review = state.review.filter(t => t !== topic);
-  } else {
-    state.review = [...new Set([...state.review, topic])];
+  var alreadySet = false;
+  if (status === 'mastered' && state.mastered.includes(topic)) {
     state.mastered = state.mastered.filter(t => t !== topic);
+    alreadySet = true;
+  } else if (status === 'review' && state.review.includes(topic)) {
+    state.review = state.review.filter(t => t !== topic);
+    alreadySet = true;
+  }
+  if (!alreadySet) {
+    if (status === 'mastered') {
+      state.mastered = [...new Set([...state.mastered, topic])];
+      state.review = state.review.filter(t => t !== topic);
+    } else {
+      state.review = [...new Set([...state.review, topic])];
+      state.mastered = state.mastered.filter(t => t !== topic);
+    }
   }
   saveState();
-  const btns = document.querySelectorAll('.revision-btn');
-  btns.forEach(b => { b.classList.remove('mastered','review'); });
-  document.querySelectorAll(`.revision-btn[data-topic="${topic}"]`).forEach(b => {
-    if (status === 'mastered') b.classList.add('mastered');
-    else if (status === 'review') b.classList.add('review');
+  updateProgress();
+  document.querySelectorAll('.revision-btn[data-topic="' + topic + '"]').forEach(function(b) {
+    b.classList.remove('mastered','review');
+    if (!alreadySet) {
+      if (status === 'mastered' && b.textContent.indexOf('Master') !== -1) b.classList.add('mastered');
+      if (status === 'review' && b.textContent.indexOf('Review') !== -1) b.classList.add('review');
+    }
   });
 }
 
