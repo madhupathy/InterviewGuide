@@ -273,6 +273,72 @@ class Flag {
   </div>
 </div>
 
+<h2 class="section-title">== vs .equals() — Critical Distinction</h2>
+<table class="data-table">
+  <tr><th>Operator</th><th>Compares</th><th>Use When</th></tr>
+  <tr><td><code>==</code></td><td>Reference identity (same memory address)</td><td>Primitives, checking same object instance, null check</td></tr>
+  <tr><td><code>.equals()</code></td><td>Value equality (per object's contract)</td><td>Comparing object content (Strings, wrappers, custom objects)</td></tr>
+</table>
+<div class="code-block"><pre>String a = <span class="kw">new</span> String(<span class="str">"hello"</span>);
+String b = <span class="kw">new</span> String(<span class="str">"hello"</span>);
+a == b           <span class="cm">// false — different objects in heap</span>
+a.equals(b)      <span class="cm">// true — same content</span>
+
+<span class="cm">// String pool gotcha</span>
+String x = <span class="str">"hello"</span>;       <span class="cm">// goes to string pool</span>
+String y = <span class="str">"hello"</span>;       <span class="cm">// reuses pool reference</span>
+x == y           <span class="cm">// true — same pool reference (but DON'T rely on this)</span>
+
+<span class="cm">// Integer caching: -128 to 127 are cached</span>
+Integer i1 = <span class="num">100</span>, i2 = <span class="num">100</span>;
+i1 == i2         <span class="cm">// true — cached</span>
+Integer j1 = <span class="num">200</span>, j2 = <span class="num">200</span>;
+j1 == j2         <span class="cm">// false — outside cache, new objects</span></pre></div>
+<div class="callout callout-amber">
+  <strong>The equals/hashCode contract:</strong> If <code>a.equals(b)</code> is true, then <code>a.hashCode() == b.hashCode()</code> MUST be true. Override both together — breaking this corrupts HashMap/HashSet behavior. Inverse not required (different objects can share hashCode).
+</div>
+
+<h2 class="section-title">final vs finally vs finalize</h2>
+<table class="data-table">
+  <tr><th>Keyword</th><th>Where</th><th>Purpose</th></tr>
+  <tr><td><code>final</code></td><td>Variable, method, or class</td><td>Variable: cannot reassign. Method: cannot override. Class: cannot extend.</td></tr>
+  <tr><td><code>finally</code></td><td>After try/catch block</td><td>Always executes (even on exception or return) — used for cleanup (close streams, release locks)</td></tr>
+  <tr><td><code>finalize()</code></td><td>Method on Object</td><td><strong>Deprecated since Java 9.</strong> Was called by GC before destruction. Unreliable. Use try-with-resources or Cleaner instead.</td></tr>
+</table>
+<div class="code-block"><pre><span class="kw">final int</span> MAX = <span class="num">100</span>;        <span class="cm">// constant</span>
+<span class="kw">final</span> List&lt;String&gt; list = <span class="kw">new</span> ArrayList&lt;&gt;();
+list.add(<span class="str">"ok"</span>);              <span class="cm">// ✅ allowed — reference is final, contents aren't</span>
+list = <span class="kw">new</span> ArrayList&lt;&gt;();    <span class="cm">// ❌ compile error — can't reassign reference</span>
+
+<span class="cm">// try-with-resources replaces finalize for cleanup</span>
+<span class="kw">try</span> (BufferedReader r = <span class="kw">new</span> BufferedReader(<span class="kw">new</span> FileReader(file))) {
+  <span class="kw">return</span> r.readLine();
+}  <span class="cm">// auto-closes, even if exception thrown</span></pre></div>
+
+<h2 class="section-title">Immutability — How & Why</h2>
+<div class="callout callout-blue">
+  An immutable object's state cannot change after construction. Inherently thread-safe. Easy to cache, share, and reason about. Java's String, Integer, BigDecimal are immutable.
+</div>
+<div class="code-block"><pre><span class="cm">// Recipe for immutability</span>
+<span class="kw">public final class</span> Money {              <span class="cm">// 1. final class — no subclassing</span>
+  <span class="kw">private final</span> BigDecimal amount;     <span class="cm">// 2. final fields</span>
+  <span class="kw">private final</span> String currency;
+  <span class="kw">private final</span> List&lt;String&gt; tags;
+
+  <span class="kw">public</span> Money(BigDecimal amount, String currency, List&lt;String&gt; tags) {
+    <span class="kw">this</span>.amount = amount;
+    <span class="kw">this</span>.currency = currency;
+    <span class="kw">this</span>.tags = List.copyOf(tags);       <span class="cm">// 3. defensive copy of mutable params</span>
+  }
+
+  <span class="kw">public</span> List&lt;String&gt; getTags() {
+    <span class="kw">return</span> List.copyOf(tags);             <span class="cm">// 4. return defensive copy / unmodifiable view</span>
+  }                                          <span class="cm">// 5. no setters</span>
+}
+
+<span class="cm">// Java 16+: records make this trivial (auto-generates equals, hashCode, toString)</span>
+<span class="kw">public record</span> Point(<span class="kw">int</span> x, <span class="kw">int</span> y) {}</pre></div>
+
 <h2 class="section-title">Common Coding Problems</h2>
 <div class="accordion">
   <div class="accordion-item">
@@ -629,6 +695,61 @@ ref.compareAndSet("old", "new"); // lock-free update</pre></div>
   </div>
 </div>
 
+<h2 class="section-title">volatile, synchronized & Atomics</h2>
+<table class="data-table">
+  <tr><th>Mechanism</th><th>Guarantees</th><th>Use When</th><th>Cost</th></tr>
+  <tr><td><strong>volatile</strong></td><td>Visibility + ordering. NOT atomicity.</td><td>Single-writer flags, double-checked locking</td><td>Cheap — memory barrier only</td></tr>
+  <tr><td><strong>synchronized</strong></td><td>Visibility + atomicity + mutual exclusion</td><td>Compound operations on shared state</td><td>Lock acquisition + context switch</td></tr>
+  <tr><td><strong>AtomicInteger / AtomicLong</strong></td><td>Atomic compound ops via CAS (compare-and-swap)</td><td>Counters, sequence generators</td><td>Non-blocking, faster than synchronized</td></tr>
+  <tr><td><strong>ReentrantLock</strong></td><td>Same as synchronized + tryLock, fair, interruptible</td><td>Need timeout, fairness, or condition variables</td><td>Slightly more than synchronized</td></tr>
+</table>
+<div class="code-block"><pre><span class="cm">// volatile alone is NOT enough for counter++  (read-modify-write is not atomic)</span>
+<span class="kw">private volatile int</span> count = <span class="num">0</span>;
+count++;  <span class="cm">// ❌ race condition still possible!</span>
+
+<span class="cm">// Correct: use AtomicInteger</span>
+<span class="kw">private final</span> AtomicInteger count = <span class="kw">new</span> AtomicInteger(<span class="num">0</span>);
+count.incrementAndGet();  <span class="cm">// ✅ atomic via CAS</span>
+
+<span class="cm">// Classic use of volatile: visibility flag</span>
+<span class="kw">private volatile boolean</span> running = <span class="kw">true</span>;
+<span class="kw">public void</span> stop() { running = <span class="kw">false</span>; }  <span class="cm">// other threads see this immediately</span></pre></div>
+
+<h2 class="section-title">ConcurrentHashMap vs HashMap vs Hashtable</h2>
+<table class="data-table">
+  <tr><th></th><th>HashMap</th><th>Hashtable</th><th>ConcurrentHashMap</th></tr>
+  <tr><td><strong>Thread-safe</strong></td><td>❌ No</td><td>✅ Yes (synchronized)</td><td>✅ Yes (lock-striping)</td></tr>
+  <tr><td><strong>Locking</strong></td><td>None</td><td>Locks entire map</td><td>Locks individual buckets (Java 8+: synchronized + CAS)</td></tr>
+  <tr><td><strong>null keys/values</strong></td><td>1 null key, many null values</td><td>No nulls</td><td>No nulls</td></tr>
+  <tr><td><strong>Iterator</strong></td><td>Fail-fast (CME)</td><td>Fail-fast</td><td>Fail-safe (weakly consistent)</td></tr>
+  <tr><td><strong>Performance</strong></td><td>Fastest (single-thread)</td><td>Slow (one global lock)</td><td>Fast under contention</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Senior question:</strong> Why is ConcurrentHashMap faster than Hashtable? Java 8+ uses CAS for the first write to a bucket, only falling back to synchronization on collision. Reads are lock-free — they use volatile reads on the bucket array. Multiple threads writing to different buckets proceed in parallel.
+</div>
+
+<h2 class="section-title">ThreadLocal — Per-Thread State</h2>
+<div class="callout callout-blue">
+  Each thread gets its own copy of the variable. Used for: SimpleDateFormat (not thread-safe), security context, transaction context, request tracing.
+</div>
+<div class="code-block"><pre><span class="kw">private static final</span> ThreadLocal&lt;SimpleDateFormat&gt; formatter =
+    ThreadLocal.withInitial(() -&gt; <span class="kw">new</span> SimpleDateFormat(<span class="str">"yyyy-MM-dd"</span>));
+
+<span class="kw">public</span> String format(Date d) {
+  <span class="kw">return</span> formatter.get().format(d);  <span class="cm">// safe — each thread has own instance</span>
+}
+
+<span class="cm">// CRITICAL: clean up in finally block when using thread pools</span>
+<span class="kw">try</span> {
+  context.set(userId);
+  doWork();
+} <span class="kw">finally</span> {
+  context.remove();  <span class="cm">// otherwise: memory leak + value bleeds to next request</span>
+}</pre></div>
+<div class="callout callout-amber">
+  <strong>Pitfall with thread pools:</strong> Pool reuses threads → ThreadLocal values from request 1 may persist into request 2 if not cleaned. Always <code>remove()</code> in <code>finally</code>. With virtual threads (Java 21+), prefer <strong>ScopedValue</strong> — designed for this case.
+</div>
+
 <h2 class="section-title">ExecutorService & Thread Pools</h2>
 <div class="code-block"><pre>// Fixed pool — good for CPU-bound work
 ExecutorService pool = Executors.newFixedThreadPool(
@@ -722,7 +843,6 @@ pages['java-streams'] = () => `
 </div>
 </div>
 
-
 <div class="code-block"><pre>List&lt;String&gt; names = List.of("Alice", "Bob", "Charlie", "Dave", "Anna");
 
 // filter + map + collect
@@ -814,65 +934,6 @@ Optional&lt;String&gt; first = names.stream()
   .filter(n -> n.startsWith("A"))
   .findFirst();  // Optional&lt;String&gt;
 first.ifPresent(System.out::println);</pre></div>
-
-<h2 class="section-title">reduce & collect</h2>
-<div class="code-block"><pre>List&lt;Integer&gt; numbers = List.of(1, 2, 3, 4, 5);
-
-// reduce — fold all elements into one value
-int sum = numbers.stream().reduce(0, Integer::sum);       // 15
-int max = numbers.stream().reduce(Integer.MIN_VALUE, Math::max); // 5
-
-// collect with Collectors
-List&lt;Integer&gt; evens = numbers.stream()
-  .filter(n -> n % 2 == 0)
-  .collect(Collectors.toList());                          // [2, 4]
-
-String joined = names.stream().collect(Collectors.joining(", ")); // "Alice, Bob, ..."
-
-Map&lt;Integer, List&lt;String&gt;&gt; byLength = names.stream()
-  .collect(Collectors.groupingBy(String::length));
-// {3=[Bob], 4=[Dave, Anna], 5=[Alice], 7=[Charlie]}</pre></div>
-
-<h2 class="section-title">flatMap, groupingBy, partitioningBy</h2>
-<div class="code-block"><pre>// flatMap — flatten nested collections
-List&lt;List&lt;Integer&gt;&gt; nested = List.of(List.of(1,2), List.of(3,4));
-List&lt;Integer&gt; flat = nested.stream()
-  .flatMap(List::stream)
-  .collect(Collectors.toList());    // [1, 2, 3, 4]
-
-// groupingBy
-Map&lt;String, Long&gt; countByDept = employees.stream()
-  .collect(Collectors.groupingBy(Employee::getDept, Collectors.counting()));
-
-// partitioningBy — splits into true/false groups
-Map&lt;Boolean, List&lt;Integer&gt;&gt; oddEven = numbers.stream()
-  .collect(Collectors.partitioningBy(n -> n % 2 == 0));
-// {false=[1,3,5], true=[2,4]}</pre></div>
-
-<h2 class="section-title">Parallel Streams</h2>
-<div class="callout callout-amber">
-  <strong>Use parallel streams carefully.</strong> They use the ForkJoinPool. Overhead of splitting/merging can outweigh benefits for small collections. Best for large datasets with CPU-intensive, stateless operations.
-</div>
-<div class="code-block"><pre>// Just add .parallel() or use parallelStream()
-long count = largeList.parallelStream()
-  .filter(item -> expensiveCheck(item))
-  .count();
-
-// DON'T use parallel for I/O-bound or stateful operations
-// DON'T use when order matters (unless you use forEachOrdered)
-// DO use for large collections with CPU-heavy, independent operations</pre></div>
-
-<h2 class="section-title">Optional — avoiding NullPointerException</h2>
-<div class="code-block"><pre>Optional&lt;String&gt; opt = Optional.ofNullable(getName()); // might be null
-
-opt.isPresent();                    // check
-opt.get();                          // get (throws if empty)
-opt.orElse("default");             // safe fallback
-opt.orElseGet(() -> computeDefault()); // lazy fallback
-opt.orElseThrow(() -> new RuntimeException("Not found"));
-opt.map(String::toUpperCase)        // transform if present
-   .filter(s -> s.length() &gt; 3)
-   .ifPresent(System.out::println);</pre></div>
 
 ${quizHTML('java-streams', [
   { q: "Streams are lazy — what does this mean?", opts: ["Data is loaded lazily from disk", "They run in background threads", "They execute slowly", "Intermediate ops (filter/map) don't execute until a terminal op (collect/count) triggers the pipeline"], ans: 3, exp: "filter(), map(), sorted() — none execute immediately. They build a pipeline. Only terminal operations (collect, count, forEach, reduce, findFirst) trigger execution. This enables short-circuit optimizations like findFirst stopping after first match." },
@@ -1234,41 +1295,89 @@ public class PaymentService {
   <strong>Common trap:</strong> Injecting a Prototype bean into a Singleton → you get the SAME prototype instance forever. Fix: use <code>ObjectProvider&lt;T&gt;</code> or <code>@Lookup</code> method to get fresh instances.
 </div>
 
-<h2 class="section-title">Two-Level Caching — EhCache + Redis</h2>
-<div class="accordion">
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Architecture: L1 (in-memory) + L2 (distributed) <span class="accordion-arrow">▼</span></div>
-    <div class="accordion-body">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin-bottom:12px">
-        Request → <strong>L1: EhCache</strong> (in-process, ~1μs) → hit? return<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;miss → <strong>L2: Redis</strong> (network, ~1ms) → hit? return + populate L1<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;miss → <strong>Database</strong> → return + populate L2 + L1
-      </div>
-      <div class="code-block"><pre><span class="cm">// CompositeCacheManager combines both layers</span>
+<h2 class="section-title">Spring Profiles</h2>
+<div class="callout callout-blue">
+  Profiles let you load different beans/configs per environment (dev, staging, prod) without code changes. Activated via <code>spring.profiles.active</code> property, JVM arg, or env variable.
+</div>
+<div class="code-block"><pre><span class="ann">@Configuration</span>
+<span class="ann">@Profile</span>(<span class="str">"dev"</span>)
+<span class="kw">public class</span> DevDataSourceConfig {
+  <span class="ann">@Bean</span> <span class="kw">public</span> DataSource ds() { <span class="kw">return new</span> H2DataSource(); }
+}
+
 <span class="ann">@Configuration</span>
-<span class="ann">@EnableCaching</span>
-<span class="kw">public class</span> CacheConfig {
-  <span class="ann">@Bean</span>
-  <span class="kw">public</span> CacheManager cacheManager() {
-    <span class="kw">return new</span> CompositeCacheManager(
-      ehCacheManager(),    <span class="cm">// L1: in-process, fast, limited size</span>
-      redisCacheManager()  <span class="cm">// L2: distributed, shared across instances</span>
-    );
+<span class="ann">@Profile</span>(<span class="str">"prod"</span>)
+<span class="kw">public class</span> ProdDataSourceConfig {
+  <span class="ann">@Bean</span> <span class="kw">public</span> DataSource ds() { <span class="kw">return new</span> HikariDataSource(); }
+}
+
+<span class="cm">// Activate: java -jar app.jar --spring.profiles.active=prod</span>
+<span class="cm">// Or in application.yml: spring.profiles.active: prod</span>
+<span class="cm">// Multiple: --spring.profiles.active=prod,monitoring</span></pre></div>
+
+<h2 class="section-title">Spring Boot Actuator</h2>
+<div class="callout callout-blue">
+  Production-ready monitoring endpoints — health checks, metrics, config visibility, thread dumps. Add <code>spring-boot-starter-actuator</code> dependency. Critical for K8s liveness/readiness probes and observability.
+</div>
+<table class="data-table">
+  <tr><th>Endpoint</th><th>Purpose</th><th>K8s Use</th></tr>
+  <tr><td><code>/actuator/health</code></td><td>App health (UP/DOWN) + components (DB, Redis, disk)</td><td>liveness + readiness probe</td></tr>
+  <tr><td><code>/actuator/metrics</code></td><td>JVM, HTTP, custom metrics — scraped by Prometheus</td><td>HPA scaling decisions</td></tr>
+  <tr><td><code>/actuator/info</code></td><td>Build info, git commit, version</td><td>Deploy verification</td></tr>
+  <tr><td><code>/actuator/prometheus</code></td><td>Metrics in Prometheus format</td><td>Direct scrape target</td></tr>
+  <tr><td><code>/actuator/env</code></td><td>All environment properties — <strong>secure this!</strong></td><td>Debug config issues</td></tr>
+  <tr><td><code>/actuator/threaddump</code></td><td>JVM thread dump — debug deadlocks</td><td>Production troubleshooting</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Security:</strong> By default only <code>/health</code> is exposed. Expose others explicitly: <code>management.endpoints.web.exposure.include=health,metrics,prometheus</code>. Never expose <code>/env</code> or <code>/configprops</code> publicly — they leak secrets.
+</div>
+
+<h2 class="section-title">@Async — Non-blocking Methods</h2>
+<div class="callout callout-blue">
+  Run a method in a separate thread without manually managing executors. Caller returns immediately. Method must be on a different bean (Spring proxies don't intercept self-calls).
+</div>
+<div class="code-block"><pre><span class="ann">@SpringBootApplication</span>
+<span class="ann">@EnableAsync</span>  <span class="cm">// REQUIRED — enables async processing</span>
+<span class="kw">public class</span> App { ... }
+
+<span class="ann">@Service</span>
+<span class="kw">public class</span> EmailService {
+  <span class="ann">@Async</span>
+  <span class="kw">public</span> CompletableFuture&lt;Boolean&gt; sendEmail(String to) {
+    <span class="cm">// runs in SimpleAsyncTaskExecutor by default</span>
+    smtpClient.send(to);
+    <span class="kw">return</span> CompletableFuture.completedFuture(<span class="kw">true</span>);
   }
 }
 
-<span class="cm">// Service layer — Spring handles L1/L2 transparently</span>
-<span class="ann">@Cacheable</span>(value = <span class="str">"users"</span>, key = <span class="str">"#id"</span>)
-<span class="kw">public</span> User getUserById(Long id) {
-  <span class="kw">return</span> userRepository.findById(id).orElse(<span class="kw">null</span>);
+<span class="cm">// Configure custom executor (recommended for prod)</span>
+<span class="ann">@Bean</span>(name = <span class="str">"emailExecutor"</span>)
+<span class="kw">public</span> Executor emailExecutor() {
+  ThreadPoolTaskExecutor ex = <span class="kw">new</span> ThreadPoolTaskExecutor();
+  ex.setCorePoolSize(<span class="num">5</span>);
+  ex.setMaxPoolSize(<span class="num">20</span>);
+  ex.setQueueCapacity(<span class="num">500</span>);
+  ex.setThreadNamePrefix(<span class="str">"email-"</span>);
+  <span class="kw">return</span> ex;
 }
+<span class="cm">// Use: @Async("emailExecutor")</span></pre></div>
+<div class="callout callout-amber">
+  <strong>Common gotchas:</strong> Self-invocation doesn't work (proxy bypassed) — call from another bean. Default executor is unbounded — always configure your own. Return <code>CompletableFuture</code> to track completion; <code>void</code> means fire-and-forget with no error visibility.
+</div>
 
-<span class="ann">@CacheEvict</span>(value = <span class="str">"users"</span>, key = <span class="str">"#user.id"</span>)
-<span class="kw">public</span> User updateUser(User user) {
-  <span class="kw">return</span> userRepository.save(user);  <span class="cm">// evicts from both L1 + L2</span>
-}</pre></div>
-    </div>
-  </div>
+<h2 class="section-title">Bean Lifecycle</h2>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin:14px 0">
+  1. <strong>Instantiate</strong> bean (constructor called)<br>
+  2. <strong>Populate properties</strong> (DI: setters, autowired fields)<br>
+  3. <strong>BeanNameAware/BeanFactoryAware</strong> callbacks<br>
+  4. <strong>BeanPostProcessor.postProcessBeforeInitialization</strong> (e.g., AOP proxies created here)<br>
+  5. <strong>@PostConstruct</strong> / <code>InitializingBean.afterPropertiesSet()</code> / custom init-method<br>
+  6. <strong>BeanPostProcessor.postProcessAfterInitialization</strong><br>
+  7. <strong>Bean ready for use</strong> ✅<br>
+  8. <strong>@PreDestroy</strong> / <code>DisposableBean.destroy()</code> / custom destroy-method (on shutdown)
+</div>
+<div class="callout callout-blue">
+  <strong>Senior interview trap:</strong> AOP proxies are created in step 4 (BeanPostProcessor). That's why <code>@Transactional</code>, <code>@Async</code>, <code>@Cacheable</code> don't work on internal method calls — the proxy is bypassed when you call <code>this.method()</code>. Inject self via <code>@Autowired</code> or split into another bean.
 </div>
 
 ${quizHTML('spring-core', [
