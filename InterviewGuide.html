@@ -1423,79 +1423,67 @@ GET    /search?q=...        { query, cursor } → tweets[]</pre></div>
 </div>
 
 <div class="diagram">
-  <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:'DM Sans',sans-serif;font-size:12px;display:block;margin:0 auto">
+  <svg viewBox="0 0 740 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:740px;font-family:'DM Sans',sans-serif;font-size:12px;display:block;margin:0 auto">
   <defs>
-    <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#64748b"/></marker>
-    <marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/></marker>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/></marker>
   </defs>
 
-  <!-- Client -->
-  <rect x="10" y="95" width="80" height="50" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
-  <text x="50" y="116" text-anchor="middle" font-weight="700" fill="#475569">Client</text>
-  <text x="50" y="132" text-anchor="middle" font-size="10" fill="#64748b">Browser/App</text>
+  <!-- Row 1: Client → CDN → LB → API GW -->
+  <rect x="5" y="60" width="75" height="42" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="42" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#475569">Client</text>
+  <text x="42" y="92" text-anchor="middle" font-size="9" fill="#94a3b8">Browser / App</text>
 
-  <!-- Arrow: client → CDN -->
-  <line x1="90" y1="120" x2="125" y2="120" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="80" y1="81" x2="108" y2="81" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar)"/>
 
-  <!-- CDN -->
-  <rect x="125" y="95" width="70" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="160" y="116" text-anchor="middle" font-weight="700" fill="#065f46">CDN</text>
-  <text x="160" y="132" text-anchor="middle" font-size="10" fill="#047857">Static/Media</text>
+  <rect x="108" y="60" width="65" height="42" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="140" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#065f46">CDN</text>
+  <text x="140" y="92" text-anchor="middle" font-size="9" fill="#059669">Static assets</text>
 
-  <!-- Arrow: client → LB (main path) -->
-  <line x1="90" y1="108" x2="210" y2="80" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="173" y1="81" x2="198" y2="81" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar)"/>
 
-  <!-- Load Balancer -->
-  <rect x="210" y="55" width="90" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-  <text x="255" y="76" text-anchor="middle" font-weight="700" fill="#1d4ed8">Load</text>
-  <text x="255" y="92" text-anchor="middle" font-weight="700" fill="#1d4ed8">Balancer</text>
+  <rect x="198" y="56" width="82" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="239" y="77" text-anchor="middle" font-weight="700" font-size="12" fill="#1d4ed8">Load</text>
+  <text x="239" y="92" text-anchor="middle" font-weight="700" font-size="12" fill="#1d4ed8">Balancer</text>
 
-  <!-- Arrow: LB → API GW -->
-  <line x1="300" y1="80" x2="335" y2="80" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="280" y1="81" x2="305" y2="81" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ar)"/>
 
-  <!-- API Gateway -->
-  <rect x="335" y="55" width="90" height="50" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
-  <text x="380" y="76" text-anchor="middle" font-weight="700" fill="#6d28d9">API</text>
-  <text x="380" y="92" text-anchor="middle" font-weight="700" fill="#6d28d9">Gateway</text>
+  <rect x="305" y="56" width="78" height="50" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="344" y="77" text-anchor="middle" font-weight="700" font-size="12" fill="#6d28d9">API</text>
+  <text x="344" y="92" text-anchor="middle" font-weight="700" font-size="12" fill="#6d28d9">Gateway</text>
 
-  <!-- Arrow: API GW → Services -->
-  <line x1="425" y1="80" x2="455" y2="60" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
-  <line x1="425" y1="80" x2="455" y2="105" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
-  <line x1="425" y1="80" x2="455" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <!-- Fan-out arrows to services -->
+  <line x1="383" y1="70" x2="415" y2="30" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ar)"/>
+  <line x1="383" y1="81" x2="415" y2="81" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ar)"/>
+  <line x1="383" y1="92" x2="415" y2="135" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#ar)"/>
 
-  <!-- Service boxes -->
-  <rect x="455" y="35" width="80" height="36" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
-  <text x="495" y="57" text-anchor="middle" font-weight="600" fill="#c2410c">Auth Svc</text>
+  <!-- Services column -->
+  <rect x="415" y="12" width="80" height="34" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="455" y="33" text-anchor="middle" font-weight="600" font-size="11" fill="#c2410c">Auth Svc</text>
 
-  <rect x="455" y="82" width="80" height="36" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
-  <text x="495" y="104" text-anchor="middle" font-weight="600" fill="#c2410c">User Svc</text>
+  <rect x="415" y="64" width="80" height="34" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="455" y="85" text-anchor="middle" font-weight="600" font-size="11" fill="#c2410c">User Svc</text>
 
-  <rect x="455" y="129" width="80" height="36" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
-  <text x="495" y="151" text-anchor="middle" font-weight="600" fill="#c2410c">Order Svc</text>
+  <rect x="415" y="118" width="80" height="34" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="455" y="139" text-anchor="middle" font-weight="600" font-size="11" fill="#c2410c">Order Svc</text>
 
-  <!-- Arrows: services → DB/Cache -->
-  <line x1="535" y1="53" x2="590" y2="53" stroke="#64748b" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
-  <line x1="535" y1="100" x2="590" y2="80" stroke="#64748b" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
-  <line x1="535" y1="147" x2="590" y2="147" stroke="#64748b" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
+  <!-- Storage column -->
+  <line x1="495" y1="29" x2="540" y2="29" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
+  <line x1="495" y1="81" x2="540" y2="60" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
+  <line x1="495" y1="135" x2="540" y2="135" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
 
-  <!-- Cache -->
-  <rect x="590" y="38" width="80" height="36" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
-  <text x="630" y="60" text-anchor="middle" font-weight="600" fill="#92400e">Redis Cache</text>
+  <rect x="540" y="12" width="80" height="34" rx="6" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+  <text x="580" y="33" text-anchor="middle" font-weight="600" font-size="11" fill="#92400e">Redis</text>
 
-  <!-- Database -->
-  <rect x="590" y="60" width="80" height="36" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-  <text x="630" y="82" text-anchor="middle" font-weight="600" fill="#15803d">PostgreSQL</text>
+  <rect x="540" y="50" width="80" height="34" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="580" y="71" text-anchor="middle" font-weight="600" font-size="11" fill="#15803d">PostgreSQL</text>
 
-  <!-- Message Queue -->
-  <rect x="590" y="130" width="80" height="36" rx="6" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
-  <text x="630" y="152" text-anchor="middle" font-weight="600" fill="#be123c">Kafka/MQ</text>
+  <rect x="540" y="118" width="80" height="34" rx="6" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="580" y="139" text-anchor="middle" font-weight="600" font-size="11" fill="#be123c">Kafka</text>
 
-  <!-- Downstream from MQ -->
-  <line x1="670" y1="148" x2="700" y2="148" stroke="#64748b" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
-  <rect x="700" y="130" width="55" height="36" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-  <text x="727" y="151" text-anchor="middle" font-size="11" font-weight="600" fill="#64748b">Workers</text>
-
-  <!-- Labels at bottom -->
+  <!-- Workers -->
+  <line x1="620" y1="135" x2="650" y2="135" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4" marker-end="url(#ar)"/>
+  <rect x="650" y="118" width="70" height="34" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="685" y="139" text-anchor="middle" font-weight="600" font-size="11" fill="#64748b">Workers</text>
 </svg>
 </div>
 
@@ -1967,6 +1955,11 @@ pages['sd-building'] = () => `
   <div class="callout callout-amber">
     <strong>Numbers to know:</strong> 1 Redis node ≈ 100K ops/sec. 1 Postgres primary ≈ 5K writes/sec. 1 web server ≈ 10K req/sec. 5 read replicas ≈ 5× read throughput. Each shard adds write capacity linearly.
   </div>
+
+${quizHTML('bb-scaling', [
+  { q: "What's the typical scaling order before resorting to database sharding?", opts: ["Shard immediately", "Vertical scale → Cache (Redis) → Read replicas → CDN → Horizontal app servers → Async queues → Sharding", "Microservices first", "Add more RAM only"], ans: 1, exp: "Each step adds ~10× capacity. Sharding is operationally the most expensive — most systems never need it. Start simple: bigger server → Redis cache → read replicas → CDN for static content → stateless app servers behind LB → async processing via queues." },
+  { q: "1 Redis node handles approximately how many ops/sec?", opts: ["1,000", "10,000", "~100,000 ops/sec with sub-millisecond latency", "1 million"], ans: 2, exp: "Redis: ~100K ops/sec single-threaded. PostgreSQL: ~5K writes/sec. Single web server: ~10K req/sec. These numbers help you estimate when you need the next scaling step." }
+])}
 </div>
 
 <div id="block-load-balancing" class="block-section" style="display:none">
@@ -2007,6 +2000,11 @@ pages['sd-building'] = () => `
   <div class="callout callout-green">
     <strong>API Gateway vs Reverse Proxy:</strong> Reverse proxy is simpler — load balancing, SSL, caching. API Gateway adds application-level intelligence — auth, rate limiting per user/key, request/response transformation, versioning, analytics. Use API Gateway when you need cross-cutting API concerns. Use Reverse Proxy for general server efficiency.
   </div>
+
+${quizHTML('bb-lb', [
+  { q: "L7 load balancer advantage over L4?", opts: ["Lower latency", "Routes by URL/headers enabling path-based routing, A/B testing, SSL termination", "Handles more connections", "Lower cost"], ans: 1, exp: "L4 routes by IP/port only — fast but dumb. L7 understands HTTP: can route /api → service A, /static → CDN, add headers, terminate SSL. AWS ALB is L7; NLB is L4." },
+  { q: "API Gateway vs Reverse Proxy — when do you need an API Gateway?", opts: ["Always", "When you need cross-cutting API concerns: auth, rate limiting per key, request transformation, versioning", "Only for microservices", "Never — reverse proxy does everything"], ans: 1, exp: "Reverse Proxy: LB + SSL + caching (simpler). API Gateway adds: authentication, per-user rate limiting, request/response transformation, API versioning, analytics. Use API Gateway when you have multiple client types (web, mobile, third-party) needing different API behaviors." }
+])}
 </div>
 
 <div id="block-caching" class="block-section" style="display:none">
@@ -2093,6 +2091,11 @@ redis.setex(cacheKey, <span class="num">3600</span>, serialize(user));      <spa
       </div>
     </div>
   </div>
+
+${quizHTML('bb-caching', [
+  { q: "Write-through vs write-behind cache — key trade-off?", opts: ["No difference", "Write-through: consistent but slower writes. Write-behind: fast writes but risk data loss if cache crashes before DB flush", "Write-behind is always better", "Write-through loses data"], ans: 1, exp: "Write-through: write to cache AND DB synchronously → data consistent but 2× write latency. Write-behind: write to cache, return to client, flush to DB async → fast but if cache crashes before flush = data lost. Use write-through for financial data, write-behind for analytics counters." },
+  { q: "Redis Sentinel vs Redis Cluster — when to choose Cluster?", opts: ["Always use Cluster", "When dataset exceeds single node memory or you need horizontal write scaling — Cluster shards across 16,384 hash slots", "Cluster is simpler", "Sentinel is deprecated"], ans: 1, exp: "Sentinel: 1 primary + N replicas, auto-failover, all data on every node. Good for <25GB datasets. Cluster: data sharded across nodes, each shard has its own replicas. Needed when data exceeds single-node memory or write throughput exceeds single-primary capacity." }
+])}
 </div>
 
 <div id="block-databases" class="block-section" style="display:none">
@@ -2107,6 +2110,10 @@ redis.setex(cacheKey, <span class="num">3600</span>, serialize(user));      <spa
     <tr><td><strong>Examples</strong></td><td>PostgreSQL, MySQL, Aurora</td><td>MongoDB, Cassandra, DynamoDB, Redis</td></tr>
   </table>
   <div class="callout callout-blue"><strong>Rule of thumb:</strong> If you need transactions or complex queries → SQL. If you need massive horizontal scale or schema flexibility → NoSQL. Most systems use BOTH.</div>
+
+${quizHTML('bb-db', [
+  { q: "When should you choose NoSQL over SQL?", opts: ["Always for new projects", "When you need massive horizontal scale, flexible schema, or a specific data model that doesn't fit tables", "When you don't need transactions", "NoSQL is always faster"], ans: 1, exp: "Default to SQL (PostgreSQL). Switch to NoSQL for: Cassandra (very high write throughput, multi-region), MongoDB (nested document structure), Redis (sub-ms caching), Neo4j (graph traversal). Most systems use BOTH — SQL for transactions, NoSQL for caching/search." }
+])}
 </div>
 
 <div id="block-cap" class="block-section" style="display:none">
@@ -2257,6 +2264,11 @@ redis.setex(cacheKey, <span class="num">3600</span>, serialize(user));      <spa
 <div class="callout callout-blue">
   <strong>SAGA vs 2PC:</strong> 2PC holds distributed locks during both phases — slow, blocking, single point of failure if coordinator crashes. SAGA: each step is a local transaction; rollback via compensating transactions. No locks. Much better availability.
 </div>
+
+${quizHTML('bb-cap', [
+  { q: "In a distributed system during network partition, which should a payment system prioritise?", opts: ["Availability — always respond", "Consistency (CP) — refuse stale reads to prevent double-spending", "Neither matters", "Partition tolerance can be avoided"], ans: 1, exp: "Payments need CP: if two servers have different balances during a partition, a user could spend money they don't have. Accept higher latency and reduced availability during partitions to guarantee correct data. Use PostgreSQL with serializable isolation." },
+  { q: "SAGA vs 2-Phase Commit — why prefer SAGA?", opts: ["SAGA is simpler", "SAGA uses local transactions with compensating actions — no cross-service locks, better availability than 2PC which holds distributed locks", "2PC is deprecated", "No difference"], ans: 1, exp: "2PC: coordinator holds locks on ALL participating services during both phases — one slow service blocks everyone, coordinator crash = all locked. SAGA: each step is a local transaction; on failure, run compensating transactions in reverse. No global locks → much better availability and performance." }
+])}
 </div>
 
 <div id="block-sharding" class="block-section" style="display:none">
@@ -2308,6 +2320,10 @@ key = user_id + "_" + random(0, 100)  // 100 sub-shards
 <div class="callout callout-amber">
   <strong>Virtual nodes:</strong> Each physical node owns 100-200 positions on the ring. Prevents hot spots when servers have different capacities. Adding a server: picks up some virtual nodes from each existing server. Used by: Cassandra, DynamoDB, CDNs, Memcached.
 </div>
+
+${quizHTML('bb-shard', [
+  { q: "Consistent hashing main advantage over hash(key) % N?", opts: ["Faster computation", "Adding/removing a node only moves ~1/N keys instead of reshuffling almost everything", "Better distribution", "Simpler implementation"], ans: 1, exp: "With hash(key) % N: changing N causes nearly ALL keys to rehash — catastrophic cache miss storm. Consistent hashing: keys and nodes sit on a ring. Adding a node only affects keys between the new node and its predecessor (~1/N of total). Used by Cassandra, DynamoDB, CDNs." }
+])}
 </div>
 
 <div id="block-replication" class="block-section" style="display:none">
@@ -2408,6 +2424,10 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
 </table>
 
 
+
+${quizHTML('bb-repl', [
+  { q: "W=2, R=2, N=3 quorum — what does this guarantee?", opts: ["2 writes per second", "At least 1 node overlaps between write and read sets — guarantees reading the latest write (strong consistency)", "Faster reads", "No guarantees"], ans: 1, exp: "W+R > N means read and write sets overlap. With N=3, W=2, R=2: writes go to 2 of 3 nodes, reads check 2 of 3 nodes. At least 1 node has the latest write AND is read → strong consistency. Cassandra uses this with CONSISTENCY QUORUM." }
+])}
 </div><div id="block-acid" class="block-section" style="display:none">
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
   <div style="background:#fffbeb;border:2px solid #d97706;border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start">
@@ -2484,6 +2504,10 @@ SHOW SLAVE STATUS\G  -- Seconds_Behind_Master
   <strong>Real systems blend both:</strong> Use ACID (PostgreSQL) for payments and inventory. Use BASE (Redis/Cassandra) for caching, session storage, and analytics. Don't choose globally — choose per feature.
 </div>
 
+
+${quizHTML('bb-acid', [
+  { q: "MVCC (Multi-Version Concurrency Control) — what problem does it solve?", opts: ["Disk space", "Readers don't block writers and writers don't block readers — each transaction sees a consistent snapshot without locks", "Network latency", "Schema changes"], ans: 1, exp: "Without MVCC: reads must wait for writes to complete (or vice versa) via locks → poor concurrency. With MVCC (PostgreSQL, MySQL InnoDB): each transaction sees a snapshot of the DB at its start time. Writes create new versions, reads see the version valid at their snapshot time. No read locks needed." }
+])}
 </div><div id="block-indexes" class="block-section" style="display:none">
   <h2 class="section-title">Database Indexes</h2>
   <div class="callout callout-blue">
@@ -2547,47 +2571,58 @@ EXPLAIN SELECT * FROM orders WHERE user_id=5 AND created_at > '2024-01-01';
       </div>
     </div>
   </div>
+
+${quizHTML('bb-idx', [
+  { q: "Composite index (a, b, c) — which query does NOT use it?", opts: ["WHERE a=1", "WHERE a=1 AND b=2", "WHERE b=2 (skips leftmost column a — index unusable)", "WHERE a=1 AND b=2 AND c=3"], ans: 2, exp: "Leftmost prefix rule: composite index (a,b,c) supports queries that start from the left. WHERE a=1 ✅, WHERE a=1 AND b=2 ✅, WHERE a=1 AND b=2 AND c=3 ✅. But WHERE b=2 ❌ (skips 'a'). WHERE a=1 AND c=3 partially uses index (only 'a' part)." }
+])}
 </div>
 
 
 
 <div id="block-apis" class="block-section" style="display:none">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0">
-<svg viewBox="0 0 500 320" style="width:100%;max-width:500px;display:block;margin:0 auto">
+<svg viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;display:block;margin:0 auto;font-family:'DM Sans',sans-serif">
   <defs>
-    <marker id="af" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#374151"/></marker>
+    <marker id="af" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#64748b"/></marker>
   </defs>
-  <!-- Top diamond -->
-  <polygon points="250,20 320,65 250,110 180,65" fill="white" stroke="#374151" stroke-width="2"/>
-  <text x="250" y="58" text-anchor="middle" font-size="11" fill="#111827">Is the API</text>
-  <text x="250" y="73" text-anchor="middle" font-size="11" fill="#111827">client-facing</text>
-  <text x="250" y="88" text-anchor="middle" font-size="11" fill="#111827">or internal?</text>
-  <!-- Client-facing left -->
-  <line x1="180" y1="65" x2="100" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
-  <text x="128" y="108" font-size="11" fill="#374151">Client-facing</text>
-  <!-- Internal right -->
-  <line x1="320" y1="65" x2="420" y2="150" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
-  <text x="355" y="108" font-size="11" fill="#374151">Internal</text>
-  <!-- RPC box -->
-  <rect x="360" y="150" width="110" height="40" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="415" y="175" text-anchor="middle" font-size="14" font-weight="700" fill="#065f46">gRPC</text>
-  <!-- Second diamond -->
-  <polygon points="100,150 170,200 100,250 30,200" fill="white" stroke="#374151" stroke-width="2"/>
-  <text x="100" y="193" text-anchor="middle" font-size="10" fill="#111827">Over/under</text>
-  <text x="100" y="208" text-anchor="middle" font-size="10" fill="#111827">fetching a</text>
-  <text x="100" y="220" text-anchor="middle" font-size="10" fill="#111827">concern?</text>
-  <!-- Yes left -->
-  <line x1="30" y1="200" x2="30" y2="270" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
-  <text x="8" y="240" font-size="10" fill="#374151">Yes</text>
-  <!-- No right -->
-  <line x1="170" y1="200" x2="200" y2="270" stroke="#374151" stroke-width="1.5" marker-end="url(#af)"/>
-  <text x="178" y="240" font-size="10" fill="#374151">No</text>
-  <!-- GraphQL box -->
-  <rect x="-10" y="270" width="100" height="40" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="40" y="295" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">GraphQL</text>
-  <!-- REST box -->
-  <rect x="155" y="270" width="90" height="40" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
-  <text x="200" y="295" text-anchor="middle" font-size="14" font-weight="700" fill="#991b1b">REST</text>
+  <!-- Top question -->
+  <rect x="180" y="10" width="240" height="50" rx="10" fill="#f8fafc" stroke="#374151" stroke-width="2"/>
+  <text x="300" y="32" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">Is the API client-facing</text>
+  <text x="300" y="48" text-anchor="middle" font-size="13" font-weight="600" fill="#111827">or internal?</text>
+
+  <!-- Left arrow: Client-facing -->
+  <line x1="220" y1="60" x2="120" y2="115" stroke="#64748b" stroke-width="2" marker-end="url(#af)"/>
+  <text x="155" y="85" font-size="12" font-weight="600" fill="#64748b">Client-facing</text>
+
+  <!-- Right arrow: Internal -->
+  <line x1="380" y1="60" x2="490" y2="115" stroke="#64748b" stroke-width="2" marker-end="url(#af)"/>
+  <text x="430" y="85" font-size="12" font-weight="600" fill="#64748b">Internal</text>
+
+  <!-- gRPC box (right) -->
+  <rect x="440" y="115" width="120" height="45" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="500" y="143" text-anchor="middle" font-size="16" font-weight="700" fill="#065f46">gRPC</text>
+
+  <!-- Second question (left) -->
+  <rect x="20" y="115" width="200" height="50" rx="10" fill="#f8fafc" stroke="#374151" stroke-width="2"/>
+  <text x="120" y="137" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">Over/under-fetching</text>
+  <text x="120" y="153" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">a concern?</text>
+
+  <!-- Yes → GraphQL -->
+  <line x1="60" y1="165" x2="60" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#af)"/>
+  <text x="40" y="185" font-size="11" font-weight="600" fill="#64748b">Yes</text>
+  <rect x="10" y="200" width="110" height="45" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="65" y="228" text-anchor="middle" font-size="15" font-weight="700" fill="#1e40af">GraphQL</text>
+
+  <!-- No → REST -->
+  <line x1="180" y1="165" x2="230" y2="200" stroke="#64748b" stroke-width="2" marker-end="url(#af)"/>
+  <text x="210" y="185" font-size="11" font-weight="600" fill="#64748b">No</text>
+  <rect x="190" y="200" width="100" height="45" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="240" y="228" text-anchor="middle" font-size="16" font-weight="700" fill="#991b1b">REST</text>
+
+  <!-- Labels underneath -->
+  <text x="65" y="255" text-anchor="middle" font-size="10" fill="#94a3b8">Mobile BFF, flexible queries</text>
+  <text x="240" y="255" text-anchor="middle" font-size="10" fill="#94a3b8">Public APIs, CRUD</text>
+  <text x="500" y="172" text-anchor="middle" font-size="10" fill="#94a3b8">Low-latency, streaming</text>
 </svg>
 </div>
 
@@ -2672,6 +2707,11 @@ X-RateLimit-Limit:     1000    <span class="cm">// total allowed per window</spa
 X-RateLimit-Remaining: 842     <span class="cm">// left in current window</span>
 X-RateLimit-Reset:     1704067 <span class="cm">// epoch when window resets</span>
 Retry-After:           30      <span class="cm">// seconds (on 429 only)</span></pre></div>
+
+${quizHTML('bb-apis', [
+  { q: "REST vs gRPC — when to choose gRPC for microservices?", opts: ["Always use REST", "gRPC for internal services: binary Protocol Buffers, HTTP/2 multiplexing, native streaming — 5-10× less overhead than JSON/HTTP", "gRPC when browser support needed", "Only for Google services"], ans: 1, exp: "gRPC wins for internal service-to-service: Protocol Buffers ~6× smaller than JSON, HTTP/2 multiplexes streams on one connection, native bi-directional streaming. Use REST for public APIs and browser clients." },
+  { q: "PUT vs PATCH — when to use PATCH?", opts: ["Always use PUT", "PATCH for partial updates — only sends changed fields. PUT replaces the entire resource (missing fields get nulled)", "They're identical", "PATCH is deprecated"], ans: 1, exp: "PUT: send complete object — server replaces everything. If you omit a field, it becomes null. PATCH: send only what changed — server merges with existing. Use PATCH for most updates (safer). Use PUT when intentionally replacing the full resource." }
+])}
 </div>
 
 <div id="block-auth" class="block-section" style="display:none">
@@ -2809,20 +2849,14 @@ String hashed = BCrypt.hashpw(password, BCrypt.gensalt(12));</pre></div>
 </div>
 
 <hr class="section-sep">
+
+${quizHTML('bb-auth', [
+  { q: "JWT vs Session tokens — key difference?", opts: ["JWT is always encrypted", "JWT is stateless (server doesn't store it) — session tokens require server-side storage (Redis/DB) for lookup", "Sessions are stateless", "No difference"], ans: 1, exp: "Session: server stores session data (Redis/DB), sends session ID cookie to client, every request = server lookup. JWT: all claims encoded in the token itself (base64 header.payload.signature), server verifies signature without storage. JWT scales better (no shared session store) but can't be revoked instantly." },
+  { q: "mTLS vs regular TLS — what's different?", opts: ["mTLS is faster", "In mTLS BOTH client AND server present certificates — mutual authentication, preventing rogue services from impersonating legitimate ones", "mTLS uses different encryption", "Regular TLS is more secure"], ans: 1, exp: "Regular TLS: only server proves identity (presents certificate). Client trusts server but server doesn't verify client. mTLS: both sides present certificates. Server verifies client is authorized. Used for service-to-service auth in microservices (Istio enables this cluster-wide)." }
+])}
 </div>
 
-${quizHTML('sd-building', [
-    { q: "L7 load balancer advantage over L4?", opts: ["Lower latency", "Routes by URL/headers enabling path-based routing, A/B testing, SSL termination", "Handles more connections", "Lower cost"], ans: 1, exp: "L4 routes by IP/port only — fast but dumb. L7 understands HTTP: can route /api → service A, /static → CDN, add headers, terminate SSL. AWS ALB is L7; NLB is L4." },
-    { q: "W=2, R=2, N=3 quorum means?", opts: ["2 writes and 2 reads per second", "At least 1 node overlaps between write and read sets, guaranteeing consistency", "System has 2 leaders", "2 replicas are standby"], ans: 1, exp: "W+R=4 > N=3 means at least 1 node must have participated in both last write and current read. This node has the latest data, guaranteeing you always read what was last written." },
-    { q: "ACID Isolation: what does MVCC solve?", opts: ["Disk space", "Allows high concurrency by giving each transaction a snapshot, avoiding read locks", "Network partitions", "Index fragmentation"], ans: 1, exp: "MVCC (Multi-Version Concurrency Control) maintains multiple versions of data. Readers get a consistent snapshot without blocking writers. Writers don't block readers. Used by PostgreSQL, MySQL InnoDB, Oracle." },
-    { q: "Composite index (a, b, c) — which query does NOT use it?", opts: ["WHERE a=1", "WHERE a=1 AND b=2", "WHERE b=2 AND c=3", "WHERE a=1 AND b=2 AND c=3"], ans: 2, exp: "Composite indexes follow the leftmost prefix rule. To use the index, queries must include the leftmost column(s). WHERE b=2 skips 'a' — the index cannot be used. MySQL will do a full scan." },
-    { q: "Consistent hashing main advantage?", opts: ["Guarantees equal load", "Adding/removing a node reshuffles only ~1/N keys instead of all keys", "Requires no hash function", "Prevents hot spots automatically"], ans: 1, exp: "With naive hash (key % N), adding a node changes N, reshuffling almost all keys — catastrophic cache miss storm. Consistent hashing: keys and servers on a ring. Adding 1 server affects only keys between it and its predecessor (~1/N of total)." }
-  ,
-  { q: "Vertical vs horizontal scaling — when does vertical scaling stop working?", opts: ["Never", "At hardware ceiling (~128 vCPUs, ~24TB RAM for largest instances) and becomes single point of failure", "After 100 users", "When cost exceeds budget"], ans: 1, exp: "Vertical (scale up): fast, no app changes, but expensive, hardware ceiling, single point of failure. Horizontal (scale out): infinite scale, fault tolerant, but requires stateless design, session management. In practice: scale vertically first (simpler), then horizontal when needed." },
-  { q: "What is connection pooling and why is it critical for DB scaling?", opts: ["Grouping DB servers together", "Reusing existing DB connections instead of creating new ones — each connection costs ~100ms setup + memory", "Load balancing queries", "Caching query results"], ans: 1, exp: "New DB connection: TCP handshake + auth + session setup = ~100ms and ~5MB memory. 1000 req/s × 100ms = connection queue backup. Connection pool keeps 10-100 connections warm. HikariCP (Java default), PgBouncer (Postgres). Set pool size = (cores × 2) + effective_spindle_count." },
-  { q: "Write-through cache vs write-behind — consistency trade-off?", opts: ["Write-through is always slower", "Write-through: strong consistency (DB+cache always in sync), higher write latency. Write-behind: lower latency, risk of data loss if cache crashes before flush", "No difference", "Write-behind is always preferred"], ans: 1, exp: "Write-through: write to cache AND DB synchronously. Safe but slower writes. Write-behind (write-back): write to cache, return to client, flush to DB async. Fast writes but if cache crashes before flush = data loss. Use write-through for financial data, write-behind for analytics." },
-  { q: "CDN cache invalidation — what are the main strategies?", opts: ["CDN never invalidates", "TTL expiry, URL versioning (content hash in URL), API-based purge (CloudFront invalidation), Cache-Control headers", "Manual deletion only", "Restart CDN nodes"], ans: 1, exp: "Strategies: 1) TTL: cache for N seconds, auto-expires. Simple but stale during TTL. 2) URL versioning: /styles.a3f5b2.css — new deploy = new URL = no cache issue (most reliable). 3) API purge: CloudFront CreateInvalidation call — expensive ($0.005/path). 4) Cache-Control: max-age, no-cache, must-revalidate headers." }
-])}
+
 `;
 
 
