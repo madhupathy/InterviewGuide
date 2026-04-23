@@ -1039,6 +1039,99 @@ spec:
   </table>
 </div>
 
+
+<h2 class="section-title">Device Plugin Framework</h2>
+<div class="callout callout-blue">
+  Device Plugins are how Kubernetes discovers and manages hardware devices (GPUs, FPGAs, NICs). The Device Plugin API is the standard mechanism — it predates CDI and DRA, and remains the most widely deployed.
+</div>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">How Device Plugins work <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin-bottom:12px">
+        1. Plugin registers with kubelet via gRPC socket<br>
+        2. Plugin reports available devices (e.g., 8 GPUs)<br>
+        3. kubelet advertises devices to API server as Extended Resources<br>
+        4. Scheduler places pod on node with available devices<br>
+        5. kubelet calls plugin's Allocate() → plugin returns device mounts, env vars<br>
+        6. Container starts with device access
+      </div>
+      <div class="code-block"><pre><span class="cm"># Pod requesting GPU via device plugin</span>
+resources:
+  limits:
+    nvidia.com/gpu: <span class="num">2</span>   <span class="cm"># device plugin exposes this as Extended Resource</span>
+
+<span class="cm"># Plugin registers at: /var/lib/kubelet/device-plugins/nvidia.sock</span>
+<span class="cm"># Implements: ListAndWatch(), Allocate(), GetDevicePluginOptions()</span></pre></div>
+      <div class="callout callout-amber">
+        <strong>Limitations:</strong> Device plugins are binary — a pod gets N devices or none. No fine-grained parameters (can't request "GPU with 10GB VRAM"). No device sharing between pods. These limitations led to CDI and DRA.
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">CDI — Container Device Interface</h2>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Details</th></tr>
+  <tr><td><strong>What</strong></td><td>Standard JSON spec describing how to inject devices into containers — vendor-neutral, no custom runtime hooks</td></tr>
+  <tr><td><strong>How</strong></td><td>CDI spec file lists device nodes, mounts, env vars. Container runtime reads spec and injects everything.</td></tr>
+  <tr><td><strong>Before CDI</strong></td><td>Each runtime (Docker, containerd, CRI-O) needed vendor-specific hooks to inject GPU drivers</td></tr>
+  <tr><td><strong>After CDI</strong></td><td>One JSON spec works across all OCI-compliant runtimes</td></tr>
+  <tr><td><strong>Used by</strong></td><td>NVIDIA Container Toolkit (generates CDI specs), Intel, AMD GPU plugins</td></tr>
+</table>
+<div class="code-block"><pre><span class="cm"># CDI spec example: /etc/cdi/nvidia.yaml</span>
+cdiVersion: <span class="str">"0.5.0"</span>
+kind: <span class="str">"nvidia.com/gpu"</span>
+devices:
+  - name: <span class="str">"0"</span>
+    containerEdits:
+      deviceNodes:
+        - path: /dev/nvidia0     <span class="cm"># device node to mount</span>
+      mounts:
+        - hostPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+          containerPath: /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+      env:
+        - NVIDIA_VISIBLE_DEVICES=0</pre></div>
+
+<h2 class="section-title">DRA — Dynamic Resource Allocation (K8s 1.26+)</h2>
+<div class="callout callout-green">
+  DRA replaces the device plugin model with a richer API. Key improvements: resources can have <strong>parameters</strong> (request specific GPU model), resources can be <strong>shared</strong> between pods, and allocation is <strong>claim-based</strong> (like PVCs for devices).
+</div>
+<table class="data-table">
+  <tr><th>Feature</th><th>Device Plugin (old)</th><th>DRA (new)</th></tr>
+  <tr><td><strong>Resource model</strong></td><td>Simple counter (give me N GPUs)</td><td>Structured — parameters, attributes, constraints</td></tr>
+  <tr><td><strong>Sharing</strong></td><td>Exclusive only</td><td>Shared or exclusive per claim</td></tr>
+  <tr><td><strong>Partitioning</strong></td><td>Not supported</td><td>MIG partitions, time-slicing via parameters</td></tr>
+  <tr><td><strong>Selection</strong></td><td>Any available device</td><td>Specific device by model, memory, capability</td></tr>
+  <tr><td><strong>API pattern</strong></td><td>Extended Resources</td><td>ResourceClaim + ResourceClass (like PVC/StorageClass)</td></tr>
+</table>
+<div class="code-block"><pre><span class="cm"># DRA: ResourceClaim — like a PVC but for devices</span>
+apiVersion: resource.k8s.io/v1alpha3
+kind: ResourceClaim
+metadata: {name: my-gpu-claim}
+spec:
+  devices:
+    requests:
+    - name: gpu
+      deviceClassName: gpu.nvidia.com
+      selectors:
+      - cel:
+          expression: <span class="str">"device.attributes['gpu-product'] == 'H100'"</span>
+
+<span class="cm"># Pod references the claim</span>
+spec:
+  resourceClaims:
+  - name: my-gpu
+    source: {resourceClaimName: my-gpu-claim}
+  containers:
+  - name: app
+    resources:
+      claims:
+      - name: my-gpu</pre></div>
+<div class="callout callout-amber">
+  <strong>DRA status:</strong> Beta in K8s 1.31+. Production clusters still mostly use Device Plugins. DRA is the future — designed for advanced GPU partitioning (MIG), FPGA allocation, and network device sharing. NVIDIA GPU Operator is adding DRA support alongside existing device plugin.
+</div>
+
 ${quizHTML('k8s-gpu', [
   { q: "What does the NVIDIA Device Plugin do in Kubernetes?", opts: ["Installs GPU drivers", "Exposes GPUs as schedulable K8s resources (nvidia.com/gpu: 8) so the scheduler can assign GPUs to pods", "Monitors GPU temperature", "Enables CUDA in containers"], ans: 1, exp: "Without the device plugin, Kubernetes doesn't know GPUs exist. The plugin registers each GPU as a resource, enables pods to request specific GPU counts via resource limits, and manages GPU allocation to prevent double-booking." },
   { q: "Tensor Parallelism vs Pipeline Parallelism — key difference?", opts: ["TP is faster always", "TP splits each layer vertically across GPUs within a node (microsecond comms). PP splits layers sequentially across nodes (tolerates ms latency)", "PP is only for CPUs", "No difference"], ans: 1, exp: "TP: GPU 0 and GPU 1 each compute half of every layer simultaneously — requires synchronization after every layer (high frequency, must be fast, PCIe/NVLink). PP: GPU 0 does layers 1-48, GPU 1 does 49-96 — only one transfer per stage per token (tolerates network latency)." },

@@ -689,6 +689,29 @@ pages['sd-building'] = () => `
     <strong>Numbers to know:</strong> 1 Redis node ≈ 100K ops/sec. 1 Postgres primary ≈ 5K writes/sec. 1 web server ≈ 10K req/sec. 5 read replicas ≈ 5× read throughput. Each shard adds write capacity linearly.
   </div>
 
+
+<h2 class="section-title" style="margin-top:20px">CQRS — Command Query Responsibility Segregation</h2>
+<div class="callout callout-blue">
+  <strong>Core idea:</strong> Separate the write model (commands) from the read model (queries). Writes go to a normalised DB optimised for consistency. Reads go to a denormalised view optimised for speed. They sync via events.
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin:14px 0">
+  <strong>Write side:</strong> Client → Command API → Validate → Write DB (normalised, ACID)<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ Publish event to Kafka/EventBus<br><br>
+  <strong>Read side:</strong> Event consumer → Update read DB (denormalised, fast queries)<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Client → Query API → Read DB → Return
+</div>
+<table class="data-table">
+  <tr><th>Aspect</th><th>Without CQRS</th><th>With CQRS</th></tr>
+  <tr><td><strong>Model</strong></td><td>Single DB for reads + writes</td><td>Separate read/write models and DBs</td></tr>
+  <tr><td><strong>Read perf</strong></td><td>Limited by normalised schema</td><td>Denormalised views, pre-computed aggregates</td></tr>
+  <tr><td><strong>Scale</strong></td><td>Read and write scale together</td><td>Scale reads and writes independently</td></tr>
+  <tr><td><strong>Consistency</strong></td><td>Strong (same DB)</td><td>Eventual (async sync via events)</td></tr>
+  <tr><td><strong>Complexity</strong></td><td>Simple</td><td>Higher — two models, event sync, eventual consistency</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>When to use CQRS:</strong> When read and write patterns are very different (e.g., 100:1 read/write ratio). When you need different data models for reads vs writes. Often paired with Event Sourcing. <strong>Don't use</strong> for simple CRUD apps — the complexity isn't worth it.
+</div>
+
 ${quizHTML('bb-scaling', [
   { q: "What's the typical scaling order before resorting to database sharding?", opts: ["Shard immediately", "Vertical scale → Cache (Redis) → Read replicas → CDN → Horizontal app servers → Async queues → Sharding", "Microservices first", "Add more RAM only"], ans: 1, exp: "Each step adds ~10× capacity. Sharding is operationally the most expensive — most systems never need it. Start simple: bigger server → Redis cache → read replicas → CDN for static content → stateless app servers behind LB → async processing via queues." },
   { q: "1 Redis node handles approximately how many ops/sec?", opts: ["1,000", "10,000", "~100,000 ops/sec with sub-millisecond latency", "1 million"], ans: 2, exp: "Redis: ~100K ops/sec single-threaded. PostgreSQL: ~5K writes/sec. Single web server: ~10K req/sec. These numbers help you estimate when you need the next scaling step." }

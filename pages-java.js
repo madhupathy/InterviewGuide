@@ -465,34 +465,52 @@ pages['java-concurrency'] = () => `
 
 <h2 class="section-title">Thread Lifecycle</h2>
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;overflow-x:auto">
-<svg viewBox="0 0 700 120" style="width:100%;max-width:700px;display:block;margin:0 auto">
+<svg viewBox="0 0 720 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:0 auto;font-family:'DM Sans',sans-serif">
   <defs>
-    <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/>
-    </marker>
+    <marker id="ta" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2563eb"/></marker>
+    <marker id="tg" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/></marker>
   </defs>
-  <!-- states -->
-  <rect x="10" y="40" width="90" height="36" rx="8" fill="#eef2ff" stroke="#2563eb"/>
-  <text x="55" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#3730a3">NEW</text>
-  <rect x="130" y="40" width="90" height="36" rx="8" fill="#eef2ff" stroke="#2563eb"/>
-  <text x="175" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#3730a3">RUNNABLE</text>
-  <rect x="250" y="40" width="90" height="36" rx="8" fill="#f0fdf4" stroke="#059669"/>
-  <text x="295" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#065f46">RUNNING</text>
-  <rect x="370" y="10" width="100" height="36" rx="8" fill="#fffbeb" stroke="#d97706"/>
-  <text x="420" y="33" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">BLOCKED</text>
-  <rect x="370" y="74" width="100" height="36" rx="8" fill="#fffbeb" stroke="#d97706"/>
-  <text x="420" y="97" text-anchor="middle" font-size="11" font-weight="600" fill="#92400e">WAITING</text>
-  <rect x="600" y="40" width="90" height="36" rx="8" fill="#fef2f2" stroke="#dc2626"/>
-  <text x="645" y="63" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">TERMINATED</text>
-  <!-- arrows -->
-  <line x1="100" y1="58" x2="128" y2="58" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arr2)"/>
-  <line x1="220" y1="58" x2="248" y2="58" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arr2)"/>
-  <line x1="340" y1="48" x2="368" y2="32" stroke="#d97706" stroke-width="1.5" marker-end="url(#arr2)"/>
-  <line x1="340" y1="68" x2="368" y2="84" stroke="#d97706" stroke-width="1.5" marker-end="url(#arr2)"/>
-  <line x1="470" y1="32" x2="290" y2="48" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4" marker-end="url(#arr2)"/>
-  <line x1="470" y1="84" x2="290" y2="68" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4" marker-end="url(#arr2)"/>
-  <line x1="340" y1="58" x2="598" y2="58" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arr2)"/>
-  <text x="450" y="65" font-size="10" fill="#7a7065">run() done</text>
+
+  <!-- NEW -->
+  <rect x="10" y="55" width="70" height="36" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+  <text x="45" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#4338ca">NEW</text>
+
+  <line x1="80" y1="73" x2="118" y2="73" stroke="#2563eb" stroke-width="2" marker-end="url(#ta)"/>
+  <text x="99" y="65" text-anchor="middle" font-size="9" fill="#6b7280">start()</text>
+
+  <!-- RUNNABLE -->
+  <rect x="118" y="55" width="95" height="36" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="165" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#1d4ed8">RUNNABLE</text>
+
+  <line x1="213" y1="73" x2="258" y2="73" stroke="#2563eb" stroke-width="2" marker-end="url(#ta)"/>
+  <text x="236" y="65" text-anchor="middle" font-size="9" fill="#6b7280">scheduled</text>
+
+  <!-- RUNNING -->
+  <rect x="258" y="55" width="90" height="36" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="303" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#92400e">RUNNING</text>
+
+  <!-- BLOCKED (top) -->
+  <line x1="330" y1="55" x2="390" y2="25" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#tg)"/>
+  <rect x="390" y="8" width="90" height="32" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="435" y="28" text-anchor="middle" font-weight="600" font-size="11" fill="#dc2626">BLOCKED</text>
+  <text x="435" y="52" text-anchor="middle" font-size="9" fill="#6b7280">waiting for lock</text>
+  <line x1="390" y1="35" x2="330" y2="60" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" marker-end="url(#tg)"/>
+
+  <!-- WAITING (bottom) -->
+  <line x1="330" y1="91" x2="390" y2="120" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#tg)"/>
+  <rect x="390" y="105" width="90" height="32" rx="6" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="435" y="125" text-anchor="middle" font-weight="600" font-size="11" fill="#d97706">WAITING</text>
+  <text x="435" y="148" text-anchor="middle" font-size="9" fill="#6b7280">wait() / join()</text>
+  <line x1="390" y1="115" x2="330" y2="88" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4" marker-end="url(#tg)"/>
+  <text x="360" y="100" font-size="8" fill="#6b7280">notify()</text>
+
+  <!-- Arrow to TERMINATED -->
+  <line x1="348" y1="73" x2="530" y2="73" stroke="#2563eb" stroke-width="2" marker-end="url(#ta)"/>
+  <text x="440" y="68" text-anchor="middle" font-size="9" fill="#6b7280">run() completes</text>
+
+  <!-- TERMINATED -->
+  <rect x="530" y="55" width="110" height="36" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="585" y="78" text-anchor="middle" font-weight="700" font-size="12" fill="#991b1b">TERMINATED</text>
 </svg>
 </div>
 
@@ -682,6 +700,96 @@ pages['java-streams'] = () => `
 Collection  filter/map/sorted      collect/forEach/reduce
             (lazy, no execution)    (triggers execution)</pre>
 </div>
+
+<div class="code-block"><pre>List&lt;String&gt; names = List.of("Alice", "Bob", "Charlie", "Dave", "Anna");
+
+// filter + map + collect
+List&lt;String&gt; result = names.stream()
+  .filter(n -> n.startsWith("A"))    // filter: Alice, Anna
+  .map(String::toUpperCase)          // map: ALICE, ANNA
+  .sorted()                          // ALICE, ANNA
+  .collect(Collectors.toList());     // terminal: triggers execution
+
+// forEach
+names.stream().forEach(System.out::println);
+
+// count
+long count = names.stream().filter(n -> n.length() &gt; 3).count();
+
+// findFirst / findAny
+Optional&lt;String&gt; first = names.stream()
+  .filter(n -> n.startsWith("A"))
+  .findFirst();  // Optional&lt;String&gt;
+first.ifPresent(System.out::println);</pre></div>
+
+<h2 class="section-title">reduce & collect</h2>
+<div class="code-block"><pre>List&lt;Integer&gt; numbers = List.of(1, 2, 3, 4, 5);
+
+// reduce — fold all elements into one value
+int sum = numbers.stream().reduce(0, Integer::sum);       // 15
+int max = numbers.stream().reduce(Integer.MIN_VALUE, Math::max); // 5
+
+// collect with Collectors
+List&lt;Integer&gt; evens = numbers.stream()
+  .filter(n -> n % 2 == 0)
+  .collect(Collectors.toList());                          // [2, 4]
+
+String joined = names.stream().collect(Collectors.joining(", ")); // "Alice, Bob, ..."
+
+Map&lt;Integer, List&lt;String&gt;&gt; byLength = names.stream()
+  .collect(Collectors.groupingBy(String::length));
+// {3=[Bob], 4=[Dave, Anna], 5=[Alice], 7=[Charlie]}</pre></div>
+
+<h2 class="section-title">flatMap, groupingBy, partitioningBy</h2>
+<div class="code-block"><pre>// flatMap — flatten nested collections
+List&lt;List&lt;Integer&gt;&gt; nested = List.of(List.of(1,2), List.of(3,4));
+List&lt;Integer&gt; flat = nested.stream()
+  .flatMap(List::stream)
+  .collect(Collectors.toList());    // [1, 2, 3, 4]
+
+// groupingBy
+Map&lt;String, Long&gt; countByDept = employees.stream()
+  .collect(Collectors.groupingBy(Employee::getDept, Collectors.counting()));
+
+// partitioningBy — splits into true/false groups
+Map&lt;Boolean, List&lt;Integer&gt;&gt; oddEven = numbers.stream()
+  .collect(Collectors.partitioningBy(n -> n % 2 == 0));
+// {false=[1,3,5], true=[2,4]}</pre></div>
+
+<h2 class="section-title">Parallel Streams</h2>
+<div class="callout callout-amber">
+  <strong>Use parallel streams carefully.</strong> They use the ForkJoinPool. Overhead of splitting/merging can outweigh benefits for small collections. Best for large datasets with CPU-intensive, stateless operations.
+</div>
+<div class="code-block"><pre>// Just add .parallel() or use parallelStream()
+long count = largeList.parallelStream()
+  .filter(item -> expensiveCheck(item))
+  .count();
+
+// DON'T use parallel for I/O-bound or stateful operations
+// DON'T use when order matters (unless you use forEachOrdered)
+// DO use for large collections with CPU-heavy, independent operations</pre></div>
+
+<h2 class="section-title">Optional — avoiding NullPointerException</h2>
+<div style="margin:14px 0">
+<div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0;align-items:center">
+  <div style="background:#dbeafe;border:2px solid #2563eb;border-radius:10px;padding:12px;text-align:center">
+    <div style="font-weight:700;font-size:14px;color:#1e40af">Source</div>
+    <div style="font-size:12px;color:#374151;margin-top:4px">Collection, Array,<br>Stream.of(), IntStream</div>
+  </div>
+  <div style="font-size:20px;color:#94a3b8;padding:0 6px">→</div>
+  <div style="background:#fef3c7;border:2px solid #d97706;border-radius:10px;padding:12px;text-align:center">
+    <div style="font-weight:700;font-size:14px;color:#92400e">Intermediate Ops</div>
+    <div style="font-size:12px;color:#374151;margin-top:4px">filter, map, flatMap,<br>sorted, distinct, peek</div>
+    <div style="font-size:11px;color:#b45309;margin-top:4px;font-weight:600">⚡ Lazy — no execution yet</div>
+  </div>
+  <div style="font-size:20px;color:#94a3b8;padding:0 6px">→</div>
+  <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:10px;padding:12px;text-align:center">
+    <div style="font-weight:700;font-size:14px;color:#065f46">Terminal Op</div>
+    <div style="font-size:12px;color:#374151;margin-top:4px">collect, forEach, reduce,<br>count, findFirst, anyMatch</div>
+    <div style="font-size:11px;color:#059669;margin-top:4px;font-weight:600">🔥 Triggers execution</div>
+  </div>
+</div>
+</div>>
 
 <div class="code-block"><pre>List&lt;String&gt; names = List.of("Alice", "Bob", "Charlie", "Dave", "Anna");
 
@@ -1085,16 +1193,6 @@ class UserService {
   public Optional&lt;User&gt; find(Long id) { return repo.findById(id); }
 }</pre></div>
 
-<h2 class="section-title">REST — PATCH vs PUT vs POST</h2>
-<table class="data-table">
-  <tr><th>Method</th><th>Action</th><th>Idempotent?</th><th>Body?</th><th>Example</th></tr>
-  <tr><td>POST</td><td>Create new resource</td><td>No</td><td>Yes</td><td>POST /users</td></tr>
-  <tr><td>PUT</td><td>Replace entire resource</td><td>Yes</td><td>Yes (full)</td><td>PUT /users/1</td></tr>
-  <tr><td>PATCH</td><td>Partial update</td><td>Usually</td><td>Yes (partial)</td><td>PATCH /users/1</td></tr>
-  <tr><td>GET</td><td>Read</td><td>Yes</td><td>No</td><td>GET /users/1</td></tr>
-  <tr><td>DELETE</td><td>Delete</td><td>Yes</td><td>No</td><td>DELETE /users/1</td></tr>
-</table>
-
 <h2 class="section-title">Resilience4j — Circuit Breaker</h2>
 <div class="code-block"><pre>@Service
 public class PaymentService {
@@ -1115,6 +1213,55 @@ public class PaymentService {
 // application.yml:
 // resilience4j.circuitbreaker.instances.payment.failureRateThreshold: 50
 // resilience4j.circuitbreaker.instances.payment.waitDurationInOpenState: 10s</pre></div>
+
+<h2 class="section-title">Bean Scopes</h2>
+<table class="data-table">
+  <tr><th>Scope</th><th>Lifecycle</th><th>Use Case</th></tr>
+  <tr><td><strong>Singleton</strong></td><td>One instance per IoC container (default)</td><td>Stateless services, repositories — most beans</td></tr>
+  <tr><td><strong>Prototype</strong></td><td>New instance every time requested</td><td>Stateful beans, builders, short-lived objects</td></tr>
+  <tr><td><strong>Request</strong></td><td>One per HTTP request</td><td>Request-scoped data (web apps only)</td></tr>
+  <tr><td><strong>Session</strong></td><td>One per HTTP session</td><td>User session data (web apps only)</td></tr>
+</table>
+<div class="callout callout-amber">
+  <strong>Common trap:</strong> Injecting a Prototype bean into a Singleton → you get the SAME prototype instance forever. Fix: use <code>ObjectProvider&lt;T&gt;</code> or <code>@Lookup</code> method to get fresh instances.
+</div>
+
+<h2 class="section-title">Two-Level Caching — EhCache + Redis</h2>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header" onclick="toggleAccordion(this)">Architecture: L1 (in-memory) + L2 (distributed) <span class="accordion-arrow">▼</span></div>
+    <div class="accordion-body">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;margin-bottom:12px">
+        Request → <strong>L1: EhCache</strong> (in-process, ~1μs) → hit? return<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;miss → <strong>L2: Redis</strong> (network, ~1ms) → hit? return + populate L1<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;miss → <strong>Database</strong> → return + populate L2 + L1
+      </div>
+      <div class="code-block"><pre><span class="cm">// CompositeCacheManager combines both layers</span>
+<span class="ann">@Configuration</span>
+<span class="ann">@EnableCaching</span>
+<span class="kw">public class</span> CacheConfig {
+  <span class="ann">@Bean</span>
+  <span class="kw">public</span> CacheManager cacheManager() {
+    <span class="kw">return new</span> CompositeCacheManager(
+      ehCacheManager(),    <span class="cm">// L1: in-process, fast, limited size</span>
+      redisCacheManager()  <span class="cm">// L2: distributed, shared across instances</span>
+    );
+  }
+}
+
+<span class="cm">// Service layer — Spring handles L1/L2 transparently</span>
+<span class="ann">@Cacheable</span>(value = <span class="str">"users"</span>, key = <span class="str">"#id"</span>)
+<span class="kw">public</span> User getUserById(Long id) {
+  <span class="kw">return</span> userRepository.findById(id).orElse(<span class="kw">null</span>);
+}
+
+<span class="ann">@CacheEvict</span>(value = <span class="str">"users"</span>, key = <span class="str">"#user.id"</span>)
+<span class="kw">public</span> User updateUser(User user) {
+  <span class="kw">return</span> userRepository.save(user);  <span class="cm">// evicts from both L1 + L2</span>
+}</pre></div>
+    </div>
+  </div>
+</div>
 
 ${quizHTML('spring-core', [
   { q: "What does @SpringBootApplication combine?", opts: ["Only @ComponentScan", "@Configuration + @EnableAutoConfiguration + @ComponentScan", "@RestController + @Service", "@Bean + @Component"], ans: 1, exp: "@Configuration: class defines beans. @EnableAutoConfiguration: reads spring.factories, configures beans based on classpath (add spring-boot-starter-web → configures Tomcat, DispatcherServlet). @ComponentScan: scans for @Component, @Service, @Repository, @Controller." },
