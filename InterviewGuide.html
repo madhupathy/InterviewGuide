@@ -5480,6 +5480,10 @@ pages['algo-twopointer'] = () => `
   <strong>vs Fast &amp; Slow Pointers:</strong> Both patterns use 2 pointers, but the problem signatures are different. <strong>Classic Two Pointers</strong> (this page) starts at opposite ends of a sorted array and moves toward the center — used for pair sums, palindromes, container problems. <strong>Fast &amp; Slow Pointers</strong> starts both at the same position and moves at different speeds (1× and 2×) — used for cycle detection and finding the middle of a linked list. See <a onclick="showPage('algo-fastslow')" style="color:var(--accent);cursor:pointer;text-decoration:underline">Fast &amp; Slow Pointers</a> for that variant.
 </div>
 
+<div class="callout callout-blue">
+  <strong>The Trick:</strong> Make the comparison at <code>arr[left]</code> and <code>arr[right]</code> tell you which pointer to move. If the pair sums to <em>less than target</em>, need a bigger sum → <code>left++</code> (next larger). If <em>more</em>, need smaller → <code>right--</code>. On a sorted array this is guaranteed to find the answer in O(n) because each pointer moves only one direction and meets in the middle.
+</div>
+
 
 <div class="section-title">Templates</div>
 <div class="code-block"><pre><span class="cm">// Template 1: Opposite ends → move toward center</span>
@@ -5541,6 +5545,10 @@ pages['algo-sliding'] = () => `
   <div class="mt-content">"subarray/substring with sum/condition", "maximum/minimum of length k window", "longest substring with k distinct chars". Fixed window or variable window based on whether window size is given.</div>
 </div>
 
+<div class="callout callout-blue">
+  <strong>The Trick:</strong> Instead of recomputing the sum/count for every window from scratch (O(n·k)), <strong>slide incrementally</strong>: when the window moves one step right, ADD the new element and REMOVE the leftmost one — each update is O(1), giving O(n) overall. For variable-size windows, expand right until the constraint breaks, then shrink left until it holds again. Every element enters and leaves the window at most once.
+</div>
+
 <div class="code-block"><pre><span class="cm">// Variable size window — Longest Substring Without Repeats</span>
 <span class="kw">public int</span> <span class="fn">lengthOfLongestSubstring</span>(<span class="cls">String</span> s) {
     <span class="cls">Map</span>&lt;<span class="cls">Character</span>, <span class="cls">Integer</span>&gt; seen = <span class="kw">new</span> <span class="cls">HashMap</span>&lt;&gt;();
@@ -5590,6 +5598,15 @@ pages['algo-binsearch'] = () => `
   <div class="mt-content">"sorted array find target", "minimum/maximum satisfying a condition", "find first/last occurrence". Advanced: "binary search on the answer" — e.g., find minimum capacity that allows delivery in D days.</div>
 </div>
 
+<div class="callout callout-blue">
+  <strong>The Trick:</strong> Binary search doesn't require a sorted array — it requires a <strong>monotonic condition</strong>. Ask: "Is there a value X where <em>everything ≤ X is feasible and everything &gt; X is not</em>?" If yes, binary search the answer space. This unlocks problems like "minimum capacity to ship in D days", "split array into K subarrays with min largest sum", "smallest divisor". The search space is values, not array indices.
+</div>
+
+<div class="memory-tip" style="margin-top:10px">
+  <div class="mt-label">🧠 Memorize</div>
+  <div class="mt-content"><strong>Two templates, two loop conditions:</strong> exact-match uses <code>lo &lt;= hi</code> and returns <code>mid</code> when found. Boundary search (first-true, minimum-that-works) uses <code>lo &lt; hi</code> and returns <code>lo</code> at the end. Pick one, commit to it, don't mix.</div>
+</div>
+
 <div class="code-block"><pre><span class="cm">// Classic binary search template (bug-free)</span>
 <span class="kw">int</span> <span class="fn">binarySearch</span>(<span class="kw">int</span>[] nums, <span class="kw">int</span> target) {
     <span class="kw">int</span> lo = <span class="num">0</span>, hi = nums.length - <span class="num">1</span>;
@@ -5630,35 +5647,151 @@ pages['algo-bfsdfs'] = () => `
 <div class="breadcrumb">Algorithms → <span>BFS / DFS</span></div>
 <div class="page-header">
   <div class="page-title">BFS &amp; DFS Patterns</div>
-  <div class="page-subtitle">BFS = queue (FIFO). DFS = stack (recursion or explicit stack). See graph and tree pages for full templates.</div>
+  <div class="page-subtitle">Two ways to traverse graphs and trees. BFS explores layer by layer (queue). DFS dives deep before backtracking (stack / recursion).</div>
+</div>
+
+<div class="memory-tip">
+  <div class="mt-label">🎯 Trigger Keywords</div>
+  <div class="mt-content"><strong>BFS:</strong> "shortest path (unweighted)", "level order", "minimum steps to reach", "spreading / rotting". <strong>DFS:</strong> "all paths", "connected components", "cycle detection", "topological sort", "combinatorial search". If shortest / level → BFS. If exhaustive / deep → DFS.</div>
+</div>
+
+<div class="callout callout-blue">
+  <strong>The Trick (how to memorize):</strong> <strong>BFS = ripple in a pond</strong> — the wavefront expands uniformly outward, so the first time you reach any cell is the shortest distance. <strong>DFS = spelunking</strong> — go down one tunnel as far as possible, backtrack only when stuck. BFS uses a <strong>queue (FIFO)</strong>; DFS uses a <strong>stack or recursion (LIFO)</strong>. The queue-vs-stack swap is literally the only code difference.
 </div>
 
 <div class="two-col">
   <div class="info-box">
     <div class="info-title">BFS Use Cases</div>
     <ul class="content-list" style="margin-top:6px">
-      <li>Shortest path (unweighted)</li>
+      <li>Shortest path in unweighted graph/grid</li>
       <li>Level-order tree traversal</li>
-      <li>Spreading problems (virus, fire)</li>
+      <li>Spreading problems (rotting oranges, virus)</li>
       <li>Word ladder (BFS on state space)</li>
     </ul>
   </div>
   <div class="info-box">
     <div class="info-title">DFS Use Cases</div>
     <ul class="content-list" style="margin-top:6px">
-      <li>Connected components</li>
-      <li>Cycle detection</li>
-      <li>Topological sort</li>
-      <li>Path existence, maze solving</li>
+      <li>Connected components / count islands</li>
+      <li>Cycle detection (directed &amp; undirected)</li>
+      <li>Topological sort (post-order DFS)</li>
+      <li>Path existence, maze solving, backtracking</li>
     </ul>
   </div>
 </div>
-<div class="callout blue">Full BFS and DFS code templates are on the Graphs page. The patterns are identical for trees (no visited set needed) and graphs (need visited set to avoid cycles).</div>
+
+<div class="section-title">BFS Template — Queue</div>
+<div class="code-block"><pre><span class="cm">// Generic BFS — returns shortest distance from start to target</span>
+<span class="kw">int</span> bfs(Node start, Node target) {
+    Queue&lt;Node&gt; queue = <span class="kw">new</span> ArrayDeque&lt;&gt;();
+    Set&lt;Node&gt; visited = <span class="kw">new</span> HashSet&lt;&gt;();
+    queue.offer(start);
+    visited.add(start);
+    <span class="kw">int</span> steps = <span class="num">0</span>;
+
+    <span class="kw">while</span> (!queue.isEmpty()) {
+        <span class="kw">int</span> size = queue.size();         <span class="cm">// process one level at a time</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; size; i++) {
+            Node cur = queue.poll();
+            <span class="kw">if</span> (cur.equals(target)) <span class="kw">return</span> steps;
+            <span class="kw">for</span> (Node next : cur.neighbors()) {
+                <span class="kw">if</span> (!visited.contains(next)) {
+                    visited.add(next);
+                    queue.offer(next);
+                }
+            }
+        }
+        steps++;                         <span class="cm">// finished one level</span>
+    }
+    <span class="kw">return</span> -<span class="num">1</span>;                       <span class="cm">// target unreachable</span>
+}</pre></div>
+<div class="callout callout-amber">
+  <strong>Why track level size?</strong> The <code>for i &lt; size</code> loop processes exactly one level before incrementing <code>steps</code>. That's how BFS returns correct distances. Skipping this gives you BFS that visits everything but can't tell you distance.
+</div>
+
+<div class="section-title">DFS Template — Recursion</div>
+<div class="code-block"><pre><span class="cm">// DFS on a graph — find all connected nodes from start</span>
+<span class="kw">void</span> dfs(Node cur, Set&lt;Node&gt; visited) {
+    <span class="kw">if</span> (visited.contains(cur)) <span class="kw">return</span>;
+    visited.add(cur);
+    <span class="cm">// process cur (pre-order)</span>
+    <span class="kw">for</span> (Node next : cur.neighbors()) {
+        dfs(next, visited);
+    }
+    <span class="cm">// process cur (post-order — used in topological sort)</span>
+}
+
+<span class="cm">// DFS iterative — explicit stack (use when recursion depth might blow the stack)</span>
+<span class="kw">void</span> dfsIterative(Node start) {
+    Deque&lt;Node&gt; stack = <span class="kw">new</span> ArrayDeque&lt;&gt;();
+    Set&lt;Node&gt; visited = <span class="kw">new</span> HashSet&lt;&gt;();
+    stack.push(start);
+    <span class="kw">while</span> (!stack.isEmpty()) {
+        Node cur = stack.pop();
+        <span class="kw">if</span> (!visited.add(cur)) <span class="kw">continue</span>;
+        <span class="kw">for</span> (Node next : cur.neighbors()) {
+            <span class="kw">if</span> (!visited.contains(next)) stack.push(next);
+        }
+    }
+}</pre></div>
+
+<div class="section-title">Tree BFS — Level Order (LeetCode 102)</div>
+<div class="code-block"><pre><span class="kw">public</span> List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; result = <span class="kw">new</span> ArrayList&lt;&gt;();
+    <span class="kw">if</span> (root == <span class="kw">null</span>) <span class="kw">return</span> result;
+    Queue&lt;TreeNode&gt; queue = <span class="kw">new</span> ArrayDeque&lt;&gt;();
+    queue.offer(root);
+    <span class="kw">while</span> (!queue.isEmpty()) {
+        <span class="kw">int</span> size = queue.size();
+        List&lt;Integer&gt; level = <span class="kw">new</span> ArrayList&lt;&gt;();
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; size; i++) {
+            TreeNode node = queue.poll();
+            level.add(node.val);
+            <span class="kw">if</span> (node.left != <span class="kw">null</span>)  queue.offer(node.left);
+            <span class="kw">if</span> (node.right != <span class="kw">null</span>) queue.offer(node.right);
+        }
+        result.add(level);
+    }
+    <span class="kw">return</span> result;
+}</pre></div>
+<div class="callout callout-blue">
+  <strong>Trees vs graphs:</strong> On trees you don't need a visited set — there are no cycles. On graphs you must track visited to avoid infinite loops. That's the only structural difference in the templates.
+</div>
+
+<div class="section-title">Cycle Detection in Directed Graph (DFS + 3 colors)</div>
+<div class="code-block"><pre><span class="cm">// WHITE = unvisited, GRAY = on current DFS path, BLACK = fully processed</span>
+<span class="kw">int</span>[] color;  <span class="cm">// 0 = WHITE, 1 = GRAY, 2 = BLACK</span>
+
+<span class="kw">boolean</span> hasCycle(List&lt;List&lt;Integer&gt;&gt; graph) {
+    color = <span class="kw">new int</span>[graph.size()];
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; graph.size(); i++) {
+        <span class="kw">if</span> (color[i] == <span class="num">0</span> &amp;&amp; dfs(i, graph)) <span class="kw">return true</span>;
+    }
+    <span class="kw">return false</span>;
+}
+
+<span class="kw">boolean</span> dfs(<span class="kw">int</span> u, List&lt;List&lt;Integer&gt;&gt; graph) {
+    color[u] = <span class="num">1</span>;                       <span class="cm">// GRAY — on current path</span>
+    <span class="kw">for</span> (<span class="kw">int</span> v : graph.get(u)) {
+        <span class="kw">if</span> (color[v] == <span class="num">1</span>) <span class="kw">return true</span>;   <span class="cm">// back edge → cycle</span>
+        <span class="kw">if</span> (color[v] == <span class="num">0</span> &amp;&amp; dfs(v, graph)) <span class="kw">return true</span>;
+    }
+    color[u] = <span class="num">2</span>;                       <span class="cm">// BLACK — done</span>
+    <span class="kw">return false</span>;
+}</pre></div>
+
+<div class="callout callout-green">
+  <strong>Classic problems:</strong>
+  <strong>BFS</strong> — Binary Tree Level Order (102), Shortest Path in Binary Matrix (1091), Rotting Oranges (994), Word Ladder (127), Open the Lock (752).
+  <strong>DFS</strong> — Number of Islands (200), Clone Graph (133), Course Schedule (207 — cycle detection), Pacific Atlantic Water Flow (417), Path Sum (112).
+</div>
+
 ${revisionControls('algo-bfsdfs')}
 
 ${quizHTML('algo-bfsdfs', [
-  { q: "BFS vs DFS — when to prefer BFS?", opts: ["When finding shortest path in unweighted graph — BFS guarantees shortest path, DFS does not", "Always use BFS", "DFS can't handle cycles", "BFS uses less memory"], ans: 0, exp: "BFS explores level by level → first time you reach a node is the shortest path (in unweighted graphs). DFS may find a longer path first. BFS uses O(V) memory (queue), DFS uses O(depth) stack. Use DFS for: exhaustive search, backtracking, detecting cycles." },
-  { q: "How to detect a cycle in a directed graph?", opts: ["DFS with 3 states: unvisited, in-progress (on current path), visited. Back edge to in-progress node = cycle", "Topological sort only", "Check if edge count > vertex count", "BFS only"], ans: 0, exp: "Color each node: WHITE (unvisited), GRAY (in current DFS path), BLACK (fully processed). If DFS encounters a GRAY node, there's a cycle on the current path. This is more precise than just 'visited' — it distinguishes back edges from cross edges." }
+  { q: "BFS vs DFS — when to prefer BFS?", opts: ["When finding shortest path in an unweighted graph — BFS guarantees shortest path, DFS does not", "Always use BFS", "DFS cannot handle cycles", "BFS uses less memory"], ans: 0, exp: "BFS explores level by level → first time you reach a node is the shortest path (in unweighted graphs). DFS may find a longer path first. BFS uses O(V) memory (queue), DFS uses O(depth) stack. Use DFS for: exhaustive search, backtracking, detecting cycles, topological sort." },
+  { q: "How to detect a cycle in a directed graph?", opts: ["DFS with 3 states: unvisited, in-progress (on current path), visited. Back edge to in-progress node = cycle", "Topological sort only", "Check if edge count > vertex count", "BFS only"], ans: 0, exp: "Color each node: WHITE (unvisited), GRAY (in current DFS path), BLACK (fully processed). If DFS encounters a GRAY node, there's a cycle on the current path. More precise than plain 'visited' — it distinguishes back edges from cross edges." },
+  { q: "Why does BFS process one level at a time using the queue.size() trick?", opts: ["To confuse readers", "So you can increment steps/depth exactly once per level — essential for returning the correct shortest distance or building level-order output", "Queues require it", "It does not matter"], ans: 1, exp: "Snapshot queue.size() at the top of the outer while loop, then poll that many nodes and enqueue their neighbors. After the inner for-loop, exactly one level has been processed, so you can increment steps (for shortest path) or start a new sub-list (for level order). Without this pattern, nodes from multiple levels mix in the queue and you lose distance info." }
 ])}
 
 `;
@@ -5673,6 +5806,10 @@ pages['algo-backtrack'] = () => `
 <div class="memory-tip">
   <div class="mt-label">🎯 Trigger Keywords</div>
   <div class="mt-content">"all permutations/combinations/subsets", "N-Queens", "Sudoku solver", "word search". The signature: you need to explore all valid arrangements and pruning matters.</div>
+</div>
+
+<div class="callout callout-blue">
+  <strong>The Trick (how to memorize):</strong> Three steps repeated at every level — <strong>Choose → Explore → Un-choose</strong>. Add element to current partial solution, recurse, then REMOVE it before trying the next option. That "un-choose" step is the backtrack — it's what lets you explore the full tree of choices with a single shared <code>curr</code> list. Pruning (early <code>return</code> or <code>continue</code> on invalid states) is what turns O(n!) worst case into something fast enough to pass.
 </div>
 
 <div class="code-block"><pre><span class="cm">// Backtracking template</span>
@@ -5721,6 +5858,11 @@ pages['algo-topk'] = () => `
   <div class="page-subtitle">Use a min-heap of size K to efficiently track the K largest elements in O(n log k).</div>
 </div>
 
+<div class="memory-tip">
+  <div class="mt-label">🎯 Trigger Keywords</div>
+  <div class="mt-content">"top K largest / smallest", "K most frequent", "K closest points", "Kth element". The answer only needs K items, not a full sort — that's when heap wins over sorting.</div>
+</div>
+
 <div class="callout blue">
   <strong>The Trick:</strong> To find K largest — keep a <strong>min-heap of size K</strong>. If heap.size() &gt; K, poll() removes the smallest. What remains at the end are the K largest. Why min-heap? Because the item most likely to be evicted (too small to be in top-K) is the minimum.
 </div>
@@ -5765,7 +5907,7 @@ pages['algo-fastslow'] = () => `
   <strong>vs Two Pointers:</strong> Classic Two Pointers (on sorted arrays) moves pointers toward each other from opposite ends. Fast &amp; Slow moves pointers in the <em>same direction</em> at <em>different speeds</em>, almost always on linked lists where you can't index into the middle. Same idea (2 pointers) but very different problem signatures.
 </div>
 
-<div class="section-title">The Core Trick</div>
+<div class="section-title">The Trick</div>
 <div class="code-block"><pre><span class="cm">// slow = 1 step, fast = 2 steps</span>
 <span class="cm">// • If there's a cycle → fast laps slow → they meet</span>
 <span class="cm">// • If no cycle → fast hits null first</span>
@@ -5849,7 +5991,7 @@ pages['algo-prefix'] = () => `
   <div class="mt-content">"range sum", "subarray sum equals K", "running sum", "equilibrium index", "number of subarrays with sum divisible by K", "product of array except self" (same idea with products). Any time you see <em>many</em> queries over ranges of a static array.</div>
 </div>
 
-<div class="section-title">The Core Trick</div>
+<div class="section-title">The Trick</div>
 <div class="code-block"><pre><span class="cm">// prefix[i] = sum of arr[0..i-1]  (index-shifted for easy range math)</span>
 <span class="kw">int</span>[] prefix = <span class="kw">new int</span>[nums.length + <span class="num">1</span>];
 <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {
@@ -5914,6 +6056,10 @@ pages['algo-matrix'] = () => `
 <div class="memory-tip">
   <div class="mt-label">🎯 Trigger Keywords</div>
   <div class="mt-content">"grid", "matrix", "2D array", "islands", "flood fill", "connected regions", "shortest path in grid", "word search", "rotting oranges", "walls and gates". Any problem where the input is a 2D grid and you need to explore it.</div>
+</div>
+
+<div class="callout callout-blue">
+  <strong>The Trick:</strong> A 2D grid IS a graph — each cell is a node, and its neighbors are the 4 adjacent cells (8 if diagonals count). Reuse your BFS or DFS template, just replace "for each neighbor of node" with "for each of the 4 directions from (r, c)". That one mental shift turns a family of seemingly different grid problems into graph problems you already know how to solve.
 </div>
 
 <div class="section-title">The Standard Setup</div>
