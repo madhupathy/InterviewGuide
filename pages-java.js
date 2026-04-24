@@ -273,6 +273,45 @@ class Flag {
   </div>
 </div>
 
+<h2 class="section-title">SOLID Principles</h2>
+<div class="callout callout-blue">
+  Five object-oriented design principles for maintainable, testable code. Coined by Robert C. Martin (Uncle Bob). Senior interviews frequently ask for examples of how you apply them.
+</div>
+<table class="data-table">
+  <tr><th>Principle</th><th>In one line</th><th>Smell if violated</th></tr>
+  <tr><td><strong>S</strong> — Single Responsibility</td><td>A class should have one and only one reason to change.</td><td>"God class" with I/O + business logic + formatting mixed together</td></tr>
+  <tr><td><strong>O</strong> — Open/Closed</td><td>Open for extension, closed for modification — add new behavior without editing existing code.</td><td>Giant <code>switch</code> on type that grows every time a new type is added</td></tr>
+  <tr><td><strong>L</strong> — Liskov Substitution</td><td>Subtypes must be usable anywhere the base type is, without breaking behavior.</td><td>Subclass that throws on a method the parent supports (e.g., immutable list extending list)</td></tr>
+  <tr><td><strong>I</strong> — Interface Segregation</td><td>No client should be forced to depend on methods it doesn't use.</td><td>One fat interface where half the implementations throw <code>UnsupportedOperationException</code></td></tr>
+  <tr><td><strong>D</strong> — Dependency Inversion</td><td>Depend on abstractions (interfaces), not concretions (concrete classes).</td><td>Service instantiates <code>new MySQLRepo()</code> directly — can't be mocked or swapped</td></tr>
+</table>
+<div class="code-block"><pre><span class="cm">// ❌ Violates SRP + OCP — one class, grows on every new report type</span>
+<span class="kw">class</span> ReportService {
+  <span class="kw">public</span> String generate(Report r) {
+    <span class="kw">if</span> (r.type == <span class="str">"PDF"</span>)    <span class="kw">return</span> buildPdf(r);
+    <span class="kw">if</span> (r.type == <span class="str">"CSV"</span>)    <span class="kw">return</span> buildCsv(r);
+    <span class="kw">if</span> (r.type == <span class="str">"HTML"</span>)   <span class="kw">return</span> buildHtml(r);
+    <span class="cm">// add new type → edit this file every time</span>
+  }
+}
+
+<span class="cm">// ✅ Fixes SRP, OCP, DIP — each formatter is independent, injected</span>
+<span class="kw">interface</span> ReportFormatter { String format(Report r); }
+
+<span class="kw">class</span> PdfFormatter  <span class="kw">implements</span> ReportFormatter { ... }
+<span class="kw">class</span> CsvFormatter  <span class="kw">implements</span> ReportFormatter { ... }
+<span class="kw">class</span> HtmlFormatter <span class="kw">implements</span> ReportFormatter { ... }
+
+<span class="kw">class</span> ReportService {
+  <span class="kw">private final</span> ReportFormatter formatter;           <span class="cm">// depends on abstraction</span>
+  <span class="kw">public</span> ReportService(ReportFormatter f) { <span class="kw">this</span>.formatter = f; }
+  <span class="kw">public</span> String generate(Report r) { <span class="kw">return</span> formatter.format(r); }
+}
+<span class="cm">// Adding XmlFormatter = new class. ReportService never changes.</span></pre></div>
+<div class="callout callout-amber">
+  <strong>Interview tip:</strong> Don't just recite the names — give a concrete example from code you've worked on. "We had a notification service that violated OCP — every new channel (email, SMS, Slack) required editing the core dispatcher. We refactored it to inject a list of <code>NotificationChannel</code> implementations, so new channels just require adding a new class."
+</div>
+
 <h2 class="section-title">== vs .equals() — Critical Distinction</h2>
 <table class="data-table">
   <tr><th>Operator</th><th>Compares</th><th>Use When</th></tr>
@@ -1009,30 +1048,70 @@ pages['java-memory'] = () => `
   <strong>Stack vs Heap:</strong> Stack stores primitives and object references (not the objects). Heap stores actual objects. Each thread has its own stack. All threads share the heap. Stack is auto-managed (LIFO); Heap is GC-managed.
 </div>
 
-<h2 class="section-title">Garbage Collection Algorithms</h2>
+<h2 class="section-title">Garbage Collection — How It Works</h2>
+<div class="callout callout-blue">
+  <strong>GC = automatic memory management.</strong> The collector scans the heap, identifies objects that are still reachable from <em>GC roots</em> (live references), and reclaims everything else. You never call <code>free()</code> in Java — the GC does it for you.
+</div>
+
+<h3 style="margin-top:14px;font-size:16px">Key Points to Know</h3>
+<ul class="content-list">
+  <li><strong>Stop-The-World (STW):</strong> When the GC runs certain phases, application threads are paused so the heap can be scanned safely. Modern collectors (G1, ZGC, Shenandoah) do most work <em>concurrently</em> with app threads — STW shrinks to sub-millisecond.</li>
+  <li><strong><code>System.gc()</code> is only a hint.</strong> The JVM decides when (and whether) to run GC. Don't rely on it — in production code, calling it is usually a smell.</li>
+  <li><strong>GC roots</strong> — the starting points for reachability: active thread stack frames, static fields of loaded classes, JNI references. Any object reachable from these is "live"; everything else is garbage.</li>
+</ul>
+
+<h3 style="margin-top:14px;font-size:16px">The Three Phases — Mark, Sweep, Compact</h3>
+<table class="data-table">
+  <tr><th>Phase</th><th>What happens</th></tr>
+  <tr><td><strong>1. Mark</strong></td><td>Traverse object graph from GC roots; mark every reachable object as "live". Anything unmarked is unreachable and eligible for collection.</td></tr>
+  <tr><td><strong>2. Sweep</strong> (a.k.a. Delete)</td><td>Reclaim memory occupied by unmarked objects. After this, the heap has "holes" where dead objects used to be — memory fragmentation.</td></tr>
+  <tr><td><strong>3. Compact</strong></td><td>Relocate surviving objects into contiguous memory to eliminate fragmentation. All references to moved objects are updated. New allocations can then be done quickly (bump-the-pointer).</td></tr>
+</table>
+
+<h3 style="margin-top:14px;font-size:16px">Heap Layout — Generational GC</h3>
+<div class="callout callout-blue">
+  <strong>Weak generational hypothesis:</strong> most objects die young. The heap is split into Young and Old generations so the GC can focus on the Young gen (where most garbage lives) and avoid scanning long-lived objects on every collection.
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:13px;line-height:1.8;margin:14px 0">
+┌─────────────────────────────── Heap ───────────────────────────────┐<br>
+│  <strong>Young Generation</strong>            │      <strong>Old Generation (Tenured)</strong>       │<br>
+│  ┌──────┬────┬────┐        │    long-lived objects, cached data    │<br>
+│  │ Eden │ S0 │ S1 │        │                                       │<br>
+│  └──────┴────┴────┘        │                                       │<br>
+└─────────────────────────────┴───────────────────────────────────────┘<br>
+New objects → <strong>Eden</strong>. Survivors of Minor GC → S0 / S1 (alternating).<br>
+Objects surviving enough cycles → <strong>promoted</strong> to Old Gen.
+</div>
+
+<h3 style="margin-top:14px;font-size:16px">GC Collectors — What to Pick</h3>
+<table class="data-table">
+  <tr><th>Collector</th><th>STW behavior</th><th>Best for</th><th>JVM flag</th></tr>
+  <tr><td><strong>Serial GC</strong></td><td>Full STW, single thread</td><td>Small heaps, single-core, embedded</td><td><code>-XX:+UseSerialGC</code></td></tr>
+  <tr><td><strong>Parallel GC</strong></td><td>STW, multi-threaded</td><td>Throughput-optimized batch jobs</td><td><code>-XX:+UseParallelGC</code></td></tr>
+  <tr><td><strong>CMS</strong> <em>(removed in Java 14)</em></td><td>Mostly concurrent, brief STW</td><td>Legacy low-pause apps</td><td><code>-XX:+UseConcMarkSweepGC</code></td></tr>
+  <tr><td><strong>G1 GC</strong> <em>(default since Java 9)</em></td><td>Short, predictable pauses</td><td>Most apps — balanced latency &amp; throughput</td><td><code>-XX:+UseG1GC</code></td></tr>
+  <tr><td><strong>ZGC</strong></td><td>&lt;1 ms, fully concurrent</td><td>Ultra low-latency, very large heaps (TB)</td><td><code>-XX:+UseZGC</code></td></tr>
+  <tr><td><strong>Shenandoah</strong></td><td>&lt;10 ms, concurrent compact</td><td>Low latency, heaps up to 100s of GB</td><td><code>-XX:+UseShenandoahGC</code></td></tr>
+</table>
+
+<div class="code-block"><pre><span class="cm">// Common GC tuning flags</span>
+-Xms512m -Xmx4g                     <span class="cm">// min / max heap size</span>
+-XX:NewRatio=2                      <span class="cm">// Old:Young size ratio (2:1 default)</span>
+-XX:SurvivorRatio=8                 <span class="cm">// Eden:Survivor ratio (8:1:1 default)</span>
+-XX:MaxGCPauseMillis=200            <span class="cm">// G1 target max pause (soft goal)</span>
+-Xlog:gc*:file=gc.log:time,uptime   <span class="cm">// Java 9+ GC logging</span>
+
+<span class="cm">// Historical flags (pre-Java 9)</span>
+-XX:+UseParNewGC                    <span class="cm">// parallel young-gen (used with CMS)</span>
+-XX:+UseParallelOldGC               <span class="cm">// parallel old-gen (Java 6+, now default with -UseParallelGC)</span></pre></div>
+
 <div class="accordion">
   <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">Young Generation GC (Minor GC)</div>
+    <div class="accordion-header" onclick="toggleAccordion(this)">Young-Gen (Minor) vs Old-Gen (Major) vs Full GC <span class="accordion-arrow">▼</span></div>
     <div class="accordion-body">
-      <p>New objects go to <strong>Eden</strong>. When Eden is full, a Minor GC runs. Surviving objects move to Survivor space (S0 or S1). After enough GC cycles, objects are promoted to <strong>Old Gen</strong>.</p>
-      <div class="callout callout-green">Minor GC is fast (small area). Most objects die young — "infant mortality" principle.</div>
-    </div>
-  </div>
-  <div class="accordion-item">
-    <div class="accordion-header" onclick="toggleAccordion(this)">GC Collectors</div>
-    <div class="accordion-body">
-      <table class="data-table">
-        <tr><th>Collector</th><th>Pauses</th><th>Best For</th></tr>
-        <tr><td>Serial GC</td><td>Full stop-the-world</td><td>Single-core, small heaps</td></tr>
-        <tr><td>Parallel GC</td><td>Multi-threaded STW</td><td>Throughput-optimized</td></tr>
-        <tr><td>G1 GC (default Java 9+)</td><td>Short, predictable</td><td>Balanced latency/throughput</td></tr>
-        <tr><td>ZGC / Shenandoah</td><td>&lt;1ms, concurrent</td><td>Low-latency apps (Java 15+)</td></tr>
-      </table>
-      <div class="code-block"><pre>// JVM flags to tune GC
--XX:+UseG1GC                     // use G1 (usually default)
--Xms512m -Xmx4g                  // min/max heap
--XX:MaxGCPauseMillis=200         // target max pause
--XX:+UseZGC                      // use ZGC (ultra-low latency)</pre></div>
+      <p><strong>Minor GC</strong> — runs when Eden fills up. Copies surviving objects from Eden + active Survivor into the other Survivor (copy collection). Fast: small area, most objects already dead. App threads briefly paused.</p>
+      <p><strong>Major GC</strong> — runs on the Old Generation only. Triggered when Old Gen fills up. Mark + sweep (+ optional compact). Much slower than Minor.</p>
+      <p><strong>Full GC</strong> — cleans up <em>both</em> Young and Old gens in a single cycle. Always STW, always expensive. Frequent Full GCs = memory leak or under-sized heap.</p>
     </div>
   </div>
 </div>

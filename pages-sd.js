@@ -930,6 +930,34 @@ ${quizHTML('bb-caching', [
   </table>
   <div class="callout callout-blue"><strong>Rule of thumb:</strong> If you need transactions or complex queries → SQL. If you need massive horizontal scale or schema flexibility → NoSQL. Most systems use BOTH.</div>
 
+
+
+  <h3 style="margin-top:16px;font-size:16px">SQL Joins</h3>
+  <p style="font-size:14px;color:var(--muted);margin-top:-4px">When you split data across normalized tables, you need joins to recombine it. Four standard join types cover 95% of cases.</p>
+  <table class="data-table">
+    <tr><th>Join Type</th><th>Returns</th><th>Picture (A ⋈ B)</th></tr>
+    <tr><td><strong>INNER JOIN</strong></td><td>Only rows with matches in <em>both</em> tables</td><td>A ∩ B</td></tr>
+    <tr><td><strong>LEFT (OUTER) JOIN</strong></td><td>All rows from left table + matched rows from right (NULLs where no match)</td><td>All of A + matching B</td></tr>
+    <tr><td><strong>RIGHT (OUTER) JOIN</strong></td><td>All rows from right table + matched rows from left (NULLs where no match)</td><td>All of B + matching A</td></tr>
+    <tr><td><strong>FULL (OUTER) JOIN</strong></td><td>All rows from both tables; NULL on whichever side has no match</td><td>A ∪ B</td></tr>
+  </table>
+  <div class="code-block"><pre><span class="cm">-- Schema: users(id, name), orders(id, user_id, amount)</span>
+
+<span class="cm">-- INNER JOIN: only users who have placed orders</span>
+SELECT u.name, o.amount
+  FROM users u INNER JOIN orders o ON u.id = o.user_id;
+
+<span class="cm">-- LEFT JOIN: every user, with their orders (NULL if none)</span>
+SELECT u.name, o.amount
+  FROM users u LEFT JOIN orders o ON u.id = o.user_id;
+
+<span class="cm">-- FULL JOIN: every user AND every order, matched where possible</span>
+SELECT u.name, o.amount
+  FROM users u FULL JOIN orders o ON u.id = o.user_id;</pre></div>
+  <div class="callout callout-amber">
+    <strong>Senior tip:</strong> JOIN columns should be indexed on <em>both</em> sides (usually foreign keys). A JOIN between two million-row tables without indexes forces a <em>nested loop over a full scan</em> — quadratic. With indexes, the planner picks hash-join or merge-join, which scale linearly. Always <code>EXPLAIN</code> joins on real data before shipping.
+  </div>
+
 ${quizHTML('bb-db', [
   { q: "When should you choose NoSQL over SQL?", opts: ["When you need massive horizontal scale, flexible schema, or a specific data model that doesn't fit tables", "Always for new projects", "NoSQL is always faster", "When you don't need transactions"], ans: 0, exp: "Default to SQL (PostgreSQL). Switch to NoSQL for: Cassandra (very high write throughput, multi-region), MongoDB (nested document structure), Redis (sub-ms caching), Neo4j (graph traversal). Most systems use BOTH — SQL for transactions, NoSQL for caching/search." }
 ])}
@@ -1332,6 +1360,15 @@ ${quizHTML('bb-acid', [
   <div class="callout callout-blue">
     An index is a separate data structure (B-Tree or Hash) that enables fast lookups without a full table scan. <strong>Trade-off:</strong> faster reads, slower writes (index must be updated on insert/update/delete).
   </div>
+
+  <h3 style="margin-top:16px;font-size:16px">Key Points to Remember</h3>
+  <ul class="content-list">
+    <li><strong>Indexes are materialized copies</strong> of one or more table columns, stored in a structure optimized for lookup. An index on <code>email</code> is essentially a sorted copy of all emails paired with row pointers.</li>
+    <li><strong>Space vs. time trade-off:</strong> indexes use disk space and make every write slower (write to table + update every index). You're buying read speed with write cost and storage.</li>
+    <li><strong>Index every column you filter on</strong> (WHERE, JOIN ON, ORDER BY, GROUP BY) — otherwise the planner falls back to a full table scan.</li>
+    <li><strong>Audit missing AND unused indexes.</strong> Missing ones cause slow queries. Unused ones waste disk and slow writes. <code>pg_stat_user_indexes.idx_scan = 0</code> flags unused indexes in PostgreSQL.</li>
+    <li><strong>PostgreSQL indexes store row pointers</strong> (CTIDs — physical heap location), not the rows themselves. Query uses the index to find CTIDs, then fetches rows from the heap — except for <em>index-only scans</em> where the index covers all needed columns.</li>
+  </ul>
   <table class="data-table">
     <tr><th>Type</th><th>Structure</th><th>Best for</th><th>Supports range?</th></tr>
     <tr><td><strong>B-Tree</strong></td><td>Balanced tree</td><td>Range queries, ORDER BY, most queries</td><td>✅ Yes</td></tr>
